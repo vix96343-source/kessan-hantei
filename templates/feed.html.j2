@@ -57,9 +57,8 @@ table#list a.pdf { background: none; border: 0; padding: 0; margin: 0 3px; font-
   color: inherit; text-decoration: none; }
 table#list a.pdf:hover { text-decoration: underline; }
 table#list tr.row:hover td { background: #232a40 !important; }
-/* 修正の行: オレンジの背景に白い文字 */
-table#list tr.row.rev td, table#list tr.row.rev td.c-pct { background: #c2410c !important; color: #ffffff; }
-table#list tr.row.rev:hover td { background: #d24d15 !important; }
+/* 修正の行: 文字をオレンジに(背景は普通の行と同じ) */
+table#list tr.row.rev td, table#list tr.row.rev td.c-pct { color: #e2551c; }
 table#list td.c-date { text-align: center; }
 td.c-per { color: var(--text); }
 td.c-name { max-width: 260px; overflow: hidden; text-overflow: ellipsis; }
