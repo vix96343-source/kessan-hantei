@@ -108,7 +108,27 @@ _DIVIDEND = re.compile(r"配当予想|配当の予想|増配|減配|無配|記�
 _REVISION = re.compile(r"修正|上方|下方|増配|減配|無配")
 _DIFF = re.compile(r"差異")
 _EARNINGS = re.compile(r"決算短信")
-_PRESENTATION = re.compile(r"決算説明|説明会資料|補足説明|補足資料|決算短信補足|決算補足")
+# 決算説明資料・補足資料。表題に「説明資料」と書かない会社も多い(決算の概要/参考資料/ハイライト/データブック等)
+_PRESENTATION = re.compile(
+    r"決算説明|説明会資料|説明資料|補足説明|補足資料|決算短信補足|決算補足|決算短信の補足"
+    r"|決算.{0,12}(概要|参考資料|ハイライト|プレゼンテーション|データ|資料)"
+    r"|業績.{0,8}(概要|説明|ハイライト|参考資料)"
+    r"|プレゼンテーション資料|データブック|ファクトブック|ファクトシート|fact ?book|presentation|financial results",
+    re.I)
+
+
+_RESULTS_CONTEXT = re.compile(r"決算|業績|四半期|上期|下期|中間期|通期|results|earnings|FY\d|\dQ", re.I)
+
+
+def _is_presentation(t: str) -> bool:
+    """決算の説明資料・補足資料か。説明会の開催案内・書き起こし・訂正や、CB発行等の補足説明は除く。"""
+    if not (_PRESENTATION.search(t) and _RESULTS_CONTEXT.search(t)):
+        return False
+    if re.search(r"開催|日程|延期|日の変更|日の決定|書き起こし|質疑|訂正|追加", t):
+        return False
+    if t.endswith("お知らせ") and not re.search(r"説明資料|説明会資料|プレゼンテーション資料|参考資料|補足資料", t):
+        return False
+    return True
 
 
 def classify_title(title: str) -> dict:
@@ -116,7 +136,9 @@ def classify_title(title: str) -> dict:
     t = title.strip()
     is_correction = bool(_CORRECTION.search(t))
 
-    if _PRESENTATION.search(t):
+    if _EARNINGS.search(t) and not re.search(r"補足|説明|参考資料|概要", t):
+        kind = "earnings_report"                    # 「決算短信」だけの表題は短信(資料と取り違えない)
+    elif _is_presentation(t):
         kind = "earnings_presentation"
     elif _EARNINGS.search(t):
         kind = "earnings_report"

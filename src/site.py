@@ -129,7 +129,7 @@ def details(r: dict, feat: dict | None) -> list[list]:
     return []
 
 
-def pdf_links(r: dict, presentations: dict[str, list[dict]], within_days: int = 7) -> list[dict]:
+def pdf_links(r: dict, presentations: dict[str, list[dict]], within_days: int = 14) -> list[dict]:
     """行に並べるPDF。決算: 短信 + 決算説明資料(短信と同日〜within_days日以内、最大2件)。修正: 修正。"""
     if r["kind"] != "earnings_report":
         return [{"label": "修正", "url": r["pdf_url"]}]

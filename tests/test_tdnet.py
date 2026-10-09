@@ -68,6 +68,19 @@ def test_parse_list_page():
     ("(訂正)適時開示書類「通期業績予想の修正(下方修正)に関するお知らせ」の一部訂正",
      "forecast_revision", True, "down"),
     ("自己株式の取得状況に関するお知らせ", "other", False, ""),
+    ("2027年2月期第2四半期 連結決算の概要", "earnings_presentation", False, ""),
+    ("2027年２月期　第２四半期　決算・参考資料", "earnings_presentation", False, ""),
+    ("2027年2月期　第2四半期（中間期）決算ハイライト", "earnings_presentation", False, ""),
+    ("2027年3月期 第2四半期 決算説明会資料", "earnings_presentation", False, ""),
+    ("FY2026 Q2 Financial Results Presentation", "earnings_presentation", False, ""),
+    ("2026年８月期 決算短信〔ＩＦＲＳ会計基準〕（連結）", "earnings_report", False, ""),
+    ("決算発表日の変更に関するお知らせ", "other", False, ""),
+    ("中期経営計画策定に関するお知らせ", "other", False, ""),
+    ("2027年3月期第2四半期決算説明会開催のお知らせ", "other", False, ""),
+    ("ユーロ円CB発行および自己株式取得に関する補足説明資料", "other", False, ""),
+    ("株主優待制度（分配型）に関する補足説明のお知らせ", "other", False, ""),
+    ("2026年８月期　決算説明資料に関するお知らせ", "earnings_presentation", False, ""),
+    ("2027年１月期 第２四半期決算説明会 書き起こし公開のお知らせ", "other", False, ""),
 ])
 def test_classify_title(title, kind, corr, direction):
     c = tdnet.classify_title(title)
