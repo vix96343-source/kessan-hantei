@@ -5,7 +5,7 @@ import logging
 import sys
 from datetime import date
 
-from . import calendar_fetch, disclosures, site, universe
+from . import calendar_fetch, disclosures, reaction, site, universe
 from .config import load_config, now_jst
 
 
@@ -26,11 +26,12 @@ def cmd_calendar(args, cfg):
 
 
 def cmd_run(args, cfg):
-    """dailyワークフロー: (週1) universe → calendar → (judge/report は未実装) → サイト再生成"""
+    """dailyワークフロー: (週1) universe → calendar → 開示後の株価反応 → サイト再生成"""
     today = now_jst().date()
     if args.force_universe or not universe.path().exists() or today.weekday() == cfg["universe"]["update_weekday"]:
         cmd_universe(args, cfg)
     cmd_calendar(args, cfg)
+    print(json.dumps(reaction.update(cfg), ensure_ascii=False))
     cmd_site(args, cfg)
 
 

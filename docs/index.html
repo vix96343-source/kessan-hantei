@@ -3,231 +3,1398 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>決算予定 | 決算持ち越し判定君</title>
-<style>:root {
-  --bg: #f6f7f9; --surface: #ffffff; --text: #1b1f24; --muted: #66707a; --line: #e3e6ea;
-  --accent: #5b4bd6; --accent-soft: #eeebff;
-  --up: #d1343b; --up-soft: #fdeaea; --down: #1f6fd1; --down-soft: #e7f0fc;
-  --neutral-soft: #eef0f2; --warn: #b26a00; --warn-soft: #fff4e0;
-}
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #111418; --surface: #1a1e23; --text: #e7eaee; --muted: #9aa3ad; --line: #2b3138;
-    --accent: #9d92ff; --accent-soft: #2a2550;
-    --up: #ff6b70; --up-soft: #3a1d20; --down: #6aa8ff; --down-soft: #182a42;
-    --neutral-soft: #262b31; --warn: #f0b04d; --warn-soft: #3a2c14;
-  }
+<title>適時開示 | 決算持ち越し判定君</title>
+<style>
+:root {
+  --bg: #05080b; --line: #1a2128; --head: #b9c2cc; --text: #e9eef2; --muted: #7f8a95;
+  --green: #2bea7f; --tab: #12202b;
 }
 * { box-sizing: border-box; }
 body {
   margin: 0; background: var(--bg); color: var(--text);
-  font: 14px/1.55 "Segoe UI", "Hiragino Sans", "Yu Gothic UI", "Meiryo", system-ui, sans-serif;
+  font: 600 16px/1.4 "Meiryo UI", "Yu Gothic UI", "Hiragino Sans", system-ui, sans-serif;
 }
-header {
-  position: sticky; top: 0; z-index: 2; background: var(--surface);
-  border-bottom: 1px solid var(--line); padding: 12px 16px;
+nav { display: flex; gap: 4px; padding: 10px 12px 0; max-width: 760px; margin: 0 auto; }
+nav a { color: var(--muted); text-decoration: none; padding: 6px 14px; border-radius: 6px 6px 0 0; font-size: 14px; }
+nav a[aria-current="page"] { color: var(--text); background: var(--tab); }
+main { max-width: 760px; margin: 0 auto; }
+table { width: 100%; border-collapse: collapse; table-layout: fixed; font-variant-numeric: tabular-nums; }
+th {
+  position: sticky; top: 0; background: var(--bg); color: var(--head); font-weight: 600;
+  padding: 8px 6px; border-bottom: 1px solid var(--line); font-size: 15px; z-index: 1;
 }
-.wrap { max-width: 1100px; margin: 0 auto; }
-h1 { font-size: 18px; margin: 0; letter-spacing: .02em; }
-.sub { color: var(--muted); font-size: 12px; margin-top: 2px; }
-main { padding: 16px; }
-.tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 14px; }
-.tile { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
-.tile .k { color: var(--muted); font-size: 12px; }
-.tile .v { font-size: 22px; font-weight: 650; font-variant-numeric: tabular-nums; }
-.tile.up .v { color: var(--up); } .tile.down .v { color: var(--down); }
-.controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
-.seg { max-width: 100%; overflow-x: auto; display: inline-flex; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
-.seg button { white-space: nowrap; flex: none;
-  border: 0; background: none; color: var(--text); padding: 7px 12px; font: inherit; cursor: pointer;
-  border-right: 1px solid var(--line);
+td { padding: 9px 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border-bottom: 1px solid var(--line); }
+td a { color: inherit; text-decoration: none; }
+.c-time { width: 76px; } .c-code { width: 60px; } .c-kind { width: 104px; } .c-pct { width: 72px; text-align: right; }
+th.c-pct { text-align: right; }
+tr.up td { color: var(--green); font-weight: 700; }
+tr.day td { color: var(--muted); font-size: 13px; padding: 12px 6px 4px; border-bottom: 0; }
+.warn { color: #ffb84d; }
+.none { color: var(--muted); font-weight: 400; }
+footer { color: var(--muted); font: 400 12px/1.6 system-ui, sans-serif; padding: 18px 12px 40px; max-width: 760px; margin: 0 auto; }
+@media (max-width: 480px) {
+  body { font-size: 13px; }
+  th { font-size: 12px; }
+  .c-time { width: 62px; } .c-code { width: 44px; } .c-kind { width: 70px; } .c-pct { width: 56px; }
+  td, th { padding-left: 3px; padding-right: 3px; }
 }
-.seg button:last-child { border-right: 0; }
-.seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
-input[type=search] {
-  flex: 1; min-width: 180px; padding: 7px 10px; border-radius: 8px; border: 1px solid var(--line);
-  background: var(--surface); color: var(--text); font: inherit;
-}
-.count { color: var(--muted); font-size: 12px; margin-left: auto; }
-.day { margin: 18px 0 6px; font-size: 13px; font-weight: 650; color: var(--muted); }
-.list { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
-.row {
-  display: grid; grid-template-columns: 48px 210px 120px 110px 1fr; gap: 10px; align-items: center;
-  padding: 8px 12px; border-top: 1px solid var(--line);
-}
-.row:first-child { border-top: 0; }
-.time { color: var(--muted); font-variant-numeric: tabular-nums; }
-.co { min-width: 0; }
-.co .code { font-weight: 650; font-variant-numeric: tabular-nums; margin-right: 6px; }
-.co .name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.co a { color: inherit; text-decoration: none; }
-.co a:hover .code { color: var(--accent); }
-.badge {
-  display: inline-block; font-size: 12px; padding: 2px 8px; border-radius: 999px;
-  background: var(--neutral-soft); white-space: nowrap;
-}
-.badge.rev { background: var(--accent-soft); color: var(--accent); }
-.badge.corr { background: var(--warn-soft); color: var(--warn); margin-left: 4px; }
-.dir { font-weight: 650; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.dir.up { color: var(--up); } .dir.down { color: var(--down); } .dir.none { color: var(--muted); font-weight: 400; }
-.title a { color: var(--text); text-decoration: none; }
-.title a:hover { text-decoration: underline; }
-.title .metric { color: var(--muted); font-size: 12px; margin-left: 6px; }
-.empty { padding: 32px; text-align: center; color: var(--muted); }
-footer { color: var(--muted); font-size: 12px; padding: 24px 16px 40px; text-align: center; }
-@media (max-width: 760px) {
-  .tiles { grid-template-columns: repeat(2, 1fr); }
-  .row { grid-template-columns: 44px 1fr auto; grid-template-areas: "time co dir" ". kind kind" ". title title"; row-gap: 3px; }
-  .time { grid-area: time; } .co { grid-area: co; } .dir { grid-area: dir; }
-  .kind { grid-area: kind; } .title { grid-area: title; }
-  .count { width: 100%; margin-left: 0; }
-}
-nav.tabs { display: flex; gap: 4px; margin-top: 8px; }
-nav.tabs a {
-  color: var(--muted); text-decoration: none; padding: 5px 12px; border-radius: 8px; font-size: 13px;
-}
-nav.tabs a[aria-current="page"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
-
-.cal .row { grid-template-columns: 210px 92px 70px 150px 1fr; }
-.mk { font-size: 12px; color: var(--muted); }
-.num { font-variant-numeric: tabular-nums; text-align: right; color: var(--muted); }
-.timing.warn { color: var(--warn); font-weight: 650; }
-.timing { font-size: 12px; color: var(--muted); white-space: nowrap; }
-.rev { font-size: 13px; }
-.note { background: var(--warn-soft); color: var(--warn); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; font-size: 13px; }
-label.chk { display: inline-flex; gap: 6px; align-items: center; color: var(--muted); font-size: 13px; cursor: pointer; }
-@media (max-width: 760px) {
-  .cal .row { grid-template-columns: 1fr auto; grid-template-areas: "co num" "meta meta" "rev rev"; row-gap: 2px; }
-  .cal .co { grid-area: co; } .cal .num { grid-area: num; }
-  .cal .meta { grid-area: meta; } .cal .rev { grid-area: rev; }
-  .cal .row > .timing, .cal .row > .mkcol { display: none; }
-}
-@media (min-width: 761px) { .cal .meta { display: none; } }
-
 </style>
 </head>
 <body>
-<header><div class="wrap">
-  <h1>決算予定</h1>
-  <div class="sub">JPX決算発表予定日 2026-10-09 15:03 取得 ・ ページ生成 2026-10-09 15:03</div>
-  <nav class="tabs">
-    <a href="index.html" aria-current="page">決算予定</a>
-    <a href="disclosures.html">適時開示</a>
-  </nav>
-</div></header>
-<main class="wrap">
+<nav>
+  <a href="index.html" aria-current="page">適時開示</a>
+  <a href="calendar.html">決算予定</a>
+</nav>
+<main>
+<table>
+  <colgroup><col class="c-time"><col class="c-code"><col><col class="c-kind"><col class="c-pct"></colgroup>
+  <thead><tr>
+    <th class="c-time">時刻</th><th class="c-code">コード</th><th>企業名</th>
+    <th class="c-kind">種別</th><th class="c-pct">上昇確度</th>
+  </tr></thead>
+  <tbody>
   
-  <section class="tiles" aria-label="サマリ">
-    <div class="tile"><div class="k">翌営業日 <span id="nbd"></span></div><div class="v" id="tNext">–</div></div>
-    <div class="tile"><div class="k">5営業日合計</div><div class="v" id="tAll">–</div></div>
-    <div class="tile up"><div class="k">90日内に上方修正</div><div class="v" id="tUp">–</div></div>
-    <div class="tile down"><div class="k">90日内に下方修正</div><div class="v" id="tDown">–</div></div>
-  </section>
-
-  <div class="controls">
-    <div class="seg" id="dateSeg" role="group" aria-label="発表日"></div>
-    <div class="seg" id="mktSeg" role="group" aria-label="市場">
-      <button data-v="all">全市場</button>
-      <button data-v="プライム">プライム</button>
-      <button data-v="スタンダード">スタンダード</button>
-    </div>
-    <label class="chk"><input type="checkbox" id="liq"> 売買代金 1.0億円/日 以上</label>
-    <input type="search" id="q" placeholder="コード・会社名・業種で検索" aria-label="検索">
-    <span class="count" id="count"></span>
-  </div>
-
-  <div id="out" class="cal"></div>
+    <tr class="day"><td colspan="5">10/9(金)</td></tr>
+    
+    <tr class="">
+      
+      <td>T15:00</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=1997" target="_blank" rel="noopener">1997</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261008547970.pdf" target="_blank" rel="noopener" title="2026年8月期決算短信〔日本基準〕（非連結）">暁飯島</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:00</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=2747" target="_blank" rel="noopener">2747</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261009548276.pdf" target="_blank" rel="noopener" title="2027年２月期 第２四半期（中間期）決算短信〔日本基準〕(非連結)">北雄ラッキー</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="up">
+      
+      <td>T15:00</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3201" target="_blank" rel="noopener">3201</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261006546643.pdf" target="_blank" rel="noopener" title="配当予想の修正（創立130周年記念配当）に関するお知らせ">ニッケ</a></td>
+      <td>配当</td>
+      <td class="c-pct">▲58%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:00</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3201" target="_blank" rel="noopener">3201</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120260902530837.pdf" target="_blank" rel="noopener" title="2026年11月期　第３四半期決算短信〔日本基準〕（連結）">ニッケ</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:00</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=7713" target="_blank" rel="noopener">7713</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261009548383.pdf" target="_blank" rel="noopener" title="2027年５月期 第１四半期決算短信〔日本基準〕（連結）">シグマ光機</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="up">
+      
+      <td>T15:00</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=7713" target="_blank" rel="noopener">7713</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261006546382.pdf" target="_blank" rel="noopener" title="2027年５月期 第２四半期（中間期）業績予想及び通期業績予想の修正に関するお知らせ">シグマ光機</a></td>
+      <td>修正↑</td>
+      <td class="c-pct">▲79%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T14:00</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=8127" target="_blank" rel="noopener">8127</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261007547358.pdf" target="_blank" rel="noopener" title="2026年8月期 決算短信〔日本基準〕（連結）">ヤマトインター</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T14:00</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=9313" target="_blank" rel="noopener">9313</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261008547874.pdf" target="_blank" rel="noopener" title="2026年11月期　第３四半期決算短信［日本基準］(連結)">丸八倉</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T14:00</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=9974" target="_blank" rel="noopener">9974</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261008548092.pdf" target="_blank" rel="noopener" title="2027年２月期第２四半期（中間期）決算短信〔日本基準〕(連結)">ベルク</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T14:00</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=9974" target="_blank" rel="noopener">9974</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261008548085.pdf" target="_blank" rel="noopener" title="通期連結業績予想の修正に関するお知らせ">ベルク</a></td>
+      <td>修正</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T14:00</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=9982" target="_blank" rel="noopener">9982</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261008548224.pdf" target="_blank" rel="noopener" title="2027年２月期　第２四半期（中間期）決算短信〔日本基準〕(連結)">タキヒヨー</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T13:00</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=9835" target="_blank" rel="noopener">9835</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261006546579.pdf" target="_blank" rel="noopener" title="2027年２月期　第２四半期（中間期）決算短信〔日本基準〕">ジュンテンド</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="up">
+      
+      <td>T12:00</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3048" target="_blank" rel="noopener">3048</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261008548288.pdf" target="_blank" rel="noopener" title="剰余金の配当（増配）に関するお知らせ">ビックカメラ</a></td>
+      <td>増配</td>
+      <td class="c-pct">▲56%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T12:00</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3048" target="_blank" rel="noopener">3048</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261008548252.pdf" target="_blank" rel="noopener" title="2026年８月期 決算短信〔日本基準〕（連結）">ビックカメラ</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T12:00</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=4440" target="_blank" rel="noopener">4440</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261008547659.pdf" target="_blank" rel="noopener" title="2026年８月期  決算短信〔日本基準〕（連結）">ヴィッツ</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T12:00</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=9381" target="_blank" rel="noopener">9381</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261001544135.pdf" target="_blank" rel="noopener" title="2027年2月期　第2四半期（中間期）決算短信〔日本基準〕(連結)">エーアイテイー</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+  
+    <tr class="day"><td colspan="5">10/8(木)</td></tr>
+    
+    <tr class="">
+      
+      <td>T17:00</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=7137" target="_blank" rel="noopener">7137</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261007547504.pdf" target="_blank" rel="noopener" title="2026年８月期　決算短信〔日本基準〕（非連結）">Ｐ－グラントマト</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T16:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=2687" target="_blank" rel="noopener">2687</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261008547896.pdf" target="_blank" rel="noopener" title="業績予想の修正に関するお知らせ">ＣＶＳベイ</a></td>
+      <td>修正↓</td>
+      <td class="c-pct">▼34%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T16:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=4543" target="_blank" rel="noopener">4543</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261008548015.pdf" target="_blank" rel="noopener" title="主要取引先との供給契約の解除に伴う損失等の計上、および2027年3月期通期連結業績予想の修正に関するお知らせ">テルモ</a></td>
+      <td>修正↓</td>
+      <td class="c-pct">▼34%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T16:00</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3907" target="_blank" rel="noopener">3907</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261006546777.pdf" target="_blank" rel="noopener" title="2026年11月期 通期業績予想の修正に関するお知らせ">シリコンスタジオ</a></td>
+      <td>修正</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T16:00</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3907" target="_blank" rel="noopener">3907</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261006546736.pdf" target="_blank" rel="noopener" title="2026年11月期 第３四半期決算短信〔日本基準〕(非連結)">シリコンスタジオ</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="up">
+      
+      <td>T16:00</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=4918" target="_blank" rel="noopener">4918</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261008547656.pdf" target="_blank" rel="noopener" title="業績予想の修正に関するお知らせ">アイビー</a></td>
+      <td>修正↑</td>
+      <td class="c-pct">▲79%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T16:00</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=7544" target="_blank" rel="noopener">7544</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261007547469.pdf" target="_blank" rel="noopener" title="2027年２月期 第２四半期（中間期）決算短信〔日本基準〕（連結）">スリーエフ</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T16:00</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=8125" target="_blank" rel="noopener">8125</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261007547390.pdf" target="_blank" rel="noopener" title="2027年２月期 第２四半期（中間期）決算短信〔日本基準〕（連結）">ワキタ</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T16:00</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=8918" target="_blank" rel="noopener">8918</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261008547947.pdf" target="_blank" rel="noopener" title="2027年２月期 第２四半期（中間期）決算短信〔日本基準〕（連結）">ランド</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T16:00</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=9765" target="_blank" rel="noopener">9765</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261007547258.pdf" target="_blank" rel="noopener" title="2027年５月期  第１四半期決算短信〔日本基準〕（連結）">オオバ</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T16:00</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=9861" target="_blank" rel="noopener">9861</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261008547781.pdf" target="_blank" rel="noopener" title="2027年2月期第2四半期（中間期）決算短信〔日本基準〕(連結)">吉野家ＨＤ</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="up">
+      
+      <td>T16:00</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=9861" target="_blank" rel="noopener">9861</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261008547756.pdf" target="_blank" rel="noopener" title="剰余金の配当（中間配当の増配）および配当予想の修正に関するお知らせ">吉野家ＨＤ</a></td>
+      <td>増配</td>
+      <td class="c-pct">▲56%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T16:00</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=9861" target="_blank" rel="noopener">9861</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261008547737.pdf" target="_blank" rel="noopener" title="2027年２月期 第２四半期（中間期)の連結業績予想と実績との差異および通期連結業績予想の修正に関するお知らせ">吉野家ＨＤ</a></td>
+      <td>修正</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="up">
+      
+      <td>T15:31</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=9983" target="_blank" rel="noopener">9983</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261008547876.pdf" target="_blank" rel="noopener" title="2026年８月期の配当予想の修正に関するお知らせ">ファーストリテ</a></td>
+      <td>配当</td>
+      <td class="c-pct">▲58%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:31</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=9983" target="_blank" rel="noopener">9983</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261008547647.pdf" target="_blank" rel="noopener" title="2026年８月期 決算短信〔ＩＦＲＳ会計基準〕（連結）">ファーストリテ</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=2341" target="_blank" rel="noopener">2341</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120260924539705.pdf" target="_blank" rel="noopener" title="2027年２月期第２四半期（中間期）決算短信〔日本基準〕(連結)">アルバイトタイ</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=2408" target="_blank" rel="noopener">2408</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261006546386.pdf" target="_blank" rel="noopener" title="2026年12月期第３四半期決算短信〔日本基準〕(連結)">ＫＧ情報</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=2809" target="_blank" rel="noopener">2809</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261005546139.pdf" target="_blank" rel="noopener" title="2026年11月期 第3四半期決算短信〔日本基準〕（連結）">キユーピー</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3382" target="_blank" rel="noopener">3382</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261007547460.pdf" target="_blank" rel="noopener" title="2027年2月期 第2四半期（中間期）決算短信〔日本基準〕（連結）">７＆ｉＨＤ</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3490" target="_blank" rel="noopener">3490</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261008547741.pdf" target="_blank" rel="noopener" title="2027年2月期 第2四半期（中間期）決算短信〔日本基準〕（連結）">アズ企画設計</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="up">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3627" target="_blank" rel="noopener">3627</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261008547853.pdf" target="_blank" rel="noopener" title="2027年２月期第２四半期（中間期）の連結業績予想の修正に関するお知らせ">テクミラ</a></td>
+      <td>修正↑</td>
+      <td class="c-pct">▲79%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3824" target="_blank" rel="noopener">3824</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120260925540271.pdf" target="_blank" rel="noopener" title="2027年５月期第１四半期決算短信〔日本基準〕（非連結）">Ｑ－メディア５</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="up">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=4317" target="_blank" rel="noopener">4317</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261007547224.pdf" target="_blank" rel="noopener" title="業績予想の修正に関するお知らせ">レイ</a></td>
+      <td>修正↑</td>
+      <td class="c-pct">▲79%</td>
+    </tr>
+    
+    <tr class="up">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=4361" target="_blank" rel="noopener">4361</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261007547096.pdf" target="_blank" rel="noopener" title="配当予想の修正（増配）に関するお知らせ">川口化</a></td>
+      <td>増配</td>
+      <td class="c-pct">▲56%</td>
+    </tr>
+    
+    <tr class="up">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=4361" target="_blank" rel="noopener">4361</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261007547093.pdf" target="_blank" rel="noopener" title="2026年11月期通期連結業績予想に関するお知らせ">川口化</a></td>
+      <td>予想</td>
+      <td class="c-pct">▲54%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=4361" target="_blank" rel="noopener">4361</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261007547084.pdf" target="_blank" rel="noopener" title="2026年11月期 第３四半期決算短信〔日本基準〕(連結)">川口化</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=4728" target="_blank" rel="noopener">4728</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261008547872.pdf" target="_blank" rel="noopener" title="2026年８月期　決算短信〔日本基準〕（連結）">トーセ</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="up">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=4763" target="_blank" rel="noopener">4763</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261006546903.pdf" target="_blank" rel="noopener" title="業績予想及び配当予想の修正（増配）に関するお知らせ">Ｃ＆Ｒ社</a></td>
+      <td>修正↑増配</td>
+      <td class="c-pct">▲61%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=4763" target="_blank" rel="noopener">4763</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261006546876.pdf" target="_blank" rel="noopener" title="2027年２月期 第２四半期（中間期）決算短信〔日本基準〕（連結）">Ｃ＆Ｒ社</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=4825" target="_blank" rel="noopener">4825</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261007547547.pdf" target="_blank" rel="noopener" title="2027年５月期 第１四半期決算短信〔日本基準〕（連結）">ＷＮＩウェザー</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=6323" target="_blank" rel="noopener">6323</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261007547498.pdf" target="_blank" rel="noopener" title="通期連結業績予想の修正及び配当予想の修正に関するお知らせ">ローツェ</a></td>
+      <td>修正配当</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=6323" target="_blank" rel="noopener">6323</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261007547481.pdf" target="_blank" rel="noopener" title="2027年2月期 第2四半期（中間期）決算短信〔日本基準〕(連結)">ローツェ</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=7487" target="_blank" rel="noopener">7487</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120260929541858.pdf" target="_blank" rel="noopener" title="2027年５月期　第１四半期決算短信〔日本基準〕（連結）">小津産業</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="up">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=7513" target="_blank" rel="noopener">7513</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261007547446.pdf" target="_blank" rel="noopener" title="剰余金の配当（増配）に関するお知らせ">コジマ</a></td>
+      <td>増配</td>
+      <td class="c-pct">▲56%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=7513" target="_blank" rel="noopener">7513</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120260924539741.pdf" target="_blank" rel="noopener" title="2026年８月期 決算短信〔日本基準〕（非連結）">コジマ</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=7649" target="_blank" rel="noopener">7649</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261008548014.pdf" target="_blank" rel="noopener" title="業績予想の修正に関するお知らせ">スギＨＤ</a></td>
+      <td>修正</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=7649" target="_blank" rel="noopener">7649</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120260929541653.pdf" target="_blank" rel="noopener" title="2027年２月期 第２四半期（中間期）決算短信〔日本基準〕（連結）">スギＨＤ</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="up">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=7818" target="_blank" rel="noopener">7818</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261007547585.pdf" target="_blank" rel="noopener" title="通期業績予想の修正及び配当予想の修正（増配）に関するお知らせ">トランザクション</a></td>
+      <td>修正↑増配</td>
+      <td class="c-pct">▲61%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=8016" target="_blank" rel="noopener">8016</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261007547260.pdf" target="_blank" rel="noopener" title="2027年２月期 第２四半期（中間期）決算短信〔日本基準〕(連結)">オンワードＨＤ</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="up">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=8016" target="_blank" rel="noopener">8016</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261007547060.pdf" target="_blank" rel="noopener" title="配当予想の修正(創業100周年記念配当の実施)に関するお知らせ">オンワードＨＤ</a></td>
+      <td>配当</td>
+      <td class="c-pct">▲58%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=9414" target="_blank" rel="noopener">9414</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261007547248.pdf" target="_blank" rel="noopener" title="2026年８月期 決算短信〔日本基準〕(連結)">日本ＢＳ放送</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=9716" target="_blank" rel="noopener">9716</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261007547464.pdf" target="_blank" rel="noopener" title="2027年２月期 第２四半期（中間期）決算短信〔日本基準〕（連結）">乃村工芸</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=9720" target="_blank" rel="noopener">9720</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261007547180.pdf" target="_blank" rel="noopener" title="2026年11月期 第３四半期決算短信〔日本基準〕（非連結）">ニューグランド</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=9903" target="_blank" rel="noopener">9903</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261007547023.pdf" target="_blank" rel="noopener" title="2027年２月期第２四半期（中間期）決算短信〔日本基準〕(非連結)">カンセキ</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=9946" target="_blank" rel="noopener">9946</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261007547479.pdf" target="_blank" rel="noopener" title="2027年２月期 通期連結業績予想の修正に関するお知らせ">ミニストップ</a></td>
+      <td>修正↓</td>
+      <td class="c-pct">▼34%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=9946" target="_blank" rel="noopener">9946</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261007547463.pdf" target="_blank" rel="noopener" title="2027年２月期第２四半期（中間期）決算短信〔日本基準〕(連結)">ミニストップ</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:00</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=8203" target="_blank" rel="noopener">8203</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120260923539078.pdf" target="_blank" rel="noopener" title="2027年2月期　第2四半期（中間期）決算短信〔日本基準〕（連結）">ＭｒＭａｘＨＤ</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:00</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=8278" target="_blank" rel="noopener">8278</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261007547428.pdf" target="_blank" rel="noopener" title="2027年２月期　第２四半期（中間期）決算短信〔日本基準〕（連結）">フジ</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="up">
+      
+      <td>T15:00</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=9857" target="_blank" rel="noopener">9857</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261007547311.pdf" target="_blank" rel="noopener" title="2027年３月期第２四半期(中間期)及び通期業績予想の修正に関するお知らせ">英和</a></td>
+      <td>修正↑</td>
+      <td class="c-pct">▲61%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T14:00</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=2303" target="_blank" rel="noopener">2303</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261006546678.pdf" target="_blank" rel="noopener" title="2027年５月期第１四半期決算短信〔日本基準〕(非連結)">ドーン</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T14:00</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=4995" target="_blank" rel="noopener">4995</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261007547290.pdf" target="_blank" rel="noopener" title="2026年11月期　第３四半期決算短信〔日本基準〕（連結）">サンケイ化</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T11:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=8194" target="_blank" rel="noopener">8194</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261001544866.pdf" target="_blank" rel="noopener" title="2027年２月期　第２四半期（中間期）決算短信〔日本基準〕（連結）">ライフコーポ</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T11:00</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=179A" target="_blank" rel="noopener">179A</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261008547725.pdf" target="_blank" rel="noopener" title="2026年8月期（2026年2月25日～2026年8月24日）決算短信">ＧＸ超長期米国債Ｈ</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T11:00</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=180A" target="_blank" rel="noopener">180A</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261008547731.pdf" target="_blank" rel="noopener" title="2026年8月期（2026年2月25日～2026年8月24日）決算短信">ＧＸ超長期米国債</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T11:00</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=234A" target="_blank" rel="noopener">234A</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261008547734.pdf" target="_blank" rel="noopener" title="2026年8月期（2026年2月25日～2026年8月24日）決算短信">ＧＸＣＦキング日株</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T11:00</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=235A" target="_blank" rel="noopener">235A</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261008547727.pdf" target="_blank" rel="noopener" title="2026年8月期（2026年2月25日～2026年8月24日）決算短信">ＧＸ高配当３０日株</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T11:00</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=2864" target="_blank" rel="noopener">2864</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261008547698.pdf" target="_blank" rel="noopener" title="2026年8月期（2026年2月25日～2026年8月24日）決算短信">ＧＸロジリート</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T11:00</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=512A" target="_blank" rel="noopener">512A</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261008547739.pdf" target="_blank" rel="noopener" title="2026年8月期（2026年2月24日～2026年8月24日）決算短信">ＧＸステコ＆トークン</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T11:00</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=513A" target="_blank" rel="noopener">513A</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261008547742.pdf" target="_blank" rel="noopener" title="2026年8月期（2026年2月24日～2026年8月24日）決算短信">ＧＸ防衛テック日株</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+  
+    <tr class="day"><td colspan="5">10/7(水)</td></tr>
+    
+    <tr class="">
+      
+      <td>T17:00</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=4920" target="_blank" rel="noopener">4920</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261002545190.pdf" target="_blank" rel="noopener" title="業績予想の修正に関するお知らせ">日本色材</a></td>
+      <td>修正↓</td>
+      <td class="c-pct">▼34%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T16:00</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=428A" target="_blank" rel="noopener">428A</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261007547344.pdf" target="_blank" rel="noopener" title="2026年８月期 決算短信〔ＩＦＲＳ〕（連結）">サイプレスＨＤ</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T16:00</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=6407" target="_blank" rel="noopener">6407</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261006546499.pdf" target="_blank" rel="noopener" title="2027年３月期第１四半期決算短信〔日本基準〕（連結）（公認会計士等による期中レビューの完了）">ＣＫＤ</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=2341" target="_blank" rel="noopener">2341</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261006546809.pdf" target="_blank" rel="noopener" title="2027年２月期通期連結業績予想の修正に関するお知らせ">アルバイトタイ</a></td>
+      <td>修正</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=2670" target="_blank" rel="noopener">2670</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261006546823.pdf" target="_blank" rel="noopener" title="2027年２月期第２四半期（中間期）決算短信〔日本基準〕(連結)">ＡＢＣマート</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="up">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=2670" target="_blank" rel="noopener">2670</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261006546783.pdf" target="_blank" rel="noopener" title="業績予想の修正に関するお知らせ">ＡＢＣマート</a></td>
+      <td>修正↑</td>
+      <td class="c-pct">▲61%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=2918" target="_blank" rel="noopener">2918</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261006546869.pdf" target="_blank" rel="noopener" title="通期連結業績予想の修正に関するお知らせ">わらべや</a></td>
+      <td>修正</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=2918" target="_blank" rel="noopener">2918</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261006546861.pdf" target="_blank" rel="noopener" title="2027年２月期  第２四半期（中間期）決算短信〔日本基準〕（連結）">わらべや</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3391" target="_blank" rel="noopener">3391</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261006546807.pdf" target="_blank" rel="noopener" title="2027年２月期 第２四半期（中間期）決算短信〔日本基準〕（連結）">ツルハＨＤ</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="up">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3723" target="_blank" rel="noopener">3723</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261007546971.pdf" target="_blank" rel="noopener" title="業績予想の修正に関するお知らせ">Ｇ－ファルコム</a></td>
+      <td>修正↑</td>
+      <td class="c-pct">▲79%</td>
+    </tr>
+    
+    <tr class="up">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3723" target="_blank" rel="noopener">3723</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261006546950.pdf" target="_blank" rel="noopener" title="配当予想の修正（増配及び「軌跡シリーズ1,000万本突破」記念配当）に関するお知らせ">Ｇ－ファルコム</a></td>
+      <td>増配</td>
+      <td class="c-pct">▲56%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=5932" target="_blank" rel="noopener">5932</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261006546363.pdf" target="_blank" rel="noopener" title="2027年5月期 第1四半期決算短信〔日本基準〕(連結)">三協立山</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=6093" target="_blank" rel="noopener">6093</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261007547046.pdf" target="_blank" rel="noopener" title="2027年２月期 第２四半期（中間期）決算短信〔日本基準〕(連結)">ミトラＧ</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=6255" target="_blank" rel="noopener">6255</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261007547128.pdf" target="_blank" rel="noopener" title="2026年8月期 決算短信〔日本基準〕（連結）">Ｇ－ＮＰＣ</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="up">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=7137" target="_blank" rel="noopener">7137</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261007547015.pdf" target="_blank" rel="noopener" title="剰余金の配当（期末配当無配）に関するお知らせ">Ｐ－グラントマト</a></td>
+      <td>減配</td>
+      <td class="c-pct">▲60%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=7137" target="_blank" rel="noopener">7137</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261007547002.pdf" target="_blank" rel="noopener" title="通期業績予想の修正（下方修正）に関するお知らせ">Ｐ－グラントマト</a></td>
+      <td>修正↓</td>
+      <td class="c-pct">▼40%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=8166" target="_blank" rel="noopener">8166</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261002545176.pdf" target="_blank" rel="noopener" title="2027年2月期　第2四半期(中間期)決算短信〔日本基準〕（非連結）">タカキュー</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=9846" target="_blank" rel="noopener">9846</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261006546368.pdf" target="_blank" rel="noopener" title="2027年2月期　第2四半期（中間期）決算短信〔日本基準〕（連結）">天満屋ス</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+  
+    <tr class="day"><td colspan="5">10/6(火)</td></tr>
+    
+    <tr class="">
+      
+      <td>T17:00</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=402A" target="_blank" rel="noopener">402A</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261006546645.pdf" target="_blank" rel="noopener" title="2027年５月期 通期業績予想の修正及び特別損失の計上に関するお知らせ">Ｇ－アクセルスペース</a></td>
+      <td>修正↓</td>
+      <td class="c-pct">▼34%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T16:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=2734" target="_blank" rel="noopener">2734</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261005546285.pdf" target="_blank" rel="noopener" title="2026年11月期 第３四半期決算短信〔日本基準〕（連結）">サーラ</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="up">
+      
+      <td>T16:00</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=6193" target="_blank" rel="noopener">6193</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261006546318.pdf" target="_blank" rel="noopener" title="2027年３月期第２四半期（中間期）業績予想の修正に関するお知らせ">Ｇ－バーチャレクス</a></td>
+      <td>修正↑</td>
+      <td class="c-pct">▲79%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T16:00</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=6469" target="_blank" rel="noopener">6469</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261006546330.pdf" target="_blank" rel="noopener" title="2027 年２月期第２四半期（中間期）連結業績予想と実績との差異及び通期業績予想の修正並びに期末配当予想の修正（増配）に関するお知らせ">放電精密</a></td>
+      <td>修正↑増配</td>
+      <td class="c-pct">▼43%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T16:00</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=6469" target="_blank" rel="noopener">6469</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261002545584.pdf" target="_blank" rel="noopener" title="2027年２月期 第２四半期（中間期）決算短信〔日本基準〕(連結)">放電精密</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T16:00</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=9444" target="_blank" rel="noopener">9444</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261006546735.pdf" target="_blank" rel="noopener" title="2026年５月９日期首期 第１四半期決算短信の開示が期末後45日を超えたことに関するお知らせ">トーシンＨＤ</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T16:00</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=9444" target="_blank" rel="noopener">9444</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261005546296.pdf" target="_blank" rel="noopener" title="2026年５月９日期首期 第１四半期 決算短信〔日本基準〕（連結）">トーシンＨＤ</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=1377" target="_blank" rel="noopener">1377</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120260930543256.pdf" target="_blank" rel="noopener" title="2027年５月期第１四半期決算短信[日本基準]（連結）">サカタのタネ</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=2726" target="_blank" rel="noopener">2726</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261005546065.pdf" target="_blank" rel="noopener" title="2027年２月期 第２四半期（中間期）決算短信〔日本基準〕(連結)">パルグループＨＤ</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3396" target="_blank" rel="noopener">3396</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261006546338.pdf" target="_blank" rel="noopener" title="2027年2月期 第2四半期（中間期）決算短信〔日本基準〕（連結）">フェリシモ</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=4760" target="_blank" rel="noopener">4760</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120260929542087.pdf" target="_blank" rel="noopener" title="通期業績予想の修正に関するお知らせ">アルファ</a></td>
+      <td>修正↓</td>
+      <td class="c-pct">▼34%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=5243" target="_blank" rel="noopener">5243</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261006546607.pdf" target="_blank" rel="noopener" title="2026年11月期第3四半期 決算短信〔日本基準〕（連結）">Ｇ－ｎｏｔｅ</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=6496" target="_blank" rel="noopener">6496</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261002544993.pdf" target="_blank" rel="noopener" title="2027年５月期第１四半期決算短信〔日本基準〕（連結）">中北製作所</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="up">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=6814" target="_blank" rel="noopener">6814</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261005546199.pdf" target="_blank" rel="noopener" title="第２四半期（中間期）連結業績予想の修正に関するお知らせ">古野電気</a></td>
+      <td>修正↑</td>
+      <td class="c-pct">▲79%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=7352" target="_blank" rel="noopener">7352</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261006546534.pdf" target="_blank" rel="noopener" title="連結業績予想の修正に関するお知らせ">Ｇ－ＴＷＯＳＴＯＮＥ</a></td>
+      <td>修正↓</td>
+      <td class="c-pct">▼34%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:00</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=2659" target="_blank" rel="noopener">2659</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261005545888.pdf" target="_blank" rel="noopener" title="2027年２月期第２四半期（中間期）決算短信〔日本基準〕(連結)">サンエー</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T11:00</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=8011" target="_blank" rel="noopener">8011</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261006546359.pdf" target="_blank" rel="noopener" title="2027年２月期 第２四半期（中間期）決算短信〔日本基準〕（連結）">三陽商</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="up">
+      
+      <td>T11:00</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=8011" target="_blank" rel="noopener">8011</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120260930543492.pdf" target="_blank" rel="noopener" title="配当予想の修正に関するお知らせ">三陽商</a></td>
+      <td>配当</td>
+      <td class="c-pct">▲58%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T10:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=7434" target="_blank" rel="noopener">7434</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261006546389.pdf" target="_blank" rel="noopener" title="2027年5月期第1四半期決算短信の開示が四半期末後45日を超えることに関するお知らせ">オータケ</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+  
+    <tr class="day"><td colspan="5">10/5(月)</td></tr>
+    
+    <tr class="">
+      
+      <td>T17:05</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=4390" target="_blank" rel="noopener">4390</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261002545592.pdf" target="_blank" rel="noopener" title="2027年３月期第１四半期決算短信〔日本基準〕（連結）（公認会計士等による期中レビューの完了）">ｉｐｓ</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:40</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=7427" target="_blank" rel="noopener">7427</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261005545723.pdf" target="_blank" rel="noopener" title="2027年２月期第２四半期（中間期）業績予想の修正に関するお知らせ">エコーＴＤ</a></td>
+      <td>修正↓</td>
+      <td class="c-pct">▼34%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=2789" target="_blank" rel="noopener">2789</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261002545369.pdf" target="_blank" rel="noopener" title="2027年２月期　第２四半期（中間期）決算短信〔日本基準〕（連結）">カルラ</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=2789" target="_blank" rel="noopener">2789</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261002545363.pdf" target="_blank" rel="noopener" title="2027年２月期第２四半期（中間期）連結業績予想値と実績値との差異および通期連結業績予想修正に関するお知らせ">カルラ</a></td>
+      <td>修正</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3148" target="_blank" rel="noopener">3148</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261002545520.pdf" target="_blank" rel="noopener" title="2027年5月期　第1四半期決算短信〔日本基準〕(連結)">クリエイトＳＤＨ</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3186" target="_blank" rel="noopener">3186</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261002545461.pdf" target="_blank" rel="noopener" title="2026年11月期 第３四半期決算短信〔日本基準〕(連結)">ネクステージ</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3377" target="_blank" rel="noopener">3377</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120260908533161.pdf" target="_blank" rel="noopener" title="2026年11月期　第３四半期決算短信〔日本基準〕(連結)">バイク王</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3498" target="_blank" rel="noopener">3498</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261002545556.pdf" target="_blank" rel="noopener" title="2026年8月期 決算短信〔日本基準〕（連結）">霞ヶ関キャピタル</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3612" target="_blank" rel="noopener">3612</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261001544846.pdf" target="_blank" rel="noopener" title="2027年２月期 第２四半期（中間期）決算短信〔ＩＦＲＳ〕（連結）">ワールド</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=6474" target="_blank" rel="noopener">6474</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261002545509.pdf" target="_blank" rel="noopener" title="2026年11月期  第３四半期決算短信〔日本基準〕（連結）">不二越</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=7630" target="_blank" rel="noopener">7630</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261005545816.pdf" target="_blank" rel="noopener" title="2027年2月期 第2四半期（中間期）決算短信〔日本基準〕（連結）">壱番屋</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=7679" target="_blank" rel="noopener">7679</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120260925540070.pdf" target="_blank" rel="noopener" title="2027年２月期　第２四半期（中間期）決算短信〔日本基準〕(連結)">薬王堂ＨＤ</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=9558" target="_blank" rel="noopener">9558</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261005545900.pdf" target="_blank" rel="noopener" title="2026年11月期第３四半期決算短信〔日本基準〕(非連結)">Ｇ－ジャパニアス</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T15:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=9793" target="_blank" rel="noopener">9793</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261003544976.pdf" target="_blank" rel="noopener" title="2027年２月期第２四半期（中間期）決算短信〔日本基準〕(連結)">ダイセキ</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T14:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=8923" target="_blank" rel="noopener">8923</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261005545693.pdf" target="_blank" rel="noopener" title="2026年11月期 第３四半期決算短信〔ＩＦＲＳ〕（連結）">トーセイ</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="up">
+      
+      <td>T14:30</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=8923" target="_blank" rel="noopener">8923</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120260930543781.pdf" target="_blank" rel="noopener" title="2026年11月期　通期業績予想および配当予想の修正（増配）に関するお知らせ">トーセイ</a></td>
+      <td>修正↑増配</td>
+      <td class="c-pct">▲61%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T14:00</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=2300" target="_blank" rel="noopener">2300</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261005545843.pdf" target="_blank" rel="noopener" title="2027年２月期第２四半期（中間期）決算短信〔日本基準〕（非連結）">きょくと</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T13:00</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=1376" target="_blank" rel="noopener">1376</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120261001544712.pdf" target="_blank" rel="noopener" title="2027年５月期　第１四半期決算短信[日本基準]（連結）">カネコ種苗</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T09:00</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=2753" target="_blank" rel="noopener">2753</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120260926540628.pdf" target="_blank" rel="noopener" title="第２四半期（累計）連結業績予想と実績値との差異 及び通期業績予想の修正に関するお知らせ">あみやき</a></td>
+      <td>修正</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+    <tr class="">
+      
+      <td>T09:00</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=2753" target="_blank" rel="noopener">2753</a></td>
+      <td><a href="https://www.release.tdnet.info/inbs/140120260926540626.pdf" target="_blank" rel="noopener" title="2027年3月期第2四半期（中間期）決算短信〔日本基準〕（連結）">あみやき</a></td>
+      <td>決算</td>
+      <td class="c-pct">▼37%</td>
+    </tr>
+    
+  
+  </tbody>
+</table>
 </main>
-<footer>出典: 決算発表予定日・上場銘柄一覧は日本取引所グループ、売買代金は Yahoo Finance(20日平均、終値×出来高の近似)、修正は TDnet。発表時刻は未確定のものを「引け後(予定)」と表示。投資判断は自己責任で。</footer>
-
-<script id="data" type="application/json">[{"date": "2026-10-13", "code": "1419", "name": "タマホーム", "market": "プライム", "sector": "建設業", "fq": "Q1", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 2.1, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-13", "code": "2164", "name": "地域新聞社", "market": "スタンダード", "sector": "サービス業", "fq": "FY", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.1, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-13", "code": "2338", "name": "クオンタムソリューションズ", "market": "スタンダード", "sector": "情報・通信業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.2, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-13", "code": "2379", "name": "ディップ", "market": "プライム", "sector": "サービス業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 3.9, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-13", "code": "2653", "name": "イオン九州", "market": "スタンダード", "sector": "小売業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.4, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-13", "code": "2668", "name": "タビオ", "market": "スタンダード", "sector": "卸売業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.0, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-13", "code": "2736", "name": "フェスタリアホールディングス", "market": "スタンダード", "sector": "小売業", "fq": "FY", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.0, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-13", "code": "2769", "name": "ヴィレッジヴァンガードコーポレーション", "market": "スタンダード", "sector": "小売業", "fq": "Q1", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.0, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-13", "code": "2791", "name": "大黒天物産", "market": "プライム", "sector": "小売業", "fq": "Q1", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 1.8, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-13", "code": "3080", "name": "ジェーソン", "market": "スタンダード", "sector": "小売業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.0, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-13", "code": "3086", "name": "Ｊ．フロント　リテイリング", "market": "プライム", "sector": "小売業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 30.7, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-13", "code": "3087", "name": "ドトール・日レスホールディングス", "market": "プライム", "sector": "小売業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 3.5, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-13", "code": "3236", "name": "プロパスト", "market": "スタンダード", "sector": "不動産業", "fq": "Q1", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.2, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-13", "code": "3267", "name": "フィル・カンパニー", "market": "スタンダード", "sector": "建設業", "fq": "Q3", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.1, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-13", "code": "3297", "name": "東武住販", "market": "スタンダード", "sector": "不動産業", "fq": "Q1", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.0, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-13", "code": "3349", "name": "コスモス薬品", "market": "プライム", "sector": "小売業", "fq": "Q1", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 26.3, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-13", "code": "3647", "name": "アスリナ", "market": "スタンダード", "sector": "情報・通信業", "fq": "FY", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.1, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-13", "code": "4198", "name": "テンダ", "market": "スタンダード", "sector": "情報・通信業", "fq": "Q1", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.0, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-13", "code": "4343", "name": "イオンファンタジー", "market": "プライム", "sector": "サービス業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 1.6, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-13", "code": "4714", "name": "リソー教育グループ", "market": "プライム", "sector": "サービス業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 1.7, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-13", "code": "4920", "name": "日本色材工業研究所", "market": "スタンダード", "sector": "化学", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.0, "rev_dir": "down", "rev_pct": -33.6, "rev_date": "2026-10-07"}, {"date": "2026-10-13", "code": "575A", "name": "前澤ホールディングス", "market": "プライム", "sector": "機械", "fq": "Q1", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 1.7, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-13", "code": "6159", "name": "ミクロン精密", "market": "スタンダード", "sector": "機械", "fq": "FY", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.1, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-13", "code": "6217", "name": "津田駒工業", "market": "スタンダード", "sector": "機械", "fq": "Q3", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.4, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-13", "code": "6432", "name": "竹内製作所", "market": "プライム", "sector": "機械", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 13.5, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-13", "code": "7085", "name": "カーブスホールディングス", "market": "プライム", "sector": "サービス業", "fq": "FY", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 2.6, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-13", "code": "7219", "name": "エッチ・ケー・エス", "market": "スタンダード", "sector": "輸送用機器", "fq": "FY", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.0, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-13", "code": "7512", "name": "イオン北海道", "market": "スタンダード", "sector": "小売業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 1.0, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-13", "code": "7516", "name": "コーナン商事", "market": "プライム", "sector": "小売業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 3.4, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-13", "code": "7520", "name": "エコス", "market": "プライム", "sector": "小売業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.4, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-13", "code": "7607", "name": "進和", "market": "プライム", "sector": "卸売業", "fq": "FY", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.8, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-13", "code": "7725", "name": "インターアクション", "market": "プライム", "sector": "精密機器", "fq": "Q1", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 1.2, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-13", "code": "7811", "name": "中本パックス", "market": "スタンダード", "sector": "その他製品", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.8, "rev_dir": "up", "rev_pct": 18.7, "rev_date": "2026-09-14"}, {"date": "2026-10-13", "code": "8095", "name": "アステナホールディングス", "market": "プライム", "sector": "卸売業", "fq": "Q3", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.5, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-13", "code": "8181", "name": "東天紅", "market": "スタンダード", "sector": "小売業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.0, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-13", "code": "8198", "name": "マックスバリュ東海", "market": "スタンダード", "sector": "小売業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.5, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-13", "code": "8247", "name": "大和", "market": "スタンダード", "sector": "小売業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.1, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-13", "code": "8267", "name": "イオン", "market": "プライム", "sector": "小売業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 145.7, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-13", "code": "8273", "name": "イズミ", "market": "プライム", "sector": "小売業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 3.6, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-13", "code": "8904", "name": "ＡＶＡＮＴＩＡ", "market": "スタンダード", "sector": "不動産業", "fq": "FY", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.1, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-13", "code": "9216", "name": "ビーウィズ", "market": "プライム", "sector": "サービス業", "fq": "Q1", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.4, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-13", "code": "9278", "name": "ブックオフグループホールディングス", "market": "プライム", "sector": "小売業", "fq": "Q1", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 3.2, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-13", "code": "9661", "name": "歌舞伎座", "market": "スタンダード", "sector": "サービス業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.3, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-13", "code": "9812", "name": "テーオーホールディングス", "market": "スタンダード", "sector": "小売業", "fq": "Q1", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.0, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-13", "code": "9876", "name": "コックス", "market": "スタンダード", "sector": "小売業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.0, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-13", "code": "9948", "name": "アークス", "market": "プライム", "sector": "小売業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 3.4, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "1434", "name": "ＪＥＳＣＯホールディングス", "market": "スタンダード", "sector": "建設業", "fq": "FY", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.4, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "2153", "name": "Ｅ・Ｊホールディングス", "market": "プライム", "sector": "サービス業", "fq": "Q1", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 1.1, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "2186", "name": "ソーバル", "market": "スタンダード", "sector": "サービス業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.0, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "2292", "name": "Ｓ　Ｆｏｏｄｓ", "market": "プライム", "sector": "食料品", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 3.5, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "2305", "name": "スタジオアリス", "market": "スタンダード", "sector": "サービス業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.4, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "2337", "name": "いちご", "market": "プライム", "sector": "不動産業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 3.8, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "2459", "name": "アウンコンサルティング", "market": "スタンダード", "sector": "サービス業", "fq": "Q1", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.1, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "2462", "name": "ライク", "market": "プライム", "sector": "サービス業", "fq": "Q1", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.4, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "2471", "name": "エスプール", "market": "プライム", "sector": "サービス業", "fq": "Q3", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.9, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "2872", "name": "セイヒョー", "market": "スタンダード", "sector": "食料品", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.0, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "2882", "name": "イートアンドホールディングス", "market": "プライム", "sector": "食料品", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.3, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "3030", "name": "ハブ", "market": "スタンダード", "sector": "小売業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.1, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "3045", "name": "カワサキ", "market": "スタンダード", "sector": "卸売業", "fq": "FY", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.0, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "3065", "name": "ライフフーズ", "market": "スタンダード", "sector": "小売業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.0, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "3075", "name": "銚子丸", "market": "スタンダード", "sector": "小売業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.2, "rev_dir": "up", "rev_pct": 56.2, "rev_date": "2026-09-17"}, {"date": "2026-10-14", "code": "3077", "name": "ホリイフードサービス", "market": "スタンダード", "sector": "小売業", "fq": "Q3", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.3, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "3083", "name": "スターシーズ", "market": "スタンダード", "sector": "小売業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 3.9, "rev_dir": "up", "rev_pct": 10.3, "rev_date": "2026-09-08"}, {"date": "2026-10-14", "code": "3093", "name": "トレジャー・ファクトリー", "market": "プライム", "sector": "小売業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 2.5, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "3139", "name": "ラクト・ジャパン", "market": "プライム", "sector": "卸売業", "fq": "Q3", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.8, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "3168", "name": "ＭＥＲＦ", "market": "スタンダード", "sector": "卸売業", "fq": "FY", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.8, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "3177", "name": "ありがとうサービス", "market": "スタンダード", "sector": "小売業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.1, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "3181", "name": "買取王国", "market": "スタンダード", "sector": "小売業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.0, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "3280", "name": "エストラスト", "market": "スタンダード", "sector": "不動産業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.0, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "3387", "name": "クリエイト・レストランツ・ホールディングス", "market": "プライム", "sector": "小売業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 7.2, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "3536", "name": "アクサスホールディングス", "market": "スタンダード", "sector": "小売業", "fq": "FY", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.0, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "3543", "name": "コメダホールディングス", "market": "プライム", "sector": "卸売業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 5.1, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "3560", "name": "ほぼ日", "market": "スタンダード", "sector": "小売業", "fq": "FY", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.2, "rev_dir": "up", "rev_pct": 56.8, "rev_date": "2026-09-17"}, {"date": "2026-10-14", "code": "3562", "name": "Ｎｏ．１", "market": "スタンダード", "sector": "卸売業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 3.0, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "3608", "name": "ＴＳＩホールディングス", "market": "プライム", "sector": "繊維製品", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 2.9, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "365A", "name": "伊澤タオル", "market": "スタンダード", "sector": "繊維製品", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.2, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "3678", "name": "メディアドゥ", "market": "プライム", "sector": "情報・通信業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.5, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "3760", "name": "ケイブ", "market": "スタンダード", "sector": "情報・通信業", "fq": "Q1", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.1, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "3892", "name": "岡山製紙", "market": "スタンダード", "sector": "パルプ・紙", "fq": "Q1", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.0, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "3922", "name": "ＰＲ　ＴＩＭＥＳ", "market": "プライム", "sector": "情報・通信業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.7, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "4432", "name": "ウイングアーク１ｓｔ", "market": "プライム", "sector": "情報・通信業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 3.2, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "4577", "name": "ダイト", "market": "プライム", "sector": "医薬品", "fq": "Q1", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.9, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "4668", "name": "明光ネットワークジャパン", "market": "プライム", "sector": "サービス業", "fq": "FY", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.5, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "4673", "name": "川崎地質", "market": "スタンダード", "sector": "サービス業", "fq": "Q3", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.1, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "505A", "name": "ギークリー", "market": "スタンダード", "sector": "サービス業", "fq": "Q1", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.3, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "5250", "name": "ＧＭＯプライム・ストラテジー", "market": "スタンダード", "sector": "情報・通信業", "fq": "Q3", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.0, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "5885", "name": "ジーデップ・アドバンス", "market": "スタンダード", "sector": "卸売業", "fq": "Q1", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.8, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "5967", "name": "ＴＯＮＥ", "market": "スタンダード", "sector": "金属製品", "fq": "Q1", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.1, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "6047", "name": "Ｇｕｎｏｓｙ", "market": "スタンダード", "sector": "サービス業", "fq": "Q1", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.3, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "6183", "name": "ベルシステム２４ホールディングス", "market": "プライム", "sector": "サービス業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 3.7, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "6505", "name": "東洋電機製造", "market": "スタンダード", "sector": "電気機器", "fq": "Q1", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.8, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "6552", "name": "ＧａｍｅＷｉｔｈ", "market": "スタンダード", "sector": "サービス業", "fq": "Q1", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.0, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "6634", "name": "ＪＮグループ", "market": "スタンダード", "sector": "電気機器", "fq": "Q3", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.1, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "6897", "name": "ツインバード", "market": "スタンダード", "sector": "電気機器", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.3, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "7453", "name": "良品計画", "market": "プライム", "sector": "小売業", "fq": "FY", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 112.6, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "7581", "name": "サイゼリヤ", "market": "プライム", "sector": "小売業", "fq": "FY", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 27.4, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "7599", "name": "ＩＤＯＭ", "market": "プライム", "sector": "卸売業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 9.4, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "7601", "name": "ポプラ", "market": "スタンダード", "sector": "小売業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.1, "rev_dir": "up", "rev_pct": 41.1, "rev_date": "2026-09-30"}, {"date": "2026-10-14", "code": "7608", "name": "エスケイジャパン", "market": "スタンダード", "sector": "卸売業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 1.0, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "7805", "name": "プリントネット", "market": "スタンダード", "sector": "その他製品", "fq": "FY", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.0, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "7847", "name": "グラファイトデザイン", "market": "スタンダード", "sector": "その他製品", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.1, "rev_dir": "up", "rev_pct": 71.0, "rev_date": "2026-10-01"}, {"date": "2026-10-14", "code": "7879", "name": "ノダ", "market": "スタンダード", "sector": "その他製品", "fq": "Q3", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.1, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "7928", "name": "旭化学工業", "market": "スタンダード", "sector": "化学", "fq": "FY", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.0, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "8143", "name": "ラピーヌ", "market": "スタンダード", "sector": "繊維製品", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.4, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "8237", "name": "松屋", "market": "プライム", "sector": "小売業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 5.3, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "8260", "name": "井筒屋", "market": "スタンダード", "sector": "小売業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.0, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "9264", "name": "ポエック", "market": "スタンダード", "sector": "卸売業", "fq": "FY", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.1, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "9418", "name": "Ｕ－ＮＥＸＴ　ＨＯＬＤＩＮＧＳ", "market": "プライム", "sector": "情報・通信業", "fq": "FY", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 7.8, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "9601", "name": "松竹", "market": "プライム", "sector": "情報・通信業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 4.3, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "9837", "name": "モリト", "market": "プライム", "sector": "卸売業", "fq": "Q3", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.9, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-14", "code": "9993", "name": "ヤマザワ", "market": "スタンダード", "sector": "小売業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.0, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "1407", "name": "ウエストホールディングス", "market": "スタンダード", "sector": "建設業", "fq": "FY", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 8.3, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "1418", "name": "インターライフホールディングス", "market": "スタンダード", "sector": "建設業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.3, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "1430", "name": "ファーストコーポレーション", "market": "スタンダード", "sector": "建設業", "fq": "Q1", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.2, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "1887", "name": "日本国土開発", "market": "プライム", "sector": "建設業", "fq": "Q1", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 1.3, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "2168", "name": "パソナグループ", "market": "プライム", "sector": "サービス業", "fq": "Q1", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 2.0, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "2404", "name": "鉄人化ホールディングス", "market": "スタンダード", "sector": "サービス業", "fq": "FY", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.0, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "2437", "name": "Ｓｈｉｎｗａ　Ｗｉｓｅ　Ｈｏｌｄｉｎｇｓ", "market": "スタンダード", "sector": "サービス業", "fq": "Q1", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.3, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "2449", "name": "プラップジャパン", "market": "スタンダード", "sector": "サービス業", "fq": "FY", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.6, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "2484", "name": "出前館", "market": "スタンダード", "sector": "情報・通信業", "fq": "FY", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.6, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "274A", "name": "ガーデン", "market": "スタンダード", "sector": "小売業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.1, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "277A", "name": "グロービング", "market": "プライム", "sector": "サービス業", "fq": "Q1", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 1.8, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "2798", "name": "ワイズテーブルコーポレーション", "market": "スタンダード", "sector": "小売業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.0, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "2884", "name": "ヨシムラ・フード・ホールディングス", "market": "プライム", "sector": "食料品", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.6, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "2901", "name": "ウェルディッシュ", "market": "スタンダード", "sector": "食料品", "fq": "FY", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.2, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "2927", "name": "ＡＦＣ－ＨＤアムスライフサイエンス", "market": "スタンダード", "sector": "食料品", "fq": "FY", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.1, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "2930", "name": "北の達人コーポレーション", "market": "プライム", "sector": "化学", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.4, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "3021", "name": "パシフィックネット", "market": "スタンダード", "sector": "サービス業", "fq": "Q1", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.2, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "3174", "name": "ハピネス・アンド・ディ", "market": "スタンダード", "sector": "小売業", "fq": "FY", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.1, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "3189", "name": "ＡＮＡＰホールディングス", "market": "スタンダード", "sector": "小売業", "fq": "FY", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.3, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "3223", "name": "エスエルディー", "market": "スタンダード", "sector": "小売業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.0, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "3266", "name": "ファンドクリエーショングループ", "market": "スタンダード", "sector": "不動産業", "fq": "Q3", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.0, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "3440", "name": "日創グループ", "market": "スタンダード", "sector": "金属製品", "fq": "FY", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.1, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "3547", "name": "ユニシアホールディングス", "market": "スタンダード", "sector": "小売業", "fq": "Q3", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.5, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "3548", "name": "バロックジャパンリミテッド", "market": "プライム", "sector": "小売業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 1.0, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "3645", "name": "メディカルネット", "market": "スタンダード", "sector": "情報・通信業", "fq": "Q1", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.1, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "367A", "name": "プリモグローバルホールディングス", "market": "スタンダード", "sector": "小売業", "fq": "FY", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.9, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "3697", "name": "ＳＨＩＦＴ", "market": "プライム", "sector": "情報・通信業", "fq": "FY", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 33.4, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "372A", "name": "レント", "market": "スタンダード", "sector": "サービス業", "fq": "Q1", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.2, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "3791", "name": "ＩＧポート", "market": "スタンダード", "sector": "情報・通信業", "fq": "Q1", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.6, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "3810", "name": "サイバーステップホールディングス", "market": "スタンダード", "sector": "情報・通信業", "fq": "Q1", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.8, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "3826", "name": "システムインテグレータ", "market": "スタンダード", "sector": "情報・通信業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.0, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "3915", "name": "テラスカイ", "market": "プライム", "sector": "情報・通信業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 1.7, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "3935", "name": "エディア", "market": "スタンダード", "sector": "情報・通信業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.2, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "3994", "name": "マネーフォワード", "market": "プライム", "sector": "情報・通信業", "fq": "Q3", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 32.4, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "4016", "name": "ＭＩＴホールディングス", "market": "スタンダード", "sector": "情報・通信業", "fq": "Q3", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.1, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "4197", "name": "アスマーク", "market": "スタンダード", "sector": "情報・通信業", "fq": "Q3", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.0, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "4413", "name": "ボードルア", "market": "プライム", "sector": "情報・通信業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 8.4, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "4434", "name": "サーバーワークス", "market": "スタンダード", "sector": "情報・通信業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.8, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "4439", "name": "東名", "market": "スタンダード", "sector": "情報・通信業", "fq": "FY", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.1, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "4616", "name": "川上塗料", "market": "スタンダード", "sector": "化学", "fq": "Q3", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.1, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "4885", "name": "室町ケミカル", "market": "スタンダード", "sector": "医薬品", "fq": "Q1", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.1, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "5018", "name": "ＭＯＲＥＳＣＯ", "market": "スタンダード", "sector": "石油・石炭製品", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.4, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "5078", "name": "セレコーポレーション", "market": "スタンダード", "sector": "建設業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.0, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "5817", "name": "ＪＭＡＣＳ", "market": "スタンダード", "sector": "非鉄金属", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.5, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "5869", "name": "早稲田学習研究会", "market": "スタンダード", "sector": "サービス業", "fq": "Q1", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.1, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "6058", "name": "ベクトル", "market": "プライム", "sector": "サービス業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 8.5, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "6150", "name": "タケダ機械", "market": "スタンダード", "sector": "機械", "fq": "Q1", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.0, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "6199", "name": "セラク", "market": "スタンダード", "sector": "情報・通信業", "fq": "FY", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.3, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "623A", "name": "ベルテックス", "market": "スタンダード", "sector": "不動産業", "fq": "Q3", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 10.7, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "6532", "name": "ベイカレント", "market": "プライム", "sector": "サービス業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 89.3, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "6543", "name": "日宣", "market": "スタンダード", "sector": "サービス業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.0, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "6555", "name": "ＭＳ＆Ｃｏｎｓｕｌｔｉｎｇ", "market": "スタンダード", "sector": "サービス業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.0, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "6572", "name": "オープングループ", "market": "プライム", "sector": "サービス業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.3, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "6578", "name": "コレックホールディングス", "market": "スタンダード", "sector": "サービス業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.0, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "6866", "name": "日置電機", "market": "プライム", "sector": "電気機器", "fq": "Q3", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 4.3, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "7035", "name": "ａｎｄ　ｆａｃｔｏｒｙ", "market": "スタンダード", "sector": "サービス業", "fq": "FY", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.6, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "7065", "name": "ユーピーアール", "market": "スタンダード", "sector": "サービス業", "fq": "FY", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.1, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "7357", "name": "ジオコード", "market": "スタンダード", "sector": "サービス業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.1, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "7388", "name": "ＦＰパートナー", "market": "プライム", "sector": "保険業", "fq": "Q3", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.7, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "7514", "name": "ヒマラヤ", "market": "スタンダード", "sector": "小売業", "fq": "FY", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.0, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "7610", "name": "テイツー", "market": "スタンダード", "sector": "小売業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.7, "rev_dir": "up", "rev_pct": 25.0, "rev_date": "2026-09-25"}, {"date": "2026-10-15", "code": "7719", "name": "東京衡機", "market": "スタンダード", "sector": "精密機器", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 1.5, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "7730", "name": "マニー", "market": "プライム", "sector": "精密機器", "fq": "FY", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 3.8, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "7807", "name": "幸和製作所", "market": "スタンダード", "sector": "その他製品", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.0, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "7808", "name": "シー・エス・ランバー", "market": "スタンダード", "sector": "その他製品", "fq": "Q1", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.1, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "7815", "name": "東京ボード工業", "market": "スタンダード", "sector": "その他製品", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.0, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "7818", "name": "トランザクション", "market": "プライム", "sector": "その他製品", "fq": "FY", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 1.6, "rev_dir": "up", "rev_pct": 1.6, "rev_date": "2026-10-08"}, {"date": "2026-10-15", "code": "7997", "name": "くろがね工作所", "market": "スタンダード", "sector": "その他製品", "fq": "Q3", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.0, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "8167", "name": "リテールパートナーズ", "market": "プライム", "sector": "小売業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 1.0, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "8233", "name": "高島屋", "market": "プライム", "sector": "小売業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 32.3, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "8254", "name": "さいか屋", "market": "スタンダード", "sector": "小売業", "fq": "FY", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.7, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "8783", "name": "ａｂｃ", "market": "スタンダード", "sector": "その他金融業", "fq": "FY", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.2, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "8887", "name": "シーラホールディングス", "market": "スタンダード", "sector": "不動産業", "fq": "Q1", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.2, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "9602", "name": "東宝", "market": "プライム", "sector": "情報・通信業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 45.0, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "9628", "name": "燦ホールディングス", "market": "プライム", "sector": "サービス業", "fq": "FY", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.8, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "9778", "name": "昴", "market": "スタンダード", "sector": "サービス業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.0, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "9978", "name": "文教堂グループホールディングス", "market": "スタンダード", "sector": "小売業", "fq": "FY", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.0, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-15", "code": "9979", "name": "大庄", "market": "スタンダード", "sector": "小売業", "fq": "FY", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.9, "rev_dir": "", "rev_pct": null, "rev_date": ""}, {"date": "2026-10-16", "code": "2411", "name": "ゲンダイエージェンシー", "market": "スタンダード", "sector": "情報・通信業", "fq": "Q2", "timing": "引け後", "time": "", "confirmed": false, "turnover_oku": 0.1, "rev_dir": "", "rev_pct": null, "rev_date": ""}]</script>
-<script>
-const ROWS = JSON.parse(document.getElementById('data').textContent);
-const NEXT = '2026-10-13';
-const MIN_OKU = 1.0;
-const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const wd = d => '日月火水木金土'[new Date(d + 'T00:00:00').getDay()];
-const md = d => `${+d.slice(5, 7)}/${+d.slice(8, 10)}`;
-
-const state = { date: 'all', mkt: 'all', liq: true, q: '' };
-try { Object.assign(state, JSON.parse(localStorage.getItem('cal-filter') || '{}'), { q: '' }); } catch (e) {}
-const save = () => { try { localStorage.setItem('cal-filter', JSON.stringify({ mkt: state.mkt, liq: state.liq })); } catch (e) {} };
-
-const dates = [...new Set(ROWS.map(r => r.date))].sort();
-const dateSeg = document.getElementById('dateSeg');
-dateSeg.innerHTML = '<button data-v="all">全日</button>' + dates.map(d => `<button data-v="${d}">${md(d)}(${wd(d)})</button>`).join('');
-if (state.date !== 'all' && !dates.includes(state.date)) state.date = 'all';
-
-function base() {
-  return ROWS.filter(r => (state.mkt === 'all' || r.market === state.mkt) &&
-    (!state.liq || (r.turnover_oku ?? 0) >= MIN_OKU));
-}
-
-function revCell(r) {
-  if (r.rev_dir === 'up' || r.rev_dir === 'down') {
-    const pct = r.rev_pct != null ? ` ${Math.abs(r.rev_pct).toFixed(1)}%` : '';
-    return `<span class="dir ${r.rev_dir}">${r.rev_dir === 'up' ? '▲上方' : '▼下方'}${pct}</span> <span class="mk">${md(r.rev_date)} 修正済み</span>`;
-  }
-  if (r.rev_date) return `<span class="mk">${md(r.rev_date)} 修正あり(方向不明)</span>`;
-  return '<span class="mk">直近の修正なし</span>';
-}
-
-function timingCell(r) {
-  if (r.timing === '場中') return `<span class="timing warn">⚠ 場中 ${esc(r.time)}</span>`;
-  return `<span class="timing">${r.confirmed ? '引け後 ' + esc(r.time) : '引け後(予定)'}</span>`;
-}
-
-function render() {
-  const b = base();
-  document.getElementById('nbd').textContent = `${md(NEXT)}(${wd(NEXT)})`;
-  document.getElementById('tNext').textContent = b.filter(r => r.date === NEXT).length;
-  document.getElementById('tAll').textContent = b.length;
-  document.getElementById('tUp').textContent = b.filter(r => r.rev_dir === 'up').length;
-  document.getElementById('tDown').textContent = b.filter(r => r.rev_dir === 'down').length;
-
-  const q = state.q.trim().toLowerCase();
-  const rows = b.filter(r => (state.date === 'all' || r.date === state.date) &&
-    (!q || `${r.code} ${r.name} ${r.sector}`.toLowerCase().includes(q)))
-    .sort((x, y) => x.date.localeCompare(y.date) || (y.turnover_oku ?? 0) - (x.turnover_oku ?? 0));
-  document.getElementById('count').textContent = `${rows.length} 社`;
-  if (!rows.length) { document.getElementById('out').innerHTML = '<div class="list"><div class="empty">該当する銘柄はありません</div></div>'; return; }
-
-  let html = '', day = null;
-  for (const r of rows) {
-    if (r.date !== day) {
-      if (day) html += '</div>';
-      html += `<div class="day">${r.date.replace(/-/g, '/')}(${wd(r.date)})発表${r.date === NEXT ? ' ・ 翌営業日' : ''}</div><div class="list">`;
-      day = r.date;
-    }
-    const oku = r.turnover_oku != null ? `${r.turnover_oku.toFixed(1)}億` : '–';
-    html += `<div class="row">
-      <span class="co"><a href="https://kabutan.jp/stock/?code=${encodeURIComponent(r.code)}" target="_blank" rel="noopener"><span class="code">${esc(r.code)}</span><span class="name">${esc(r.name)}</span></a></span>
-      <span class="mkcol mk">${esc(r.market)} ・ ${esc(r.fq)}</span>
-      <span class="num">${oku}</span>
-      ${timingCell(r)}
-      <span class="meta mk">${esc(r.market)} ・ ${esc(r.fq)} ・ ${esc(r.sector)} ・ ${r.timing === '場中' ? '⚠ 場中 ' + esc(r.time) : (r.confirmed ? '引け後 ' + esc(r.time) : '引け後(予定)')}</span>
-      <span class="rev">${revCell(r)}</span>
-    </div>`;
-  }
-  document.getElementById('out').innerHTML = html + '</div>';
-}
-
-function bindSeg(id, key) {
-  const seg = document.getElementById(id);
-  const sync = () => seg.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === state[key]));
-  seg.addEventListener('click', e => {
-    const b = e.target.closest('button'); if (!b) return;
-    state[key] = b.dataset.v; sync(); save(); render();
-  });
-  sync();
-}
-bindSeg('dateSeg', 'date'); bindSeg('mktSeg', 'mkt');
-const liq = document.getElementById('liq');
-liq.checked = state.liq;
-liq.addEventListener('change', () => { state.liq = liq.checked; save(); render(); });
-document.getElementById('q').addEventListener('input', e => { state.q = e.target.value; render(); });
-render();
-</script>
-
+<footer>
+  2026-10-09 15:08 更新 ・ 出典: TDnet / JPX / Yahoo Finance<br>
+  上昇確度は暫定値(同種の開示が過去に「開示前終値→開示後最初の終値」で上昇した割合)。判定基準を受け取り次第置き換えます。
+</footer>
 </body>
 </html>

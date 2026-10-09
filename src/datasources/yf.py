@@ -29,6 +29,32 @@ def _download_chunk(codes: list[str], days: int) -> dict[str, float]:
     return out
 
 
+def daily_closes(codes: list[str], period: str = "3mo", chunk: int = 100,
+                 pause_sec: float = 2.0) -> dict[str, pd.Series]:
+    """銘柄ごとの日足終値(未調整)。index は date。"""
+    out = {}
+    for i in range(0, len(codes), chunk):
+        part = codes[i:i + chunk]
+        tickers = [f"{c}.T" for c in part]
+        try:
+            px = yf.download(tickers, period=period, interval="1d", group_by="ticker",
+                             auto_adjust=False, threads=True, progress=False)
+        except Exception as e:
+            log.warning("yfinance取得失敗 (%d銘柄): %s", len(part), e)
+            continue
+        for c, t in zip(part, tickers):
+            try:
+                s = (px[t] if isinstance(px.columns, pd.MultiIndex) else px)["Close"].dropna()
+            except KeyError:
+                continue
+            if len(s):
+                s.index = [d.date() for d in s.index]
+                out[c] = s
+        log.info("終値 %d/%d (取得 %d)", min(i + chunk, len(codes)), len(codes), len(out))
+        time.sleep(pause_sec)
+    return out
+
+
 def avg_turnover(codes: list[str], days: int = 20, chunk: int = 100,
                  pause_sec: float = 2.0, retry_wait_sec: float = 60.0) -> dict[str, float]:
     """直近days営業日の平均売買代金(円)。終値×出来高で近似。取れない銘柄は含めない。

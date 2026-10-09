@@ -1,0 +1,66 @@
+{
+  "base_rate": 0.4396,
+  "buckets": {
+    "div_down": {
+      "mean_ret_pct": 13.08,
+      "n": 9,
+      "wins": 7
+    },
+    "div_other": {
+      "mean_ret_pct": 0.69,
+      "n": 25,
+      "wins": 16
+    },
+    "div_up": {
+      "mean_ret_pct": 2.35,
+      "n": 23,
+      "wins": 14
+    },
+    "earnings": {
+      "mean_ret_pct": -1.19,
+      "n": 444,
+      "wins": 163
+    },
+    "forecast_initial": {
+      "mean_ret_pct": 3.8,
+      "n": 11,
+      "wins": 7
+    },
+    "rev_down": {
+      "mean_ret_pct": 0.0,
+      "n": 1,
+      "wins": 0
+    },
+    "rev_down_large": {
+      "mean_ret_pct": -1.25,
+      "n": 27,
+      "wins": 8
+    },
+    "rev_down_small": {
+      "mean_ret_pct": -0.97,
+      "n": 5,
+      "wins": 2
+    },
+    "rev_unknown": {
+      "mean_ret_pct": 0.12,
+      "n": 42,
+      "wins": 15
+    },
+    "rev_up": {
+      "mean_ret_pct": 0.04,
+      "n": 5,
+      "wins": 2
+    },
+    "rev_up_large": {
+      "mean_ret_pct": 6.23,
+      "n": 50,
+      "wins": 43
+    },
+    "rev_up_small": {
+      "mean_ret_pct": 2.27,
+      "n": 20,
+      "wins": 14
+    }
+  },
+  "n": 662
+}

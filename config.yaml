@@ -49,3 +49,14 @@ calendar:
 
 judge:
   min_avg_turnover: 100000000   # 一次フィルタ: 平均売買代金 1億円/日
+
+reaction:
+  # 上昇確度 = 同じバケットの過去開示で「開示前終値 → 開示後最初の終値」が上がった割合
+  close_time: "15:30"        # これより前の開示は当日終値で評価
+  large_change_pct: 10       # 修正率がこれ以上なら「大幅」バケット
+  prior_n: 10                # 縮小推定: 全体の上昇率をこの件数ぶん混ぜる
+  max_abs_ret_pct: 50        # これを超える変化は分割未調整などの異常値として除外
+  price_period: "3mo"
+
+site:
+  feed_days: 5               # 適時開示フィードに出す日数

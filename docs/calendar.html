@@ -1,0 +1,1977 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>決算予定 | 決算持ち越し判定君</title>
+<style>
+:root {
+  --bg: #05080b; --line: #1a2128; --head: #b9c2cc; --text: #e9eef2; --muted: #7f8a95;
+  --green: #2bea7f; --tab: #12202b;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font: 600 16px/1.4 "Meiryo UI", "Yu Gothic UI", "Hiragino Sans", system-ui, sans-serif;
+}
+nav { display: flex; gap: 4px; padding: 10px 12px 0; max-width: 760px; margin: 0 auto; }
+nav a { color: var(--muted); text-decoration: none; padding: 6px 14px; border-radius: 6px 6px 0 0; font-size: 14px; }
+nav a[aria-current="page"] { color: var(--text); background: var(--tab); }
+main { max-width: 760px; margin: 0 auto; }
+table { width: 100%; border-collapse: collapse; table-layout: fixed; font-variant-numeric: tabular-nums; }
+th {
+  position: sticky; top: 0; background: var(--bg); color: var(--head); font-weight: 600;
+  padding: 8px 6px; border-bottom: 1px solid var(--line); font-size: 15px; z-index: 1;
+}
+td { padding: 9px 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border-bottom: 1px solid var(--line); }
+td a { color: inherit; text-decoration: none; }
+.c-time { width: 76px; } .c-code { width: 60px; } .c-kind { width: 104px; } .c-pct { width: 72px; text-align: right; }
+th.c-pct { text-align: right; }
+tr.up td { color: var(--green); font-weight: 700; }
+tr.day td { color: var(--muted); font-size: 13px; padding: 12px 6px 4px; border-bottom: 0; }
+.warn { color: #ffb84d; }
+.none { color: var(--muted); font-weight: 400; }
+footer { color: var(--muted); font: 400 12px/1.6 system-ui, sans-serif; padding: 18px 12px 40px; max-width: 760px; margin: 0 auto; }
+@media (max-width: 480px) {
+  body { font-size: 13px; }
+  th { font-size: 12px; }
+  .c-time { width: 62px; } .c-code { width: 44px; } .c-kind { width: 70px; } .c-pct { width: 56px; }
+  td, th { padding-left: 3px; padding-right: 3px; }
+}
+</style>
+</head>
+<body>
+<nav>
+  <a href="index.html">適時開示</a>
+  <a href="calendar.html" aria-current="page">決算予定</a>
+</nav>
+<main>
+<table>
+  <colgroup><col class="c-time"><col class="c-code"><col><col class="c-kind"><col class="c-pct"></colgroup>
+  <thead><tr>
+    <th class="c-time">発表</th><th class="c-code">コード</th><th>企業名</th>
+    <th class="c-kind">種別</th><th class="c-pct">上昇確度</th>
+  </tr></thead>
+  <tbody>
+  
+    <tr class="day"><td colspan="5">10/13(火)</td></tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=8267" target="_blank" rel="noopener">8267</a></td>
+      <td>イオン</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3086" target="_blank" rel="noopener">3086</a></td>
+      <td>Ｊ．フロント　リテイリング</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3349" target="_blank" rel="noopener">3349</a></td>
+      <td>コスモス薬品</td>
+      <td>決算Q1</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=6432" target="_blank" rel="noopener">6432</a></td>
+      <td>竹内製作所</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=2379" target="_blank" rel="noopener">2379</a></td>
+      <td>ディップ</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=8273" target="_blank" rel="noopener">8273</a></td>
+      <td>イズミ</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3087" target="_blank" rel="noopener">3087</a></td>
+      <td>ドトール・日レスホールディングス</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=7516" target="_blank" rel="noopener">7516</a></td>
+      <td>コーナン商事</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=9948" target="_blank" rel="noopener">9948</a></td>
+      <td>アークス</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=9278" target="_blank" rel="noopener">9278</a></td>
+      <td>ブックオフグループホールディングス</td>
+      <td>決算Q1</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=7085" target="_blank" rel="noopener">7085</a></td>
+      <td>カーブスホールディングス</td>
+      <td>決算FY</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=1419" target="_blank" rel="noopener">1419</a></td>
+      <td>タマホーム</td>
+      <td>決算Q1</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=2791" target="_blank" rel="noopener">2791</a></td>
+      <td>大黒天物産</td>
+      <td>決算Q1</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=575A" target="_blank" rel="noopener">575A</a></td>
+      <td>前澤ホールディングス</td>
+      <td>決算Q1</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=4714" target="_blank" rel="noopener">4714</a></td>
+      <td>リソー教育グループ</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=4343" target="_blank" rel="noopener">4343</a></td>
+      <td>イオンファンタジー</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=7725" target="_blank" rel="noopener">7725</a></td>
+      <td>インターアクション</td>
+      <td>決算Q1</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=7512" target="_blank" rel="noopener">7512</a></td>
+      <td>イオン北海道</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=7607" target="_blank" rel="noopener">7607</a></td>
+      <td>進和</td>
+      <td>決算FY</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=7811" target="_blank" rel="noopener">7811</a></td>
+      <td>中本パックス</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=8095" target="_blank" rel="noopener">8095</a></td>
+      <td>アステナホールディングス</td>
+      <td>決算Q3</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=8198" target="_blank" rel="noopener">8198</a></td>
+      <td>マックスバリュ東海</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=6217" target="_blank" rel="noopener">6217</a></td>
+      <td>津田駒工業</td>
+      <td>決算Q3</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=2653" target="_blank" rel="noopener">2653</a></td>
+      <td>イオン九州</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=7520" target="_blank" rel="noopener">7520</a></td>
+      <td>エコス</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=9216" target="_blank" rel="noopener">9216</a></td>
+      <td>ビーウィズ</td>
+      <td>決算Q1</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=9661" target="_blank" rel="noopener">9661</a></td>
+      <td>歌舞伎座</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3236" target="_blank" rel="noopener">3236</a></td>
+      <td>プロパスト</td>
+      <td>決算Q1</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=2338" target="_blank" rel="noopener">2338</a></td>
+      <td>クオンタムソリューションズ</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3267" target="_blank" rel="noopener">3267</a></td>
+      <td>フィル・カンパニー</td>
+      <td>決算Q3</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=8904" target="_blank" rel="noopener">8904</a></td>
+      <td>ＡＶＡＮＴＩＡ</td>
+      <td>決算FY</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3647" target="_blank" rel="noopener">3647</a></td>
+      <td>アスリナ</td>
+      <td>決算FY</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=6159" target="_blank" rel="noopener">6159</a></td>
+      <td>ミクロン精密</td>
+      <td>決算FY</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=8247" target="_blank" rel="noopener">8247</a></td>
+      <td>大和</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=2164" target="_blank" rel="noopener">2164</a></td>
+      <td>地域新聞社</td>
+      <td>決算FY</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=9876" target="_blank" rel="noopener">9876</a></td>
+      <td>コックス</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=2769" target="_blank" rel="noopener">2769</a></td>
+      <td>ヴィレッジヴァンガードコーポレーション</td>
+      <td>決算Q1</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=7219" target="_blank" rel="noopener">7219</a></td>
+      <td>エッチ・ケー・エス</td>
+      <td>決算FY</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=8181" target="_blank" rel="noopener">8181</a></td>
+      <td>東天紅</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3080" target="_blank" rel="noopener">3080</a></td>
+      <td>ジェーソン</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3297" target="_blank" rel="noopener">3297</a></td>
+      <td>東武住販</td>
+      <td>決算Q1</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=4198" target="_blank" rel="noopener">4198</a></td>
+      <td>テンダ</td>
+      <td>決算Q1</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=2736" target="_blank" rel="noopener">2736</a></td>
+      <td>フェスタリアホールディングス</td>
+      <td>決算FY</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=4920" target="_blank" rel="noopener">4920</a></td>
+      <td>日本色材工業研究所</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=9812" target="_blank" rel="noopener">9812</a></td>
+      <td>テーオーホールディングス</td>
+      <td>決算Q1</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=2668" target="_blank" rel="noopener">2668</a></td>
+      <td>タビオ</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+  
+    <tr class="day"><td colspan="5">10/14(水)</td></tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=7453" target="_blank" rel="noopener">7453</a></td>
+      <td>良品計画</td>
+      <td>決算FY</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=7581" target="_blank" rel="noopener">7581</a></td>
+      <td>サイゼリヤ</td>
+      <td>決算FY</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=7599" target="_blank" rel="noopener">7599</a></td>
+      <td>ＩＤＯＭ</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=9418" target="_blank" rel="noopener">9418</a></td>
+      <td>Ｕ－ＮＥＸＴ　ＨＯＬＤＩＮＧＳ</td>
+      <td>決算FY</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3387" target="_blank" rel="noopener">3387</a></td>
+      <td>クリエイト・レストランツ・ホールディングス</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=8237" target="_blank" rel="noopener">8237</a></td>
+      <td>松屋</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3543" target="_blank" rel="noopener">3543</a></td>
+      <td>コメダホールディングス</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=9601" target="_blank" rel="noopener">9601</a></td>
+      <td>松竹</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3083" target="_blank" rel="noopener">3083</a></td>
+      <td>スターシーズ</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=2337" target="_blank" rel="noopener">2337</a></td>
+      <td>いちご</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=6183" target="_blank" rel="noopener">6183</a></td>
+      <td>ベルシステム２４ホールディングス</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=2292" target="_blank" rel="noopener">2292</a></td>
+      <td>Ｓ　Ｆｏｏｄｓ</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=4432" target="_blank" rel="noopener">4432</a></td>
+      <td>ウイングアーク１ｓｔ</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3562" target="_blank" rel="noopener">3562</a></td>
+      <td>Ｎｏ．１</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3608" target="_blank" rel="noopener">3608</a></td>
+      <td>ＴＳＩホールディングス</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3093" target="_blank" rel="noopener">3093</a></td>
+      <td>トレジャー・ファクトリー</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=2153" target="_blank" rel="noopener">2153</a></td>
+      <td>Ｅ・Ｊホールディングス</td>
+      <td>決算Q1</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=7608" target="_blank" rel="noopener">7608</a></td>
+      <td>エスケイジャパン</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=4577" target="_blank" rel="noopener">4577</a></td>
+      <td>ダイト</td>
+      <td>決算Q1</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=2471" target="_blank" rel="noopener">2471</a></td>
+      <td>エスプール</td>
+      <td>決算Q3</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=9837" target="_blank" rel="noopener">9837</a></td>
+      <td>モリト</td>
+      <td>決算Q3</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=5885" target="_blank" rel="noopener">5885</a></td>
+      <td>ジーデップ・アドバンス</td>
+      <td>決算Q1</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=6505" target="_blank" rel="noopener">6505</a></td>
+      <td>東洋電機製造</td>
+      <td>決算Q1</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3139" target="_blank" rel="noopener">3139</a></td>
+      <td>ラクト・ジャパン</td>
+      <td>決算Q3</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3168" target="_blank" rel="noopener">3168</a></td>
+      <td>ＭＥＲＦ</td>
+      <td>決算FY</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3922" target="_blank" rel="noopener">3922</a></td>
+      <td>ＰＲ　ＴＩＭＥＳ</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3678" target="_blank" rel="noopener">3678</a></td>
+      <td>メディアドゥ</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=4668" target="_blank" rel="noopener">4668</a></td>
+      <td>明光ネットワークジャパン</td>
+      <td>決算FY</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=8143" target="_blank" rel="noopener">8143</a></td>
+      <td>ラピーヌ</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=2305" target="_blank" rel="noopener">2305</a></td>
+      <td>スタジオアリス</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=1434" target="_blank" rel="noopener">1434</a></td>
+      <td>ＪＥＳＣＯホールディングス</td>
+      <td>決算FY</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=2462" target="_blank" rel="noopener">2462</a></td>
+      <td>ライク</td>
+      <td>決算Q1</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=2882" target="_blank" rel="noopener">2882</a></td>
+      <td>イートアンドホールディングス</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3077" target="_blank" rel="noopener">3077</a></td>
+      <td>ホリイフードサービス</td>
+      <td>決算Q3</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=6897" target="_blank" rel="noopener">6897</a></td>
+      <td>ツインバード</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=505A" target="_blank" rel="noopener">505A</a></td>
+      <td>ギークリー</td>
+      <td>決算Q1</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=6047" target="_blank" rel="noopener">6047</a></td>
+      <td>Ｇｕｎｏｓｙ</td>
+      <td>決算Q1</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=365A" target="_blank" rel="noopener">365A</a></td>
+      <td>伊澤タオル</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3075" target="_blank" rel="noopener">3075</a></td>
+      <td>銚子丸</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3560" target="_blank" rel="noopener">3560</a></td>
+      <td>ほぼ日</td>
+      <td>決算FY</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=9264" target="_blank" rel="noopener">9264</a></td>
+      <td>ポエック</td>
+      <td>決算FY</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=7847" target="_blank" rel="noopener">7847</a></td>
+      <td>グラファイトデザイン</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3177" target="_blank" rel="noopener">3177</a></td>
+      <td>ありがとうサービス</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=6634" target="_blank" rel="noopener">6634</a></td>
+      <td>ＪＮグループ</td>
+      <td>決算Q3</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3030" target="_blank" rel="noopener">3030</a></td>
+      <td>ハブ</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=5967" target="_blank" rel="noopener">5967</a></td>
+      <td>ＴＯＮＥ</td>
+      <td>決算Q1</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=4673" target="_blank" rel="noopener">4673</a></td>
+      <td>川崎地質</td>
+      <td>決算Q3</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=7601" target="_blank" rel="noopener">7601</a></td>
+      <td>ポプラ</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3760" target="_blank" rel="noopener">3760</a></td>
+      <td>ケイブ</td>
+      <td>決算Q1</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=2459" target="_blank" rel="noopener">2459</a></td>
+      <td>アウンコンサルティング</td>
+      <td>決算Q1</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=7879" target="_blank" rel="noopener">7879</a></td>
+      <td>ノダ</td>
+      <td>決算Q3</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=9993" target="_blank" rel="noopener">9993</a></td>
+      <td>ヤマザワ</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=8260" target="_blank" rel="noopener">8260</a></td>
+      <td>井筒屋</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=7805" target="_blank" rel="noopener">7805</a></td>
+      <td>プリントネット</td>
+      <td>決算FY</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3280" target="_blank" rel="noopener">3280</a></td>
+      <td>エストラスト</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3892" target="_blank" rel="noopener">3892</a></td>
+      <td>岡山製紙</td>
+      <td>決算Q1</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=6552" target="_blank" rel="noopener">6552</a></td>
+      <td>ＧａｍｅＷｉｔｈ</td>
+      <td>決算Q1</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3181" target="_blank" rel="noopener">3181</a></td>
+      <td>買取王国</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=2872" target="_blank" rel="noopener">2872</a></td>
+      <td>セイヒョー</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=2186" target="_blank" rel="noopener">2186</a></td>
+      <td>ソーバル</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=5250" target="_blank" rel="noopener">5250</a></td>
+      <td>ＧＭＯプライム・ストラテジー</td>
+      <td>決算Q3</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3065" target="_blank" rel="noopener">3065</a></td>
+      <td>ライフフーズ</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=7928" target="_blank" rel="noopener">7928</a></td>
+      <td>旭化学工業</td>
+      <td>決算FY</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3045" target="_blank" rel="noopener">3045</a></td>
+      <td>カワサキ</td>
+      <td>決算FY</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3536" target="_blank" rel="noopener">3536</a></td>
+      <td>アクサスホールディングス</td>
+      <td>決算FY</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+  
+    <tr class="day"><td colspan="5">10/15(木)</td></tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=6532" target="_blank" rel="noopener">6532</a></td>
+      <td>ベイカレント</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=9602" target="_blank" rel="noopener">9602</a></td>
+      <td>東宝</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3697" target="_blank" rel="noopener">3697</a></td>
+      <td>ＳＨＩＦＴ</td>
+      <td>決算FY</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3994" target="_blank" rel="noopener">3994</a></td>
+      <td>マネーフォワード</td>
+      <td>決算Q3</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=8233" target="_blank" rel="noopener">8233</a></td>
+      <td>高島屋</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=623A" target="_blank" rel="noopener">623A</a></td>
+      <td>ベルテックス</td>
+      <td>決算Q3</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=6058" target="_blank" rel="noopener">6058</a></td>
+      <td>ベクトル</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=4413" target="_blank" rel="noopener">4413</a></td>
+      <td>ボードルア</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=1407" target="_blank" rel="noopener">1407</a></td>
+      <td>ウエストホールディングス</td>
+      <td>決算FY</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=6866" target="_blank" rel="noopener">6866</a></td>
+      <td>日置電機</td>
+      <td>決算Q3</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=7730" target="_blank" rel="noopener">7730</a></td>
+      <td>マニー</td>
+      <td>決算FY</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=2168" target="_blank" rel="noopener">2168</a></td>
+      <td>パソナグループ</td>
+      <td>決算Q1</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=277A" target="_blank" rel="noopener">277A</a></td>
+      <td>グロービング</td>
+      <td>決算Q1</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3915" target="_blank" rel="noopener">3915</a></td>
+      <td>テラスカイ</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=7818" target="_blank" rel="noopener">7818</a></td>
+      <td>トランザクション</td>
+      <td>決算FY</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=7719" target="_blank" rel="noopener">7719</a></td>
+      <td>東京衡機</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=1887" target="_blank" rel="noopener">1887</a></td>
+      <td>日本国土開発</td>
+      <td>決算Q1</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=8167" target="_blank" rel="noopener">8167</a></td>
+      <td>リテールパートナーズ</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3548" target="_blank" rel="noopener">3548</a></td>
+      <td>バロックジャパンリミテッド</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=367A" target="_blank" rel="noopener">367A</a></td>
+      <td>プリモグローバルホールディングス</td>
+      <td>決算FY</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=9979" target="_blank" rel="noopener">9979</a></td>
+      <td>大庄</td>
+      <td>決算FY</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=9628" target="_blank" rel="noopener">9628</a></td>
+      <td>燦ホールディングス</td>
+      <td>決算FY</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3810" target="_blank" rel="noopener">3810</a></td>
+      <td>サイバーステップホールディングス</td>
+      <td>決算Q1</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=4434" target="_blank" rel="noopener">4434</a></td>
+      <td>サーバーワークス</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=8254" target="_blank" rel="noopener">8254</a></td>
+      <td>さいか屋</td>
+      <td>決算FY</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=7610" target="_blank" rel="noopener">7610</a></td>
+      <td>テイツー</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=7388" target="_blank" rel="noopener">7388</a></td>
+      <td>ＦＰパートナー</td>
+      <td>決算Q3</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=2484" target="_blank" rel="noopener">2484</a></td>
+      <td>出前館</td>
+      <td>決算FY</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3791" target="_blank" rel="noopener">3791</a></td>
+      <td>ＩＧポート</td>
+      <td>決算Q1</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=7035" target="_blank" rel="noopener">7035</a></td>
+      <td>ａｎｄ　ｆａｃｔｏｒｙ</td>
+      <td>決算FY</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=2449" target="_blank" rel="noopener">2449</a></td>
+      <td>プラップジャパン</td>
+      <td>決算FY</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=2884" target="_blank" rel="noopener">2884</a></td>
+      <td>ヨシムラ・フード・ホールディングス</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3547" target="_blank" rel="noopener">3547</a></td>
+      <td>ユニシアホールディングス</td>
+      <td>決算Q3</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=5817" target="_blank" rel="noopener">5817</a></td>
+      <td>ＪＭＡＣＳ</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=2930" target="_blank" rel="noopener">2930</a></td>
+      <td>北の達人コーポレーション</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=5018" target="_blank" rel="noopener">5018</a></td>
+      <td>ＭＯＲＥＳＣＯ</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=6572" target="_blank" rel="noopener">6572</a></td>
+      <td>オープングループ</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=1418" target="_blank" rel="noopener">1418</a></td>
+      <td>インターライフホールディングス</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3189" target="_blank" rel="noopener">3189</a></td>
+      <td>ＡＮＡＰホールディングス</td>
+      <td>決算FY</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=2437" target="_blank" rel="noopener">2437</a></td>
+      <td>Ｓｈｉｎｗａ　Ｗｉｓｅ　Ｈｏｌｄｉｎｇｓ</td>
+      <td>決算Q1</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=6199" target="_blank" rel="noopener">6199</a></td>
+      <td>セラク</td>
+      <td>決算FY</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=8887" target="_blank" rel="noopener">8887</a></td>
+      <td>シーラホールディングス</td>
+      <td>決算Q1</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=1430" target="_blank" rel="noopener">1430</a></td>
+      <td>ファーストコーポレーション</td>
+      <td>決算Q1</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=372A" target="_blank" rel="noopener">372A</a></td>
+      <td>レント</td>
+      <td>決算Q1</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=8783" target="_blank" rel="noopener">8783</a></td>
+      <td>ａｂｃ</td>
+      <td>決算FY</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3935" target="_blank" rel="noopener">3935</a></td>
+      <td>エディア</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=2901" target="_blank" rel="noopener">2901</a></td>
+      <td>ウェルディッシュ</td>
+      <td>決算FY</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3021" target="_blank" rel="noopener">3021</a></td>
+      <td>パシフィックネット</td>
+      <td>決算Q1</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=274A" target="_blank" rel="noopener">274A</a></td>
+      <td>ガーデン</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=4616" target="_blank" rel="noopener">4616</a></td>
+      <td>川上塗料</td>
+      <td>決算Q3</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=2927" target="_blank" rel="noopener">2927</a></td>
+      <td>ＡＦＣ－ＨＤアムスライフサイエンス</td>
+      <td>決算FY</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3440" target="_blank" rel="noopener">3440</a></td>
+      <td>日創グループ</td>
+      <td>決算FY</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3174" target="_blank" rel="noopener">3174</a></td>
+      <td>ハピネス・アンド・ディ</td>
+      <td>決算FY</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=7065" target="_blank" rel="noopener">7065</a></td>
+      <td>ユーピーアール</td>
+      <td>決算FY</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=4885" target="_blank" rel="noopener">4885</a></td>
+      <td>室町ケミカル</td>
+      <td>決算Q1</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=5869" target="_blank" rel="noopener">5869</a></td>
+      <td>早稲田学習研究会</td>
+      <td>決算Q1</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3645" target="_blank" rel="noopener">3645</a></td>
+      <td>メディカルネット</td>
+      <td>決算Q1</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=7808" target="_blank" rel="noopener">7808</a></td>
+      <td>シー・エス・ランバー</td>
+      <td>決算Q1</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=7357" target="_blank" rel="noopener">7357</a></td>
+      <td>ジオコード</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=4439" target="_blank" rel="noopener">4439</a></td>
+      <td>東名</td>
+      <td>決算FY</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=4016" target="_blank" rel="noopener">4016</a></td>
+      <td>ＭＩＴホールディングス</td>
+      <td>決算Q3</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=9978" target="_blank" rel="noopener">9978</a></td>
+      <td>文教堂グループホールディングス</td>
+      <td>決算FY</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=7997" target="_blank" rel="noopener">7997</a></td>
+      <td>くろがね工作所</td>
+      <td>決算Q3</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3826" target="_blank" rel="noopener">3826</a></td>
+      <td>システムインテグレータ</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=6150" target="_blank" rel="noopener">6150</a></td>
+      <td>タケダ機械</td>
+      <td>決算Q1</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=2404" target="_blank" rel="noopener">2404</a></td>
+      <td>鉄人化ホールディングス</td>
+      <td>決算FY</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=2798" target="_blank" rel="noopener">2798</a></td>
+      <td>ワイズテーブルコーポレーション</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=7514" target="_blank" rel="noopener">7514</a></td>
+      <td>ヒマラヤ</td>
+      <td>決算FY</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=4197" target="_blank" rel="noopener">4197</a></td>
+      <td>アスマーク</td>
+      <td>決算Q3</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3266" target="_blank" rel="noopener">3266</a></td>
+      <td>ファンドクリエーショングループ</td>
+      <td>決算Q3</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=3223" target="_blank" rel="noopener">3223</a></td>
+      <td>エスエルディー</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=6543" target="_blank" rel="noopener">6543</a></td>
+      <td>日宣</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=9778" target="_blank" rel="noopener">9778</a></td>
+      <td>昴</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=5078" target="_blank" rel="noopener">5078</a></td>
+      <td>セレコーポレーション</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=7807" target="_blank" rel="noopener">7807</a></td>
+      <td>幸和製作所</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=6578" target="_blank" rel="noopener">6578</a></td>
+      <td>コレックホールディングス</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=7815" target="_blank" rel="noopener">7815</a></td>
+      <td>東京ボード工業</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=6555" target="_blank" rel="noopener">6555</a></td>
+      <td>ＭＳ＆Ｃｏｎｓｕｌｔｉｎｇ</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+  
+    <tr class="day"><td colspan="5">10/16(金)</td></tr>
+    
+    <tr class="">
+      
+      <td class="">引け後</td>
+      
+      <td><a href="https://kabutan.jp/stock/?code=2411" target="_blank" rel="noopener">2411</a></td>
+      <td>ゲンダイエージェンシー</td>
+      <td>決算Q2</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    
+  
+  </tbody>
+</table>
+</main>
+<footer>
+  2026-10-09 15:08 更新 ・ 出典: TDnet / JPX / Yahoo Finance<br>
+  上昇確度は暫定値(同種の開示が過去に「開示前終値→開示後最初の終値」で上昇した割合)。判定基準を受け取り次第置き換えます。
+</footer>
+</body>
+</html>
