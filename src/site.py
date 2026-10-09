@@ -1,6 +1,6 @@
 """docs/ の静的サイト(GitHub Pages)を生成する。
 
-- index.html: 適時開示フィード(時刻 / コード / 企業名 / 種別 / 上昇確度)。feed.json を1分ごとに読み直して自動更新
+- index.html: TDnet 決算速報(開示日を選んで決算・修正を一覧。data/index.json を1分ごとに確認して自動更新)
 - calendar.html: 翌営業日〜N営業日先の決算予定
 上昇確度は score_of() に集約。決算短信は3つの型(earnings.py)への該当数ごとの過去の上昇率。
 """
@@ -14,8 +14,8 @@ from . import calendar_fetch, disclosures, earnings, reaction, universe
 from .config import DATA_DIR, ROOT, now_jst
 
 DOCS_DIR = ROOT / "docs"
-FEED_KINDS = {"earnings_report", "forecast_revision", "forecast_dividend_revision",
-              "dividend_revision", "forecast_initial"}
+# 決算速報に出す開示: 決算短信と、業績・配当予想の修正
+FEED_KINDS = {"earnings_report", "forecast_revision", "forecast_dividend_revision", "dividend_revision"}
 
 
 def kind_label(r: dict, feat: dict | None = None) -> str:
@@ -94,19 +94,19 @@ def details(r: dict, feat: dict | None) -> list[list]:
 
 
 def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:
+    """取り込み済みの全期間の決算・修正(新しい順)。"""
     disc = disclosures.load(data_dir)
     disc = disc[disc["kind"].isin(FEED_KINDS) & (disc["is_correction"] != "True")]
     stats = reaction.load_stats(data_dir)
     feats = earnings.by_disclosure(data_dir)
-    days = sorted(disc["disclosed_at"].str[:10].unique(), reverse=True)[:cfg["site"]["feed_days"]]
-    disc = disc[disc["disclosed_at"].str[:10].isin(days)]
     rows = []
     for r in disc.sort_values(["disclosed_at", "code"], ascending=[False, True]).to_dict("records"):
         p = score_of(r, stats, cfg, feats)
         f = feats.get(r["disclosure_id"])
         rows.append({"id": r["disclosure_id"], "date": r["disclosed_at"][:10], "time": r["disclosed_at"][11:16],
-                     "code": r["code"], "name": r["name"], "kind": kind_label(r, f), "url": r["pdf_url"],
-                     "title": r["title"], "details": details(r, f),
+                     "code": r["code"], "name": r["name"], "kind": kind_label(r, f),
+                     "group": "決算" if r["kind"] == "earnings_report" else "修正",
+                     "url": r["pdf_url"], "title": r["title"], "details": details(r, f),
                      "pct": None if p is None else round(p * 100),
                      "up": p is not None and round(p * 100) > 50})
     return rows
@@ -139,18 +139,37 @@ def _date_label(d: str) -> str:
 
 
 def render_all(cfg: dict, data_dir: Path = DATA_DIR, docs_dir: Path = DOCS_DIR) -> list[str]:
+    """index.html(決算速報)・開示日ごとの data/YYYY-MM-DD.json・data/index.json・calendar.html を出力。"""
     env = Environment(loader=FileSystemLoader(ROOT / "templates"), autoescape=True)
     env.filters["dlabel"] = _date_label
     now = now_jst().strftime("%Y-%m-%d %H:%M:%S")
-    docs_dir.mkdir(parents=True, exist_ok=True)
-    feed = {"generated_at": now, "rows": feed_rows(cfg, data_dir)}
-    feed_json = json.dumps(feed, ensure_ascii=False, separators=(",", ":"))
-    (docs_dir / "feed.json").write_text(feed_json, encoding="utf-8")
+    data_out = docs_dir / "data"
+    data_out.mkdir(parents=True, exist_ok=True)
+
+    by_date: dict[str, list[dict]] = {}
+    for r in feed_rows(cfg, data_dir):
+        by_date.setdefault(r["date"], []).append(r)
+    dates = sorted(by_date, reverse=True)
+    dump = lambda o: json.dumps(o, ensure_ascii=False, separators=(",", ":"))  # noqa: E731
+    out = []
+    for d, rows in by_date.items():
+        p = data_out / f"{d}.json"
+        body = dump({"date": d, "rows": rows})
+        if not p.exists() or p.read_text(encoding="utf-8") != body:     # 変わった日だけ書き換える
+            p.write_text(body, encoding="utf-8")
+            out.append(str(p))
+    index = {"generated_at": now, "dates": dates}
+    (data_out / "index.json").write_text(dump(index), encoding="utf-8")
+    old_feed = docs_dir / "feed.json"
+    if old_feed.exists():
+        old_feed.unlink()
+
+    latest = {"date": dates[0], "rows": by_date[dates[0]]} if dates else {"date": "", "rows": []}
     pages = {
-        "index.html": ("feed.html.j2", dict(page="feed", feed_json=feed_json.replace("</", "<\\/"))),
+        "index.html": ("feed.html.j2", dict(page="feed", index_json=dump(index).replace("</", "<\\/"),
+                                            day_json=dump(latest).replace("</", "<\\/"))),
         "calendar.html": ("calendar.html.j2", dict(page="calendar", groups=_group(calendar_rows(data_dir)))),
     }
-    out = [str(docs_dir / "feed.json")]
     for name, (tpl, ctx) in pages.items():
         p = docs_dir / name
         p.write_text(env.get_template(tpl).render(generated_at=now, **ctx), encoding="utf-8")

@@ -58,8 +58,6 @@ reaction:
   max_abs_ret_pct: 50        # これを超える変化は分割未調整などの異常値として除外
   price_period: "3mo"
 
-site:
-  feed_days: 5               # 適時開示フィードに出す日数
 
 earnings:
   # 決算短信の「上がりやすい決算内容」への親和性(src/earnings.py)

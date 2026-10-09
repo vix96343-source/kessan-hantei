@@ -6,8 +6,8 @@
 <title>決算予定 | 決算持ち越し判定君</title>
 <style>
 :root {
-  --bg: #05080b; --line: #1a2128; --head: #b9c2cc; --text: #e9eef2; --muted: #7f8a95;
-  --green: #2bea7f; --red: #ff6b6b; --tab: #12202b; --panel: #0c1218; --new: #3a3200; --warn: #ffb84d;
+  --bg: #171a26; --line: #2a2f42; --head: #e6e9f0; --text: #e6e9f0; --muted: #8b93a7;
+  --green: #3ee08f; --red: #ff7a7a; --tab: #1e2232; --panel: #1e2232; --new: #3a3420; --warn: #e6b56a;
 }
 * { box-sizing: border-box; }
 body {
@@ -23,7 +23,7 @@ nav a[aria-current="page"] { color: var(--text); background: var(--tab); }
 main { max-width: 760px; margin: 0 auto; }
 table { width: 100%; border-collapse: collapse; table-layout: fixed; font-variant-numeric: tabular-nums; }
 th {
-  position: sticky; top: 0; background: var(--bg); color: var(--head); font-weight: 600;
+  position: sticky; top: 0; background: var(--panel); color: var(--head); font-weight: 600;
   padding: 8px 6px; border-bottom: 1px solid var(--line); font-size: 15px; z-index: 1;
 }
 td { padding: 9px 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border-bottom: 1px solid var(--line); }
@@ -46,9 +46,9 @@ footer { color: var(--muted); font: 400 12px/1.6 system-ui, sans-serif; padding:
 </head>
 <body>
 <nav>
-  <a href="index.html">適時開示</a>
+  <a href="index.html">決算速報</a>
   <a href="calendar.html" aria-current="page">決算予定</a>
-  <span class="status" id="status">2026-10-09 16:30 更新</span>
+  <span class="status" id="status">2026-10-09 16:35 更新</span>
 </nav>
 <main>
 <table>

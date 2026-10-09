@@ -1,121 +1,297 @@
-{% extends "_base.html.j2" %}
-{% block title %}適時開示{% endblock %}
-{% block style %}
-tr.row { cursor: pointer; }
-tr.row:hover td { background: #0b1117; }
-tr.open td { background: var(--panel); }
-tr.new td { background: var(--new); animation: flash 1.2s ease-out 2; }
-@keyframes flash { 0% { background: #6b5a00; } 100% { background: var(--new); } }
-.badge-new { display: inline-block; font-size: 10px; font-weight: 700; color: #000; background: var(--warn);
-  border-radius: 3px; padding: 0 4px; margin-left: 4px; vertical-align: 2px; }
-tr.detail td { white-space: normal; background: var(--panel); padding: 4px 10px 12px; border-bottom: 1px solid var(--line); }
-.dl { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px 14px; font-size: 13px; }
-.dl div { display: flex; justify-content: space-between; gap: 8px; border-bottom: 1px dotted var(--line); padding: 3px 0; }
-.dl span:first-child { color: var(--muted); font-weight: 400; }
-.dl span:last-child { white-space: nowrap; }
-@media (max-width: 480px) { .dl { grid-template-columns: 1fr; } }
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TDnet 決算速報</title>
+<style>
+:root {
+  --bg: #171a26; --panel: #1e2232; --row: #1b1e2b; --row2: #20243a; --line: #2a2f42;
+  --text: #e6e9f0; --muted: #8b93a7; --teal: #6fd6cb; --teal-bg: #1d4f4c; --teal-line: #3c8e86;
+  --warn-bg: #3a2f1f; --warn: #e6b56a; --green: #3ee08f; --red: #ff7a7a; --new: #3a3420;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text);
+  font: 14px/1.45 "Meiryo UI", "Yu Gothic UI", "Hiragino Sans", system-ui, sans-serif; }
+header { display: flex; align-items: center; gap: 12px; padding: 8px 14px; border-bottom: 1px solid var(--line); }
+header h1 { font-size: 15px; margin: 0; font-weight: 700; }
+header .links { margin-left: 8px; font-size: 12px; } header .links a { color: var(--muted); text-decoration: none; }
+header .status { margin-left: auto; color: var(--muted); font-size: 12px; white-space: nowrap; }
+.dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--muted); margin-right: 6px; vertical-align: 1px; }
+.dot.ok { background: var(--teal); } .dot.busy { background: var(--warn); } .dot.err { background: var(--red); }
+.bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 10px 14px 6px; }
+.bar label.lb { color: var(--muted); font-size: 12px; }
+input, select, button { font: inherit; color: var(--text); background: var(--panel); border: 1px solid var(--line);
+  border-radius: 4px; padding: 5px 9px; }
+input[type=date] { color-scheme: dark; }
+input[type=search] { flex: 1; min-width: 180px; max-width: 320px; }
+button { cursor: pointer; }
+button.primary { background: var(--teal-bg); border-color: var(--teal-line); color: #dff7f4; }
+button:hover { filter: brightness(1.15); }
+.bar2 { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; padding: 0 14px 8px; font-size: 12px; color: var(--muted); }
+.bar2 .sp { flex: 1; }
+.bar2 label { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; }
+.bar2 input[type=checkbox] { accent-color: var(--teal); width: 14px; height: 14px; padding: 0; }
+.note { margin: 0 14px 8px; padding: 7px 10px; background: var(--warn-bg); color: var(--warn); font-size: 12px; border-radius: 3px; }
+.wrap { padding: 0 14px 30px; overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; max-width: 900px; font-variant-numeric: tabular-nums; }
+th { position: sticky; top: 0; z-index: 1; text-align: left; font-weight: 600; color: var(--text);
+  background: var(--panel); padding: 7px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; cursor: pointer; user-select: none; }
+th .ar { color: var(--muted); font-size: 10px; margin-left: 3px; }
+td { padding: 6px 10px; white-space: nowrap; border-bottom: 1px solid #1f2333; }
+tbody tr.row td { background: var(--row); }
+tbody tr.row.alt td { background: var(--row2); }
+tr.row { cursor: pointer; } tr.row:hover td { background: #262b42 !important; }
+td.c-date, td.c-time, td.c-code { color: var(--teal); }
+td.c-kind { color: var(--teal); }
+td.c-name { max-width: 260px; overflow: hidden; text-overflow: ellipsis; }
+td.c-pct, th.c-pct { text-align: right; }
+td.c-pct.up { color: var(--green); font-weight: 700; } td.c-pct.down { color: var(--muted); }
+tr.new td { background: var(--new) !important; }
+.badge-new { display: inline-block; font-size: 10px; font-weight: 700; color: #1b1500; background: var(--warn);
+  border-radius: 3px; padding: 0 4px; margin-left: 6px; vertical-align: 1px; }
+tr.detail td { white-space: normal; background: #141724 !important; padding: 8px 12px 12px; }
+.dtitle { color: var(--muted); margin-bottom: 8px; }
+.dl { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 4px 18px; font-size: 13px; }
+.dl div { display: flex; justify-content: space-between; gap: 8px; border-bottom: 1px dotted var(--line); padding: 2px 0; }
+.dl span:first-child { color: var(--muted); } .dl span:last-child { white-space: nowrap; }
 .dl .up { color: var(--green); } .dl .down { color: var(--red); }
-.dtitle { font: 400 13px/1.5 system-ui, sans-serif; color: var(--head); margin: 6px 0 8px; }
-.dtitle a { color: var(--head); }
-.links { margin-top: 8px; font-size: 13px; } .links a { color: #8fc7ff; margin-right: 14px; }
-{% endblock %}
-{% block status %}<span class="dot" id="dot"></span><span id="stamp">{{ generated_at[11:16] }} 更新</span>{% endblock %}
-{% block content %}
+.dlinks { margin-top: 8px; } .dlinks a { color: var(--teal); margin-right: 16px; }
+.empty { color: var(--muted); padding: 24px 10px; }
+footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 0 14px 30px; max-width: 900px; }
+.sm { display: none; }
+@media (max-width: 600px) {
+  body { font-size: 13px; }
+  header { flex-wrap: wrap; gap: 4px 10px; } header .status { margin-left: 0; width: 100%; }
+  .c-date { display: none; }
+  table { table-layout: fixed; }
+  th.c-time { width: 50px; } th.c-code { width: 44px; } th.c-kind { width: 76px; } th.c-pct { width: 48px; }
+  td, th { padding: 6px 4px; }
+  td.c-name, td.c-kind { overflow: hidden; text-overflow: ellipsis; max-width: none; }
+  .lg { display: none; } .sm { display: inline; }
+  input[type=search] { max-width: none; }
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>TDnet 決算速報</h1>
+  <span class="links"><a href="calendar.html">決算予定 ›</a></span>
+  <span class="status"><span class="dot" id="dot"></span><span id="state">読み込み中</span>　最終取得 <span id="stamp">–</span></span>
+</header>
+
+<div class="bar">
+  <label class="lb" for="day">開示日</label>
+  <input type="date" id="day">
+  <input type="search" id="q" placeholder="銘柄コード・会社名・表題を検索" aria-label="検索">
+  <button class="primary" id="reload">↻ 更新</button>
+  <button id="csv">CSV出力</button>
+</div>
+<div class="bar2">
+  <span id="count">–</span>
+  <span class="sp"></span>
+  <label><input type="checkbox" id="onlyNew"> 新着のみ</label>
+  <label><input type="checkbox" id="auto" checked> 1分ごとに更新</label>
+  <select id="sort" aria-label="並び順">
+    <option value="time:desc">時刻：新しい順</option>
+    <option value="time:asc">時刻：古い順</option>
+    <option value="code:asc">コード順</option>
+    <option value="group:asc">種別順</option>
+    <option value="pct:desc">上昇確度：高い順</option>
+  </select>
+</div>
+<div class="note" id="note">1分ごとに選択日を更新します。画面が非表示の間は取得を休止します。</div>
+
+<div class="wrap">
 <table>
-  <colgroup><col class="c-time"><col class="c-code"><col><col class="c-kind"><col class="c-pct"></colgroup>
-  <thead><tr><th class="c-time">時刻</th><th class="c-code">コード</th><th>企業名</th><th class="c-kind">種別</th><th class="c-pct">上昇確度</th></tr></thead>
+  <thead><tr>
+    <th class="c-date" data-k="date">日付</th>
+    <th class="c-time" data-k="time">時刻<span class="ar"></span></th>
+    <th class="c-code" data-k="code">コード<span class="ar"></span></th>
+    <th class="c-name" data-k="name">企業名</th>
+    <th class="c-kind" data-k="group">種別<span class="ar"></span></th>
+    <th class="c-pct" data-k="pct"><span class="lg">上昇確度</span><span class="sm">確度</span><span class="ar"></span></th>
+  </tr></thead>
   <tbody id="tb"></tbody>
 </table>
-{% endblock %}
-{% block footer %}
-  1分ごとに自動更新(TDnet を1分おきに確認しています。表示までの遅れは数分)。行をタップすると数字が開きます。<br>
-  種別の ①②③ は該当した型(① リクルート型: 売上の伸びが加速+利益率改善 / ② キオクシア型: 単Q売上・営業益が前四半期から急改善 / ③ ローツェ型B: 好調なのに予想据え置きで残り期間の想定が慎重)。<br>
-  上昇確度 = 同じ型の数(決算)・同じ方向と幅(修正・配当)の過去の開示で「開示前終値→開示後最初の終値」が上昇した割合(件数が少ないものは全体平均に寄せる)。受注・KPI・製品価格は未判定。
-{% endblock %}
-{% block script %}
-<script id="data" type="application/json">{{ feed_json | safe }}</script>
+</div>
+<footer>
+  出典: TDnet(日本取引所グループ)。決算短信と業績・配当予想の修正を表示。行をクリック/タップすると数値(売上・営業益の伸び、進捗率、修正率など)が開きます。<br>
+  種別の ①②③ は該当した型(① リクルート型: 売上の伸びが加速+利益率改善 / ② キオクシア型: 単Q売上・営業益が前四半期から急改善 / ③ ローツェ型B: 好調なのに予想据え置きで残り期間の想定が慎重)。
+  上昇確度 = 同じ型の数(決算)・同じ方向と幅(修正)の過去の開示で「開示前終値→開示後最初の終値」が上昇した割合。
+</footer>
+
+<script id="index" type="application/json">{{ index_json | safe }}</script>
+<script id="day0" type="application/json">{{ day_json | safe }}</script>
 <script>
 (() => {
-  const tb = document.getElementById('tb');
+  const $ = id => document.getElementById(id);
   const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  const wd = d => '日月火水木金土'[new Date(d + 'T00:00:00').getDay()];
-  const label = d => `${+d.slice(5, 7)}/${+d.slice(8, 10)}(${wd(d)})`;
-  const open = new Set();
-  let known = null;           // 前回表示した開示ID(初回は前回訪問時の既読)
-  let fresh = new Set();      // NEW 表示中のID
-
-  const load = k => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } };
+  const load = (k, d) => { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } };
   const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
 
-  function pctCell(r) {
-    if (r.pct == null) return '<span class="none">–</span>';
-    if (r.up) return `▲${r.pct}%`;
-    return r.pct === 50 ? `${r.pct}%` : `▼${r.pct}%`;
+  let index = JSON.parse($('index').textContent);
+  const cache = {};
+  const d0 = JSON.parse($('day0').textContent);
+  if (d0.date) cache[d0.date] = d0;
+
+  const state = { day: d0.date, q: '', onlyNew: false, sort: load('tdnet-sort', 'time:desc') };
+  const open = new Set();
+  const stored = load('tdnet-seen', null);            // 既読の開示ID(新着判定)
+  let firstVisit = stored === null;                   // 初回訪問は全部既読扱い(NEWだらけにしない)
+  const seen = new Set(stored || []);
+  const fresh = new Set();
+
+  $('day').value = state.day;
+  if (index.dates.length) { $('day').min = index.dates[index.dates.length - 1]; $('day').max = index.dates[0]; }
+  $('sort').value = state.sort;
+
+  function setStatus(kind, text) {
+    $('dot').className = 'dot ' + kind;
+    $('state').textContent = text;
+    const t = index.generated_at;
+    if (t) $('stamp').textContent = `${t.slice(0, 4)}/${+t.slice(5, 7)}/${+t.slice(8, 10)} ${t.slice(11, 19)}`;
   }
 
-  function detailRow(r) {
+  async function fetchJSON(path) {
+    const res = await fetch(path + '?t=' + Date.now(), { cache: 'no-store' });
+    if (!res.ok) throw new Error(res.status);
+    return res.json();
+  }
+
+  function markFresh(rows) {
+    if (firstVisit) { rows.forEach(r => seen.add(r.id)); firstVisit = false; }
+    for (const r of rows) if (!seen.has(r.id)) { fresh.add(r.id); seen.add(r.id); }
+    save('tdnet-seen', [...seen].slice(-5000));
+  }
+
+  function sorted(rows) {
+    const [k, dir] = state.sort.split(':');
+    const sgn = dir === 'desc' ? -1 : 1;
+    const key = r => k === 'time' ? r.date + r.time : k === 'pct' ? (r.pct ?? -1) : r[k] ?? '';
+    return [...rows].sort((a, b) => {
+      const x = key(a), y = key(b);
+      return (x < y ? -1 : x > y ? 1 : 0) * sgn || (a.date + a.time < b.date + b.time ? 1 : -1);
+    });
+  }
+
+  function visible() {
+    const day = cache[state.day];
+    if (!day) return null;
+    const q = state.q.trim().toLowerCase();
+    return sorted(day.rows.filter(r =>
+      (!state.onlyNew || fresh.has(r.id)) &&
+      (!q || `${r.code} ${r.name} ${r.title}`.toLowerCase().includes(q))));
+  }
+
+  function pctCell(r) {
+    if (r.pct == null) return '<td class="c-pct down">–</td>';
+    if (r.up) return `<td class="c-pct up">▲${r.pct}%</td>`;
+    return `<td class="c-pct down">${r.pct === 50 ? '' : '▼'}${r.pct}%</td>`;
+  }
+
+  function detail(r) {
     const items = (r.details || []).map(([k, v, t]) => `<div><span>${esc(k)}</span><span class="${esc(t)}">${esc(v)}</span></div>`).join('');
-    return `<tr class="detail"><td colspan="5">
-      <div class="dtitle">${esc(r.title)}</div>
-      ${items ? `<div class="dl">${items}</div>` : ''}
-      <div class="links"><a href="${esc(r.url)}" target="_blank" rel="noopener">開示PDF</a><a href="https://kabutan.jp/stock/?code=${encodeURIComponent(r.code)}" target="_blank" rel="noopener">株探</a></div>
+    return `<tr class="detail"><td colspan="6">
+      <div class="dtitle">${esc(r.title)}</div>${items ? `<div class="dl">${items}</div>` : ''}
+      <div class="dlinks"><a href="${esc(r.url)}" target="_blank" rel="noopener">開示PDF</a><a href="https://kabutan.jp/stock/?code=${encodeURIComponent(r.code)}" target="_blank" rel="noopener">株探</a></div>
     </td></tr>`;
   }
 
-  function render(feed) {
-    const ids = new Set(feed.rows.map(r => r.id));
-    if (known === null) {
-      const seen = load('feed-seen');
-      known = new Set(seen || feed.rows.map(r => r.id));   // 初回訪問なら全部既読
-    }
-    for (const id of ids) if (!known.has(id)) fresh.add(id);
-    known = ids;
-    save('feed-seen', [...ids]);
-
-    let html = '', day = null;
-    for (const r of feed.rows) {
-      if (r.date !== day) { html += `<tr class="day"><td colspan="5">${label(r.date)}</td></tr>`; day = r.date; }
-      const cls = ['row', r.up ? 'up' : '', fresh.has(r.id) ? 'new' : '', open.has(r.id) ? 'open' : ''].join(' ');
-      html += `<tr class="${cls}" data-id="${esc(r.id)}">
-        <td>T${esc(r.time)}</td><td>${esc(r.code)}</td>
-        <td>${esc(r.name)}${fresh.has(r.id) ? '<span class="badge-new">NEW</span>' : ''}</td>
-        <td>${esc(r.kind)}</td><td class="c-pct">${pctCell(r)}</td></tr>`;
-      if (open.has(r.id)) html += detailRow(r);
-    }
-    tb.innerHTML = html || '<tr><td colspan="5" class="none">データがありません</td></tr>';
-    tb._rows = Object.fromEntries(feed.rows.map(r => [r.id, r]));
-
-    // 新しい開示が無ければファイルは更新されないので、監視中かどうかは時間帯で示す(平日 8〜20時 JST)
-    const jst = new Date(Date.now() + 9 * 3600e3), h = jst.getUTCHours(), d = jst.getUTCDay();
-    const live = d >= 1 && d <= 5 && h >= 8 && h < 20;
-    const t = feed.generated_at;
-    document.getElementById('stamp').textContent = `${live ? '監視中 ・ ' : ''}最終 ${+t.slice(5, 7)}/${+t.slice(8, 10)} ${t.slice(11, 16)}`;
-    document.getElementById('dot').className = 'dot' + (live ? ' live' : '');
+  function render() {
+    const rows = visible();
+    const day = cache[state.day];
+    if (!rows) { $('tb').innerHTML = '<tr><td colspan="6" class="empty">読み込み中…</td></tr>'; return; }
+    const total = day.rows.length;
+    $('count').textContent = `${rows.length}件 / 決算・修正 ${total}件`;
+    const [k, dir] = state.sort.split(':');
+    document.querySelectorAll('th').forEach(th => {
+      const ar = th.querySelector('.ar'); if (ar) ar.textContent = th.dataset.k === k ? (dir === 'desc' ? '▼' : '▲') : '';
+    });
+    let html = '';
+    rows.forEach((r, i) => {
+      const isNew = fresh.has(r.id);
+      html += `<tr class="row${i % 2 ? ' alt' : ''}${isNew ? ' new' : ''}" data-id="${esc(r.id)}">
+        <td class="c-date">${r.date.replace(/-/g, '/')}</td><td class="c-time">${esc(r.time)}</td>
+        <td class="c-code">${esc(r.code)}</td>
+        <td class="c-name" title="${esc(r.title)}">${esc(r.name)}${isNew ? '<span class="badge-new">NEW</span>' : ''}</td>
+        <td class="c-kind">${esc(r.kind)}</td>${pctCell(r)}</tr>`;
+      if (open.has(r.id)) html += detail(r);
+    });
+    $('tb').innerHTML = html || `<tr><td colspan="6" class="empty">${state.onlyNew ? '新着はありません' : 'この日の決算・修正はありません'}</td></tr>`;
   }
 
-  tb.addEventListener('click', e => {
+  async function showDay(d, force) {
+    state.day = d;
+    if (!cache[d] || force) {
+      if (!index.dates.includes(d)) { cache[d] = { date: d, rows: [] }; }
+      else {
+        render();
+        try { cache[d] = await fetchJSON(`data/${d}.json`); } catch (e) { setStatus('err', '取得失敗'); return; }
+      }
+      if (d === index.dates[0]) markFresh(cache[d].rows);   // 新着は最新日に届いた分だけ
+    }
+    render();
+  }
+
+  async function refresh(manual) {
+    if (document.hidden && !manual) return;              // 非表示の間は休止
+    setStatus('busy', '取得中');
+    try {
+      const idx = await fetchJSON('data/index.json');
+      const changed = idx.generated_at !== index.generated_at;
+      const followLatest = state.day === index.dates[0];
+      index = idx;
+      if (index.dates.length) { $('day').min = index.dates[index.dates.length - 1]; $('day').max = index.dates[0]; }
+      if (followLatest && index.dates[0] !== state.day) { $('day').value = index.dates[0]; }
+      if (changed || manual) await showDay(followLatest ? index.dates[0] : state.day, true);
+      setStatus('ok', '取得済み');
+    } catch (e) { setStatus('err', '取得失敗'); }
+  }
+
+  function csv() {
+    const rows = visible() || [];
+    const head = ['日付', '時刻', 'コード', '企業名', '種別', '上昇確度(%)', '表題', 'PDF'];
+    const q = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+    const lines = [head.map(q).join(',')].concat(rows.map(r =>
+      [r.date, r.time, r.code, r.name, r.kind, r.pct ?? '', r.title, r.url].map(q).join(',')));
+    const blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `tdnet_${state.day}.csv`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+
+  $('day').addEventListener('change', e => { open.clear(); showDay(e.target.value); });
+  $('q').addEventListener('input', e => { state.q = e.target.value; render(); });
+  $('onlyNew').addEventListener('change', e => { state.onlyNew = e.target.checked; render(); });
+  $('sort').addEventListener('change', e => { state.sort = e.target.value; save('tdnet-sort', state.sort); render(); });
+  $('reload').addEventListener('click', () => refresh(true));
+  $('csv').addEventListener('click', csv);
+  $('auto').addEventListener('change', e => { $('note').style.display = e.target.checked ? '' : 'none'; });
+  document.querySelector('thead').addEventListener('click', e => {
+    const th = e.target.closest('th'); if (!th || !th.querySelector('.ar')) return;
+    const [k, dir] = state.sort.split(':');
+    state.sort = `${th.dataset.k}:${k === th.dataset.k && dir === 'desc' ? 'asc' : 'desc'}`;
+    $('sort').value = [...$('sort').options].some(o => o.value === state.sort) ? state.sort : $('sort').value;
+    save('tdnet-sort', state.sort); render();
+  });
+  $('tb').addEventListener('click', e => {
     if (e.target.closest('a')) return;
     const tr = e.target.closest('tr.row'); if (!tr) return;
     const id = tr.dataset.id;
     open.has(id) ? open.delete(id) : open.add(id);
     fresh.delete(id);
-    render(current);
+    render();
   });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && $('auto').checked) refresh(); });
+  setInterval(() => { if ($('auto').checked) refresh(); }, 60000);
 
-  let current = JSON.parse(document.getElementById('data').textContent);
-  render(current);
-
-  async function poll() {
-    try {
-      const res = await fetch('feed.json?t=' + Date.now(), { cache: 'no-store' });
-      if (res.ok) {
-        const feed = await res.json();
-        if (feed.generated_at !== current.generated_at) { current = feed; render(current); }
-      }
-    } catch (e) {}
-  }
-  setInterval(poll, 60000);
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) poll(); });
+  if (d0.date === index.dates[0]) markFresh(d0.rows);
+  setStatus('ok', '取得済み');
+  render();
 })();
 </script>
-{% endblock %}
+</body>
+</html>
