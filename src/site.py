@@ -4,6 +4,7 @@
 - calendar.html: 翌営業日〜N営業日先の決算予定
 上昇確度は score_of() に集約。決算短信は3つの型(earnings.py)への該当数ごとの過去の上昇率。
 """
+import hashlib
 import json
 import re
 from datetime import date
@@ -190,6 +191,14 @@ def _date_label(d: str) -> str:
     return f"{x.month}/{x.day}({'月火水木金土日'[x.weekday()]})"
 
 
+def build_id() -> str:
+    """画面の作り(テンプレートと site.py)が変わると変わるID。開いているタブはこれを見て自動で読み直す。"""
+    h = hashlib.sha1()
+    for p in sorted((ROOT / "templates").glob("*.j2")) + [Path(__file__)]:
+        h.update(p.read_bytes().replace(b"\r\n", b"\n"))     # 改行コードの違い(Windows/Actions)で変わらないように
+    return h.hexdigest()[:10]
+
+
 def render_all(cfg: dict, data_dir: Path = DATA_DIR, docs_dir: Path = DOCS_DIR) -> list[str]:
     """index.html(決算速報)・開示日ごとの data/YYYY-MM-DD.json・data/index.json・calendar.html を出力。"""
     env = Environment(loader=FileSystemLoader(ROOT / "templates"), autoescape=True)
@@ -213,7 +222,7 @@ def render_all(cfg: dict, data_dir: Path = DATA_DIR, docs_dir: Path = DOCS_DIR) 
     days = [{"date": d, "n": len(by_date[d]),
              "earn": sum(r["group"] == "決算" for r in by_date[d]),
              "rev": sum(r["group"] == "修正" for r in by_date[d])} for d in dates]
-    index = {"generated_at": now, "dates": dates, "days": days}
+    index = {"generated_at": now, "build": build_id(), "dates": dates, "days": days}
     (data_out / "index.json").write_text(dump(index), encoding="utf-8")
     old_feed = docs_dir / "feed.json"
     if old_feed.exists():

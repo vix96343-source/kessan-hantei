@@ -61,7 +61,7 @@ tr.detail td { white-space: normal; background: #141724 !important; padding: 8px
 .dl div { display: flex; justify-content: space-between; gap: 8px; border-bottom: 1px dotted var(--line); padding: 2px 0; }
 .dl span:first-child { color: var(--muted); } .dl span:last-child { white-space: nowrap; }
 .dl .up { color: var(--green); } .dl .down { color: var(--red); }
-td.c-pdf { white-space: nowrap; }
+td.c-kind { white-space: nowrap; }
 a.pdf { display: inline-block; font-size: 12px; line-height: 1.5; padding: 0 6px; margin-right: 4px; border-radius: 3px;
   color: #dff7f4; background: var(--teal-bg); border: 1px solid var(--teal-line); text-decoration: none; }
 a.pdf:hover { filter: brightness(1.25); }
@@ -76,14 +76,14 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
   /* スマホは日付列を幅0にして(列数は保つ)、代わりに日付の区切り行を出す */
   th.c-date, td.c-date { width: 0; padding: 0 !important; font-size: 0; border: 0; overflow: hidden; }
   table { table-layout: fixed; }
-  th.c-time { width: 42px; } th.c-code { width: 38px; } th.c-kind { width: 56px; } th.c-per { width: 32px; }
-  th.c-pct { width: 40px; } th.c-pdf { width: 66px; }
+  th.c-time { width: 44px; } th.c-code { width: 40px; } th.c-kind { width: 70px; } th.c-per { width: 34px; }
+  th.c-pct { width: 42px; }
   td { font-size: 12.5px; }
-  td.c-pdf { white-space: normal; overflow: hidden; }       /* 短信+資料は縦に並べてはみ出さない */
+  td.c-kind { white-space: normal; overflow: hidden; }      /* 短信+資料は縦に並べてはみ出さない */
   a.pdf { font-size: 11px; padding: 0 3px; margin: 1px 2px 1px 0; }
   td, th { padding: 6px 4px; }
   .wrap { padding: 0 8px 10px; }
-  td.c-name, td.c-kind { overflow: hidden; text-overflow: ellipsis; max-width: none; }
+  td.c-name { overflow: hidden; text-overflow: ellipsis; max-width: none; }
   .lg { display: none; } .sm { display: inline; }
   input[type=search] { max-width: none; }
 }
@@ -125,14 +125,13 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
     <th class="c-kind" data-k="group">種別<span class="ar"></span></th>
     <th class="c-per" data-k="period">期<span class="ar"></span></th>
     <th class="c-pct" data-k="pct"><span class="lg">上昇確度</span><span class="sm">確度</span><span class="ar"></span></th>
-    <th class="c-pdf">PDF</th>
   </tr></thead>
   <tbody id="tb"></tbody>
 </table>
 <div class="more" id="more"></div>
 </div>
 <footer>
-  出典: TDnet(日本取引所グループ)。決算短信と業績・配当予想の修正を表示。PDF列: 短信=決算短信、資料=決算説明資料・補足資料(短信から7日以内)、修正=修正の開示。平日8〜20時は1分ごとに自動更新。行をクリック/タップすると数値(売上・営業益の伸び、進捗率、修正率など)が開きます。<br>
+  出典: TDnet(日本取引所グループ)。決算短信と業績・配当予想の修正を表示。種別のボタンを押すとPDFが開きます(短信=決算短信、資料=決算説明資料・補足資料(短信から7日以内)、修正=業績・配当予想の修正)。平日8〜20時は1分ごとに自動更新。行をクリック/タップすると数値(売上・営業益の伸び、進捗率、修正率など)が開きます。<br>
   期: 決算は 1Q/2Q/3Q/通期、修正は対象の期間(通期/中間)。<br>
   上昇確度 = 似た開示(決算は「上がりやすい決算内容」の3つの型 ①リクルート ②キオクシア ③ローツェB に当てはまった数、修正は方向と幅)が過去に「開示前終値→開示後最初の終値」で上昇した割合。当てはまった型は行を開くと表示されます。
 </footer>
@@ -236,7 +235,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
 
   function detail(r) {
     const items = (r.details || []).map(([k, v, t]) => `<div><span>${esc(k)}</span><span class="${esc(t)}">${esc(v)}</span></div>`).join('');
-    return `<tr class="detail"><td colspan="8">
+    return `<tr class="detail"><td colspan="7">
       <div class="dtitle">${esc(r.title)}</div>${items ? `<div class="dl">${items}</div>` : ''}
     </td></tr>`;
   }
@@ -254,7 +253,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
     rows.forEach((r, i) => {
       if (byTime && r.date !== day) {
         const c = (index.days || []).find(x => x.date === r.date);
-        html += `<tr class="dayrow"><td colspan="8"><span class="dd">${r.date.replace(/-/g, '/')}(${wd(r.date)})</span>`
+        html += `<tr class="dayrow"><td colspan="7"><span class="dd">${r.date.replace(/-/g, '/')}(${wd(r.date)})</span>`
               + (c ? `<span class="dn">決算 ${c.earn}件 ・ 修正 ${c.rev}件</span>` : '') + '</td></tr>';
         day = r.date;
       }
@@ -263,11 +262,10 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
         <td class="c-date">${r.date.replace(/-/g, '/')}</td><td class="c-time">${esc(r.time)}</td>
         <td class="c-code">${esc(r.code)}</td>
         <td class="c-name" title="${esc(r.title)}">${esc(r.name)}${isNew ? '<span class="badge-new">NEW</span>' : ''}</td>
-        <td class="c-kind">${esc(r.kind)}</td><td class="c-per">${esc(r.period)}</td>${pctCell(r)}
-        <td class="c-pdf">${pdfLinks(r)}</td></tr>`;
+        <td class="c-kind">${pdfLinks(r)}</td><td class="c-per">${esc(r.period)}</td>${pctCell(r)}</tr>`;
       if (open.has(r.id)) html += detail(r);
     });
-    $('tb').innerHTML = html || `<tr><td colspan="8" class="more">${state.onlyNew ? '新着はありません' : '該当する開示はありません'}</td></tr>`;
+    $('tb').innerHTML = html || `<tr><td colspan="7" class="more">${state.onlyNew ? '新着はありません' : '該当する開示はありません'}</td></tr>`;
 
     const nd = state.day ? null : nextDate();
     $('more').innerHTML = state.day ? '' : nd
@@ -290,6 +288,11 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
     if (document.hidden && !manual) return;              // 非表示の間は休止
     try {
       const idx = await fetchJSON('data/index.json');
+      // 画面の作りが更新されていたら新しい版に読み直す(URLを変えてブラウザのキャッシュを避ける)
+      if (idx.build && index.build && idx.build !== index.build) {
+        location.replace(location.pathname + '?v=' + idx.build + location.hash);
+        return;
+      }
       const changed = idx.generated_at !== index.generated_at;
       index = idx;
       if (changed || manual) {
