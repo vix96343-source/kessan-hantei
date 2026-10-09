@@ -186,6 +186,12 @@ python -m src.cli revisions --code 4617 [--date YYYY-MM-DD]  # 直近修正と r
   - robots.txt を守り1秒に1回まで。ボット拒否(Akamai 等)のサイトは突破しない。見つからなければ60分ごとに最大6回探し直す(説明資料は短信の数日後に載る会社が多い)。
   - 結果は data/ir_docs.csv、会社URLは data/company_urls.csv。watch の1分ごとの確認の合間に25秒ずつ進める。
 
+### 行を開いたときの業績表(site.fin_panel / history.py)
+- 上: 直近8四半期の単独値(売上・営業益・経常益・最終益・営業利益率)。過去分は data/quarterly_history.csv。最新の四半期は短信の累計 − 同じ期の前の四半期。
+- 下: 今期の1Q〜通期の累計実績と会社予想(本決算の短信は来期予想)・進捗率。会社予想は tdnet_earnings.csv の fc_* 列(短信XBRL)。
+- quarterly_history.csv の過去分は IRBANK 四半期進捗ページから一度だけ手元で取得(`history.bootstrap`、過去3年・約3,800社、source=irbank。IRBANK は Actions のIPを拒否するため手元で)。以降は earnings.update が短信ごとに当四半期を継ぎ足す(source=tdnet)。IRBANK のデータは出典明示で再配信可(サイトのフッターに表示)。
+- コンセンサス・1株益の四半期推移は無料で安定して取れないため出さない。
+
 ### リアルタイム表示(watch.yml / feed.html.j2)
 - watch.yml が平日 8:00〜20:00 JST に1分おきに TDnet を確認し、新しい開示があれば型判定・サイト再生成・push(ジョブ6時間制限のため 8:00〜14:00 と 14:00〜20:00 の2本)。daily.yml は watch の後(20:05)。
 - トップページは docs/feed.json を1分ごとに読み直して自動更新。新着は NEW で強調、行タップで数値(売上・営業益YoY、加速、利益率、進捗率、QoQ、慎重度、修正率)を表示。
