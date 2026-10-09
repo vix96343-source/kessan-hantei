@@ -132,7 +132,6 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
     <th class="c-name" data-k="name">企業名</th>
     <th class="c-kind" data-k="group">種別</th>
     <th class="c-per" data-k="period">期</th>
-    <th class="c-pct" data-k="pct"><span class="lg">上昇確度</span><span class="sm">確度</span></th>
   </tr></thead>
   <tbody id="tb"></tbody>
 </table>
@@ -141,7 +140,6 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
 <footer>
   出典: TDnet(日本取引所グループ)・四半期業績の過去分は IRBANK。決算短信と業績・配当予想の修正を表示。種別のボタンを押すとPDFが開きます(短信=決算短信、資料=決算説明資料・補足資料(短信から14日以内)、修正=業績・配当予想の修正)。平日8〜20時は1分ごとに自動更新。行をクリック/タップすると数値(売上・営業益の伸び、進捗率、修正率など)が開きます。<br>
   期: 決算は 1Q/2Q/3Q/通期、修正は対象の期間(通期/中間)。<br>
-  上昇確度 = 似た開示(決算は「上がりやすい決算内容」の3つの型 ①リクルート ②キオクシア ③ローツェB に当てはまった数、修正は方向と幅)が過去に「開示前終値→開示後最初の終値」で上昇した割合。当てはまった型は行を開くと表示されます。
 </footer>
 
 <script id="index" type="application/json">{{ index_json | safe }}</script>
@@ -266,7 +264,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
 
   function detail(r) {
     const items = (r.details || []).map(([k, v, t]) => `<div><span>${esc(k)}</span><span class="${esc(t)}">${esc(v)}</span></div>`).join('');
-    return `<tr class="detail"><td colspan="7">
+    return `<tr class="detail"><td colspan="6">
       <div class="dtitle">${esc(r.title)}</div>
       <div class="dlinks">${(r.pdfs || []).map(p => `<a href="${esc(p.url)}" target="_blank" rel="noopener" title="${esc(p.title || '')}">${esc(p.label === '資料' || p.label === '資料2' ? '説明資料' : p.label === '短信' ? '決算短信' : '修正の開示')}(PDF)</a>`).join('')}</div>
       ${finTables(r.fin)}${items ? `<div class="dl">${items}</div>` : ''}
@@ -282,19 +280,19 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
     rows.forEach((r, i) => {
       if (byTime && r.date !== day) {
         const c = (index.days || []).find(x => x.date === r.date);
-        html += `<tr class="dayrow"><td colspan="7"><span class="dd">${r.date.replace(/-/g, '/')}(${wd(r.date)})</span>`
+        html += `<tr class="dayrow"><td colspan="6"><span class="dd">${r.date.replace(/-/g, '/')}(${wd(r.date)})</span>`
               + (c ? `<span class="dn">決算 ${c.earn}件 ・ 修正 ${c.rev}件</span>` : '') + '</td></tr>';
         day = r.date;
       }
       const isNew = fresh.has(r.id);
-      html += `<tr class="row${i % 2 ? ' alt' : ''}${r.up ? ' up' : ''}${r.group === '修正' ? ' rev' : ''}${isNew ? ' new' : ''}" data-id="${esc(r.id)}">
+      html += `<tr class="row${i % 2 ? ' alt' : ''}${r.group === '修正' ? ' rev' : ''}${isNew ? ' new' : ''}" data-id="${esc(r.id)}">
         <td class="c-date">${r.date.slice(5).replace('-', '/')}</td><td class="c-time">T${esc(r.time)}</td>
         <td class="c-code">${esc(r.code)}</td>
         <td class="c-name" title="${esc(r.title)}">${esc(r.name)}${isNew ? '<span class="badge-new">NEW</span>' : ''}</td>
-        <td class="c-kind"><a class="pdf" href="${esc(r.url)}" target="_blank" rel="noopener" title="${esc(r.title)}">${esc(r.group)}</a></td><td class="c-per">${esc(r.period)}</td>${pctCell(r)}</tr>`;
+        <td class="c-kind"><a class="pdf" href="${esc(r.url)}" target="_blank" rel="noopener" title="${esc(r.title)}">${esc(r.group)}</a></td><td class="c-per">${esc(r.period)}</td></tr>`;
       if (open.has(r.id)) html += detail(r);
     });
-    $('tb').innerHTML = html || `<tr><td colspan="7" class="more">${state.onlyNew ? '新着はありません' : '該当する開示はありません'}</td></tr>`;
+    $('tb').innerHTML = html || `<tr><td colspan="6" class="more">${state.onlyNew ? '新着はありません' : '該当する開示はありません'}</td></tr>`;
 
     const nd = state.day ? null : nextDate();
     $('more').innerHTML = state.day ? '' : nd
