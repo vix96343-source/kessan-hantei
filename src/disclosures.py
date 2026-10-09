@@ -77,6 +77,8 @@ def ingest(cfg: dict, days: int | None = None, data_dir: Path = DATA_DIR,
     store_kinds = set(dcfg["store_kinds"])
     xbrl_kinds = set(dcfg["parse_xbrl_kinds"])
     universe = _universe_codes(data_dir) if dcfg.get("filter_by_universe") else None
+    from .universe import non_equity_codes
+    funds = non_equity_codes(data_dir)              # ETF・REIT 等は取り込まない
     if dcfg.get("filter_by_universe") and universe is None:
         log.info("universe.csv が無いため全銘柄を保存します")
 
@@ -98,6 +100,8 @@ def ingest(cfg: dict, days: int | None = None, data_dir: Path = DATA_DIR,
             if c["kind"] not in store_kinds:
                 continue
             if universe is not None and it.code not in universe:
+                continue
+            if it.code in funds:
                 continue
             row = rows.get(it.disclosure_id)
             if row is None:

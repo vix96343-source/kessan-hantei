@@ -59,3 +59,12 @@ def test_score_rejects_qa_script_and_other_notices():
 def test_score_penalizes_other_quarter():
     assert irsite.score("https://x.co.jp/doc/2026/03/a.pdf", "2026年8月期 第2四半期決算説明資料",
                         ANN, "通期", "2026年8月期") < 9
+
+
+def test_manual_doc_overrides_automatic():
+    earn = {"kind": "earnings_report", "code": "7630", "disclosure_id": "d1",
+            "disclosed_at": "2026-10-05T15:00", "pdf_url": "tanshin.pdf"}
+    ir = {"d1": {"url": "https://auto.example/a.pdf", "title": "自動"}}
+    manual = {("7630", "2026-10-05"): {"url": "https://www.ichibanya.jp/ir/2q.pdf", "title": ""}}
+    links = site.pdf_links(earn, {}, ir, manual=manual)
+    assert [(l["label"], l["url"]) for l in links] == [("短信", "tanshin.pdf"), ("資料", "https://www.ichibanya.jp/ir/2q.pdf")]

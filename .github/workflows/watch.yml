@@ -44,6 +44,8 @@ jobs:
           echo "watching until $end JST"
           while [ "$(date +%s)" -lt "$end_ts" ]; do
             t0=$(date +%s)
+            # GitHub の画面で手動登録(data/manual_docs.csv)された変更などを取り込む
+            git pull -q --rebase origin "${GITHUB_REF_NAME}" || { git rebase --abort 2>/dev/null; true; }
             python -m src.cli disclosures --days 0 || echo "::warning::tick failed"
             # TDnet に無い説明資料を各社IRサイトで探す(固まっても監視を止めないよう90秒で打ち切る)
             timeout 90 python -m src.cli irdocs --budget 25 || echo "::warning::irdocs timeout or failed"

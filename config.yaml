@@ -78,10 +78,10 @@ irdocs:
   lookback_days: 31          # 何日前の決算まで探すか
   max_attempts: 6            # 見つからないときに探し直す回数
   retry_minutes: 60          # 探し直す間隔(説明資料は短信より後に載ることが多い)
-  max_pages: 10              # 1社あたりに見るページ数の上限
+  max_pages: 15              # 1社あたりに見るページ数の上限
   time_budget_sec: 25        # watch の1分ごとの確認で使う時間の上限
   render: true               # 見つからなければブラウザ(Playwright)で表示して探し直す
-  render_max_pages: 6
+  render_max_pages: 8
   workers: 6                 # 別々の会社のサイトを同時に探す数(同じサイトへは1秒に1回まで)
   render_workers: 3          # ブラウザ表示で探す同時数
   checkpoint_every: 20       # 何件ごとに途中保存するか

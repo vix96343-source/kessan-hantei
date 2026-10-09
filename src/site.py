@@ -130,7 +130,7 @@ def details(r: dict, feat: dict | None) -> list[list]:
 
 
 def pdf_links(r: dict, presentations: dict[str, list[dict]], ir_docs: dict[str, dict] | None = None,
-              within_days: int = 14) -> list[dict]:
+              within_days: int = 14, manual: dict | None = None) -> list[dict]:
     """行に並べるPDF。決算: 短信 + 決算説明資料(TDnet で短信と同日〜within_days日以内、最大2件。
     TDnet に無ければ各社IRサイトで見つけたもの)。修正: 修正。"""
     if r["kind"] != "earnings_report":
@@ -141,6 +141,11 @@ def pdf_links(r: dict, presentations: dict[str, list[dict]], ir_docs: dict[str, 
             if 0 <= (date.fromisoformat(p["disclosed_at"][:10]) - d0).days <= within_days]
     for i, p in enumerate(sorted(near, key=lambda p: p["disclosed_at"])[:2]):
         links.append({"label": "資料" if i == 0 else "資料2", "url": p["pdf_url"], "title": p["title"]})
+    m = manual or {}
+    hand = m.get((r["code"], r["disclosed_at"][:10])) or m.get((r["code"], ""))
+    if hand:                                        # 手で登録した資料を最優先
+        links[1:] = [{"label": "資料", "url": hand["url"], "title": hand.get("title") or "説明資料(手動登録)"}]
+        return links
     ir = (ir_docs or {}).get(r.get("disclosure_id", ""))
     if not near and ir and ir.get("url"):
         links.append({"label": "資料", "url": ir["url"], "title": f"{ir.get('title', '')}(会社のIRサイト)"})
@@ -217,6 +222,9 @@ def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:
     stats = reaction.load_stats(data_dir)
     feats = earnings.by_disclosure(data_dir)
     ir_docs = irdocs.found_by_disclosure(data_dir)
+    manual = irdocs.load_manual(data_dir)
+    # 日付なしの手動登録は、その会社の一番新しい決算にだけ付ける
+    latest_earn = disc[disc["kind"] == "earnings_report"].groupby("code")["disclosed_at"].max().to_dict()
     arch = {a["disclosure_id"]: a for a in earnings.load_archive(data_dir).to_dict("records")}
     hist = history.by_code(history.load(data_dir))
     rows = []
@@ -227,7 +235,10 @@ def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:
                      "code": r["code"], "name": r["name"], "kind": kind_label(r, f),
                      "group": "決算" if r["kind"] == "earnings_report" else "修正",
                      "period": period_label(r, f),
-                     "url": r["pdf_url"], "pdfs": pdf_links(r, presentations, ir_docs),
+                     "url": r["pdf_url"], "pdfs": pdf_links(
+                         r, presentations, ir_docs,
+                         manual={k: v for k, v in manual.items()
+                                 if k[1] or latest_earn.get(r["code"]) == r["disclosed_at"]}),
                      "title": r["title"], "details": details(r, f),
                      "fin": fin_panel(r, arch.get(r["disclosure_id"]) if r["kind"] == "earnings_report" else None,
                                       [q for q in hist.get(r["code"], []) if q["announced"] <= r["disclosed_at"][:10]
@@ -293,7 +304,8 @@ def render_all(cfg: dict, data_dir: Path = DATA_DIR, docs_dir: Path = DOCS_DIR) 
     days = [{"date": d, "n": len(by_date[d]),
              "earn": sum(r["group"] == "決算" for r in by_date[d]),
              "rev": sum(r["group"] == "修正" for r in by_date[d])} for d in dates]
-    index = {"generated_at": now, "build": build_id(), "dates": dates, "days": days}
+    index = {"generated_at": now, "build": build_id(), "manual": irdocs.manual_hash(data_dir),
+             "dates": dates, "days": days}
     (data_out / "index.json").write_text(dump(index), encoding="utf-8")
     old_feed = docs_dir / "feed.json"
     if old_feed.exists():

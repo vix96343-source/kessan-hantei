@@ -6,6 +6,7 @@
 - 見つからなければ retry_minutes ごとに max_attempts 回まで探し直す(説明資料は短信より後に載ることが多い)
 - watch の1分ごとの確認の合間に、time_budget_sec 秒だけ進める
 """
+import hashlib
 import logging
 import queue
 import threading
@@ -38,6 +39,25 @@ def load(data_dir: Path = DATA_DIR) -> pd.DataFrame:
     if not p.exists():
         return pd.DataFrame(columns=COLUMNS)
     return pd.read_csv(p, dtype=str, keep_default_na=False).reindex(columns=COLUMNS, fill_value="")
+
+
+def manual_path(data_dir: Path = DATA_DIR) -> Path:
+    return data_dir / "manual_docs.csv"
+
+
+def load_manual(data_dir: Path = DATA_DIR) -> dict[tuple[str, str], dict]:
+    """手で登録した説明資料 {(code, 短信の日付 or ''): {url, title}}。日付が空ならその会社の直近の決算に付ける。"""
+    p = manual_path(data_dir)
+    if not p.exists():
+        return {}
+    df = pd.read_csv(p, dtype=str, keep_default_na=False)
+    return {(r["code"].strip(), r["date"].strip()): {"url": r["url"].strip(), "title": r.get("title", "").strip()}
+            for r in df.to_dict("records") if r.get("url", "").strip().startswith("http")}
+
+
+def manual_hash(data_dir: Path = DATA_DIR) -> str:
+    p = manual_path(data_dir)
+    return hashlib.sha1(p.read_bytes()).hexdigest()[:10] if p.exists() else ""
 
 
 def found_by_disclosure(data_dir: Path = DATA_DIR) -> dict[str, dict]:

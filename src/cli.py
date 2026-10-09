@@ -15,7 +15,7 @@ def cmd_disclosures(args, cfg):
     stats["earnings"] = earnings.update(cfg)
     # 変化が無い回はページも作り直さない(生成時刻だけ変わる無駄なコミットを防ぐ)
     # (IRサイトの説明資料探しは固まっても監視を止めないよう、watch.yml で別プロセスとして実行する)
-    if stats["new_rows"] or stats["xbrl_parsed"] or stats["earnings"]["evaluated"]             or not (site.DOCS_DIR / "index.html").exists():
+    if stats["new_rows"] or stats["xbrl_parsed"] or stats["earnings"]["evaluated"]             or not (site.DOCS_DIR / "index.html").exists() or manual_changed():
         stats["pages"] = site.render_all(cfg)
     print(json.dumps(stats, ensure_ascii=False))
 
@@ -25,6 +25,14 @@ def cmd_earnings(args, cfg):
     print(json.dumps(earnings.update(cfg, limit=args.limit), ensure_ascii=False))
     reaction.restat(cfg)
     print(site.render_all(cfg))
+
+
+def manual_changed() -> bool:
+    """手で登録した説明資料(data/manual_docs.csv)が、前回サイトを作ったときから変わったか"""
+    p = site.DOCS_DIR / "data" / "index.json"
+    if not p.exists():
+        return True
+    return json.loads(p.read_text(encoding="utf-8")).get("manual", "") != irdocs.manual_hash()
 
 
 def cmd_irdocs(args, cfg):

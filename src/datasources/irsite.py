@@ -23,7 +23,8 @@ MATERIAL_LINK = re.compile(r"説明会|説明資料|プレゼン|presentation|IR
 EXTERNAL_IR_HOST = re.compile(r"eir-parts\.net|irpocket|magicalir|ir\.|xj-storage|irbank|ullet", re.I)
 
 DOC_TYPE = re.compile(r"説明|プレゼン|presentation|業績概要|決算概要|決算の概要|決算資料|配布|補足|ハイライト|参考資料|"
-                      r"databook|data book|fact ?book|ファクト|haifu|setsumei|briefing", re.I)
+                      r"databook|data book|fact ?book|ファクト|haifu|setsumei|briefing|results|決算発表資料|"
+                      r"業績(?:および|及び|と).{0,15}予想|業績報告|決算報告", re.I)
 NOT_DOC = re.compile(r"短信|tanshin|summary|招集|有価証券報告書|統合報告|株主通信|ガバナンス|定款|中期経営計画", re.I)
 # 説明資料そのものではないもの(質疑応答・書き起こし・動画、予実差異・月次・配当などのお知らせ)
 NOT_SLIDES = re.compile(r"質疑|書き起こし|書起し|スクリプト|script|動画|音声|Q\s*&\s*A|差異|月次|配当|自己株式|招集", re.I)
@@ -160,8 +161,12 @@ def _dates_in(url: str) -> list[date]:
     return out
 
 
+_ZEN = str.maketrans("０１２３４５６７８９ＱＦＹ", "0123456789QFY")
+
+
 def score(url: str, text: str, ann: date, period: str, fy_label: str) -> int:
     url_txt = unquote(url)                        # ファイル名の日本語(「決算短信」など)も見る
+    text = text.translate(_ZEN)                   # 「８月期」「第２四半期」を半角にそろえて照合
     blob = f"{text} {url_txt}"
     sc = 0
     if DOC_TYPE.search(blob):
@@ -200,6 +205,8 @@ def score(url: str, text: str, ann: date, period: str, fy_label: str) -> int:
     return sc
 
 
+IR_GUESSES = ["/ir/", "/ir/library/", "/company/ir/", "/corporate/ir/", "/jp/ir/", "/ja/ir/"]
+
 NAV_TIERS = [
     re.compile(r"説明会|説明資料|プレゼン|presentation|IR資料|IRライブラリ|ライブラリ|library|決算資料|決算関連|決算説明|"
                r"決算短信|決算情報|決算発表|materials?|briefing", re.I),
@@ -213,12 +220,16 @@ def _norm(url: str) -> str:
     return f"{p.scheme}://{p.netloc.lower()}{p.path.rstrip('/') or '/'}" + (f"?{p.query}" if p.query else "")
 
 
-def _nav_tier(link: str, text: str) -> int | None:
-    blob = text + " " + urlparse(link).path
-    for i, pat in enumerate(NAV_TIERS):
-        if pat.search(blob):
-            return i
-    return 0 if text == "iframe" else None
+def _nav_tier(link: str, text: str, depth: int = 0) -> int | None:
+    """0: 説明会・IR資料・ライブラリ等 / 1: IRトップ / 2: 業績・ニュース等 / None: 見ない。
+    IR配下のページは URL に /ir/ が入るので、深さ1以降は文言で判断する(カレンダー・株主優待等を後回しに)。"""
+    if text == "iframe" or NAV_TIERS[0].search(text) or NAV_TIERS[0].search(urlparse(link).path):
+        return 0
+    if NAV_TIERS[1].search(text) or (depth == 0 and NAV_TIERS[1].search(urlparse(link).path)):
+        return 1
+    if NAV_TIERS[2].search(text):
+        return 2
+    return None
 
 
 def find_presentation(site: IRSite, home: str, ann: date, period: str, fy_label: str,
@@ -230,7 +241,12 @@ def find_presentation(site: IRSite, home: str, ann: date, period: str, fy_label:
         home = "http://" + home
     seen: set[str] = set()
     pdfs: dict[str, str] = {}
+    homes = [home]
     queue: list[tuple[int, int, str]] = [(0, 0, home)]          # (優先度, 深さ, URL)
+    # トップからIRが見つからない(メニューをJavaScriptで作る等)ときのために、よくあるIRの場所も候補に入れる
+    root = f"{urlparse(home).scheme}://{urlparse(home).netloc}"
+    for i, guess in enumerate(IR_GUESSES):
+        queue.append((15 + i, 1, root + guess))
     fetched = 0
     while queue and fetched < max_pages:
         queue.sort()
@@ -248,9 +264,12 @@ def find_presentation(site: IRSite, home: str, ann: date, period: str, fy_label:
                 if len(text) > len(pdfs.get(link, "")):
                     pdfs[link] = text
                 continue
-            if depth >= 3 or _norm(link) in seen or not _same_site(link, home):
+            tier = _nav_tier(link, text, depth)
+            # 「会社・IR情報」のようなリンクでIRサイトが別ドメインにある場合は、そのドメインもたどる
+            if depth == 0 and tier == 1 and not any(_same_site(link, h) for h in homes):
+                homes.append(f"{urlparse(link).scheme}://{urlparse(link).netloc}")
+            if depth >= 3 or _norm(link) in seen or not any(_same_site(link, h) for h in homes):
                 continue
-            tier = _nav_tier(link, text)
             if tier is not None and depth == 2 and tier != 0:
                 continue                          # 3段目は「説明会・IR資料・ライブラリ」系のリンクだけ
             if tier is not None and all(_norm(q[2]) != _norm(link) for q in queue):

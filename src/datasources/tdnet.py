@@ -102,7 +102,8 @@ def fetch_day(session: RateLimitedSession, d: date) -> list[Disclosure] | None:
 
 # ---------------------------------------------------------------- 表題の分類
 
-_CORRECTION = re.compile(r"^[\s(（【]*訂正|一部訂正|訂正版")
+# 「（訂正）」「（訂正・数値データ訂正）」「（数値データ訂正）」など、先頭の括弧に「訂正」がある表題も訂正
+_CORRECTION = re.compile(r"^[\s(（【]*訂正|^[\s]*[(（【][^)）】]*訂正[^)）】]*[)）】]|一部訂正|訂正版|データ訂正")
 _FORECAST = re.compile(r"業績予想|業績見通し|業績予測")
 _DIVIDEND = re.compile(r"配当予想|配当の予想|増配|減配|無配|記念配当|特別配当")
 _REVISION = re.compile(r"修正|上方|下方|増配|減配|無配")
@@ -142,7 +143,9 @@ def classify_title(title: str) -> dict:
     if _FUND.search(t):                             # ETF・ETN(上場投信)の決算短信などは株式の決算ではない
         return {"kind": "other", "is_correction": is_correction, "title_direction": ""}
 
-    if _EARNINGS.search(t) and not re.search(r"補足|説明|参考資料|概要", t):
+    if _EARNINGS.search(t) and re.search(r"(お知らせ|について|延期|遅延)\s*$", t) and not re.search(r"補足|説明資料", t):
+        kind = "other"                              # 「決算短信の開示が期末後45日を超えたことに関するお知らせ」等
+    elif _EARNINGS.search(t) and not re.search(r"補足|説明|参考資料|概要", t):
         kind = "earnings_report"                    # 「決算短信」だけの表題は短信(資料と取り違えない)
     elif _is_presentation(t):
         kind = "earnings_presentation"

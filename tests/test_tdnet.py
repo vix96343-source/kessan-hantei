@@ -68,6 +68,8 @@ def test_parse_list_page():
     ("(訂正)適時開示書類「通期業績予想の修正(下方修正)に関するお知らせ」の一部訂正",
      "forecast_revision", True, "down"),
     ("自己株式の取得状況に関するお知らせ", "other", False, ""),
+    ("（数値データ訂正）2025年12月期 第３四半期決算短信〔ＩＦＲＳ〕（連結）", "earnings_report", True, ""),
+    ("2027年5月期第1四半期決算短信の開示が四半期末後45日を超えることに関するお知らせ", "other", False, ""),
     ("NEXT FUNDS 東証REIT指数連動型上場投信 決算短信", "other", False, ""),
     ("2027年2月期第2四半期 連結決算の概要", "earnings_presentation", False, ""),
     ("2027年２月期　第２四半期　決算・参考資料", "earnings_presentation", False, ""),

@@ -45,6 +45,7 @@ def build(listed: pd.DataFrame, turnover: dict[str, float], updated_at: str,
 def update(cfg: dict, data_dir: Path = DATA_DIR, session: RateLimitedSession | None = None) -> dict:
     session = session or RateLimitedSession.from_config(cfg)
     listed = jpx.fetch_listed(session)
+    save_listed(listed, data_dir)
     codes = target(listed)["code"].tolist()
     turnover = yf.avg_turnover(codes, days=cfg["universe"]["turnover_days"])
     prev = load(data_dir).dropna(subset=["avg_turnover_20d"]).set_index("code")["avg_turnover_20d"].to_dict()
@@ -55,3 +56,24 @@ def update(cfg: dict, data_dir: Path = DATA_DIR, session: RateLimitedSession | N
              **u["market"].value_counts().to_dict()}
     log.info("universe: %s", stats)
     return stats
+
+
+NON_EQUITY = r"ETF|ETN|REIT|インフラ|ベンチャー|出資証券|カントリー"
+
+
+def listed_path(data_dir: Path = DATA_DIR) -> Path:
+    return data_dir / "listed.csv"
+
+
+def save_listed(listed: pd.DataFrame, data_dir: Path = DATA_DIR) -> None:
+    """全上場銘柄の市場・商品区分(ETF・REIT 等を見分けるため)"""
+    listed[["code", "name", "market_raw"]].to_csv(listed_path(data_dir), index=False, encoding="utf-8")
+
+
+def non_equity_codes(data_dir: Path = DATA_DIR) -> set[str]:
+    """ETF・ETN・REIT・インフラファンド等(株式会社の決算ではないもの)"""
+    p = listed_path(data_dir)
+    if not p.exists():
+        return set()
+    df = pd.read_csv(p, dtype=str, keep_default_na=False)
+    return set(df.loc[df["market_raw"].str.contains(NON_EQUITY), "code"])
