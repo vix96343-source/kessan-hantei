@@ -5,7 +5,7 @@
 ③ ローツェ型 B: 予想を修正せず、好調なのに残り期間の想定利益が直近の実力より不自然に低い
 ③ ローツェ型 A(受注急増)・KPI・製品価格は短信の数値に無いため、文章を読むレイヤー(Phase 2)で扱う
 
-データ: 当四半期 = 決算短信サマリーXBRL(開示と同時) / 過去の単独四半期 = 株探(開示前に取得済みのもの)
+データ: 当四半期 = 決算短信サマリーXBRL(開示と同時) / 過去の単独四半期 = IRBANK 四半期毎履歴(開示前に取得済みのもの)
 """
 import logging
 from datetime import date
@@ -15,7 +15,7 @@ import pandas as pd
 
 from . import disclosures, universe
 from .config import DATA_DIR, now_jst
-from .datasources import kabutan, tdnet
+from .datasources import irbank, tdnet
 from .datasources.http import RateLimitedSession
 
 log = logging.getLogger(__name__)
@@ -50,7 +50,7 @@ def _month_index(ym: str) -> int:
 
 
 def quarter_series(history: list[dict], x: dict, disclosed_date: str) -> list[dict] | None:
-    """株探の履歴(開示日より前に発表された分)+ 当四半期(XBRL累計から差し引き)を古い順に返す。
+    """IRBANKの履歴(開示日より前に提出された分)+ 当四半期(XBRL累計から差し引き)を古い順に返す。
 
     履歴の最後が当四半期のちょうど3ヶ月前に終わっていなければ None(期ずれ・決算期変更)。
     """
@@ -164,14 +164,14 @@ def evaluate(code: str, disclosed_at: str, x: dict, history: list[dict], tcfg: d
 # ---------------------------------------------------------------- 取り込み
 
 def update(cfg: dict, data_dir: Path = DATA_DIR, tdnet_session: RateLimitedSession | None = None,
-           kabutan_session: RateLimitedSession | None = None, limit: int | None = None,
+           history_session: RateLimitedSession | None = None, limit: int | None = None,
            today: date | None = None) -> dict:
     """未評価の決算短信(universe内・XBRLあり)を評価して earnings_features.csv に追記する。"""
     ecfg = cfg["earnings"]
     today = today or now_jst().date()
     tdnet_session = tdnet_session or RateLimitedSession.from_config(cfg)
-    kabutan_session = kabutan_session or kabutan.session_from_config(cfg)
-    cache_dir = data_dir / "cache" / "kabutan"
+    history_session = history_session or irbank.session_from_config(cfg)
+    cache_dir = data_dir / "cache" / "irbank"
 
     disc = disclosures.load(data_dir)
     uni = set(universe.load(data_dir)["code"])
@@ -185,7 +185,7 @@ def update(cfg: dict, data_dir: Path = DATA_DIR, tdnet_session: RateLimitedSessi
     for r in todo.itertuples():
         try:
             x = tdnet.fetch_earnings(tdnet_session, r.xbrl_url) if r.xbrl_url else {}
-            hist = kabutan.get_quarterly(kabutan_session, r.code, cache_dir, ecfg["history_max_age_days"], today)
+            hist = irbank.get_quarterly(history_session, r.code, cache_dir, ecfg["history_max_age_days"], today)
         except Exception as e:                       # 1件の失敗で止めない。次回再試行
             log.warning("決算評価失敗 %s %s: %s", r.code, r.disclosure_id, e)
             continue
@@ -206,17 +206,17 @@ def update(cfg: dict, data_dir: Path = DATA_DIR, tdnet_session: RateLimitedSessi
 
 def prefetch_history(cfg: dict, codes: list[str], data_dir: Path = DATA_DIR,
                      session: RateLimitedSession | None = None, today: date | None = None) -> int:
-    """発表予定の銘柄の履歴を前日のうちに株探から取得しておく(当日は短信XBRLだけで計算できる)。"""
-    session = session or kabutan.session_from_config(cfg)
+    """発表予定の銘柄の履歴を前日のうちにIRBANKから取得しておく(当日は短信XBRLだけで計算できる)。"""
+    session = session or irbank.session_from_config(cfg)
     today = today or now_jst().date()
     n = 0
     for c in codes:
         try:
-            kabutan.get_quarterly(session, c, data_dir / "cache" / "kabutan",
-                                  cfg["earnings"]["history_max_age_days"], today)
+            irbank.get_quarterly(session, c, data_dir / "cache" / "irbank",
+                                 cfg["earnings"]["history_max_age_days"], today)
             n += 1
         except Exception as e:
-            log.warning("株探取得失敗 %s: %s", c, e)
+            log.warning("IRBANK取得失敗 %s: %s", c, e)
     return n
 
 

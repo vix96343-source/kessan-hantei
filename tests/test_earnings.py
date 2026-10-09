@@ -4,7 +4,7 @@ import zipfile
 import pytest
 
 from src import earnings
-from src.datasources import kabutan, tdnet
+from src.datasources import irbank, tdnet
 
 TYPES = {
     "recruit": {"min_accel": 3.0, "min_margin_delta": 0.0},
@@ -12,24 +12,32 @@ TYPES = {
     "rorze_b": {"max_conservatism": 0.85},
 }
 
-KABUTAN_HTML = """
-<div class="fin_quarter_t0_d fin_quarter_result_d"><table><tbody>
-<tr><td colspan="8"><a href="#"></a></td></tr>
-<tr><th scope="row">24.10-12&nbsp;</th><td>1,000</td><td>100</td><td>100</td><td>70</td><td>1</td><td>10</td>
-<td><a href="#">25/01/30</a></td></tr>
-<tr><th scope="row">25.11-01&nbsp;</th><td>1,200</td><td>－</td><td>130</td><td>80</td><td>1</td><td>10</td>
-<td><a href="#">25/03/10</a></td></tr>
-<tr><th scope="row">前年同期比</th><td>+1</td><td>+1</td><td>+1</td><td>+1</td><td>+1</td><td></td><td>(%)</td></tr>
-</tbody></table></div>
+IRBANK_HTML = """
+<table id="graph"><tbody>
+<tr><td class="lf weaken" rowspan="4">2026年<br>3月期<br>連結</td>
+<td class="lf weaken"><a title="x | 決算短信 - 2025年5月10日 15:00提出" href="a">1Q<br><span class="co_gr">予想</span></a></td>
+<td class="rt"><span class="shihanki">+900</span></td><td class="rt"><span class="shihanki">+90</span></td>
+<td class="rt"><span class="shihanki">+90</span></td><td class="rt"><span class="shihanki">+60</span></td><td>-</td></tr>
+<td class="lf weaken"><a title="x | 四半期報告書 - 2025年8月7日 15:00提出" href="b">1Q<br><span class="co_red">実績</span></a></td>
+<td class="rt"><span class="shihanki">+1,000</span></td><td class="rt"><span class="shihanki">-50</span></td>
+<td class="rt"><span class="shihanki">+100</span></td><td class="rt"><span class="shihanki">+70</span></td><td>-</td></tr>
+<td class="lf weaken"><a title="x | 有価証券報告書 - 2026年6月20日 15:00提出" href="c">通期<br><span class="co_red">実績</span></a></td>
+<td class="rt"><span class="shihanki">+1,300</span></td><td class="rt"><span class="shihanki">+130</span></td>
+<td class="rt"><span class="shihanki">+130</span></td><td class="rt"><span class="shihanki">+80</span></td><td>-</td></tr>
+<tr><td class="lf weaken" rowspan="1">2027年<br>3月期<br>連結</td>
+<td class="lf weaken"><a title="x | 決算短信 - 2026年8月5日 15:00提出" href="d">1Q<br><span class="co_red">実績</span></a></td>
+<td class="rt"><span class="shihanki">+1,100</span></td><td class="rt"><span class="shihanki">+110</span></td>
+<td class="rt"><span class="shihanki">+110</span></td><td class="rt"><span class="shihanki">+75</span></td><td>-</td></tr>
+</tbody></table>
 """
 
 
-def test_parse_kabutan_quarterly():
-    q = kabutan.parse_quarterly(KABUTAN_HTML)
-    assert [x["period"] for x in q] == ["24.10-12", "25.11-01"]
-    assert q[0]["end"] == "2024-12" and q[1]["end"] == "2026-01"     # 年をまたぐ四半期
-    assert q[0]["sales"] == 1000e6 and q[1]["op"] is None
-    assert q[0]["announced"] == "2025-01-30"
+def test_parse_irbank_quarterly():
+    q = irbank.parse_quarterly(IRBANK_HTML)
+    assert [x["period"] for x in q] == ["2026/03-1Q", "2026/03-4Q", "2027/03-1Q"]     # 予想行は除外
+    assert [x["end"] for x in q] == ["2025-06", "2026-03", "2026-06"]                 # 通期 = Q4
+    assert q[0]["sales"] == 1000e6 and q[0]["op"] == -50e6
+    assert q[0]["announced"] == "2025-08-07"
 
 
 def _hist(ends_and_sales_op, announced_before="2026-10-01"):
