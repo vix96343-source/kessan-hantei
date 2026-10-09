@@ -241,13 +241,19 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
   const fmtN = (v, eps) => v == null ? '–' : eps ? v.toFixed(1) : v.toLocaleString('ja-JP');
   const fmtG = g => g == null ? '–' : typeof g === 'string' ? g
     : (g > 0 ? '+' : '') + (Math.abs(g) >= 1000 ? Math.round(g) : g.toFixed(1)) + '%';
+  // +30%以上は緑。10%上がるごとに明るく(30%台が一番暗く、100%以上が一番明るい)
+  function green(g) {
+    if (typeof g !== 'number' || g < 30) return '';
+    const step = Math.min(Math.floor((g - 30) / 10), 7);
+    return ` style="color: hsl(145, 75%, ${30 + step * 7}%); opacity: 1; font-weight: 700"`;
+  }
   function numCells(r) {
     const keys = ['sales', 'op', 'ordinary', 'net', 'eps'];
     if (!r.nums) return keys.map(() => '<td class="n"></td><td class="g"></td><td class="g"></td>').join('');
     return keys.map(k => {
       const x = r.nums[k] || {};
       const neg = v => (typeof v === 'number' && v < 0) || (typeof v === 'string' && v.startsWith('赤')) ? ' neg' : '';
-      return `<td class="n${neg(x.v)}">${fmtN(x.v, k === 'eps')}</td><td class="g${neg(x.yoy)}">${fmtG(x.yoy)}</td><td class="g${neg(x.qoq)}">${fmtG(x.qoq)}</td>`;
+      return `<td class="n${neg(x.v)}">${fmtN(x.v, k === 'eps')}</td><td class="g${neg(x.yoy)}"${green(x.yoy)}>${fmtG(x.yoy)}</td><td class="g${neg(x.qoq)}"${green(x.qoq)}>${fmtG(x.qoq)}</td>`;
     }).join('');
   }
 
