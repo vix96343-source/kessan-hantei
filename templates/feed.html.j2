@@ -34,7 +34,7 @@ button:hover { filter: brightness(1.15); }
 .wrap { padding: 0 14px 10px; }
 table { border-collapse: collapse; width: 100%; max-width: 900px; font-variant-numeric: tabular-nums; }
 th { position: sticky; top: 0; z-index: 1; text-align: left; font-weight: 600; color: var(--text);
-  background: var(--panel); padding: 7px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; cursor: pointer; user-select: none; }
+  background: var(--panel); padding: 7px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
 th .ar { color: var(--muted); font-size: 10px; margin-left: 3px; }
 td { padding: 6px 10px; white-space: nowrap; border-bottom: 1px solid #1f2333; }
 tbody tr.row td { background: var(--row); }
@@ -120,25 +120,18 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
   <span id="count">–</span>
   <span class="sp"></span>
   <label><input type="checkbox" id="onlyNew"> 新着のみ</label>
-  <select id="sort" aria-label="並び順">
-    <option value="time:desc">時刻：新しい順</option>
-    <option value="time:asc">時刻：古い順</option>
-    <option value="code:asc">コード順</option>
-    <option value="group:asc">種別順</option>
-    <option value="pct:desc">上昇確度：高い順</option>
-  </select>
 </div>
 
 <div class="wrap">
 <table id="list">
   <thead><tr>
     <th class="c-date" data-k="time">日付</th>
-    <th class="c-time" data-k="time">時刻<span class="ar"></span></th>
-    <th class="c-code" data-k="code">コード<span class="ar"></span></th>
+    <th class="c-time" data-k="time">時刻</th>
+    <th class="c-code" data-k="code">コード</th>
     <th class="c-name" data-k="name">企業名</th>
-    <th class="c-kind" data-k="group">種別<span class="ar"></span></th>
-    <th class="c-per" data-k="period">期<span class="ar"></span></th>
-    <th class="c-pct" data-k="pct"><span class="lg">上昇確度</span><span class="sm">確度</span><span class="ar"></span></th>
+    <th class="c-kind" data-k="group">種別</th>
+    <th class="c-per" data-k="period">期</th>
+    <th class="c-pct" data-k="pct"><span class="lg">上昇確度</span><span class="sm">確度</span></th>
   </tr></thead>
   <tbody id="tb"></tbody>
 </table>
@@ -165,14 +158,13 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
   const d0 = JSON.parse($('day0').textContent);
   if (d0.date) days[d0.date] = d0.rows;
 
-  const state = { q: '', day: '', onlyNew: false, sort: load('tdnet-sort', 'time:desc') };
+  const state = { q: '', day: '', onlyNew: false, sort: 'time:desc' };   // 並びは常に新しい順
   const open = new Set();
   const stored = load('tdnet-seen', null);            // 既読の開示ID(新着判定)
   let firstVisit = stored === null;                   // 初回訪問は全部既読扱い(NEWだらけにしない)
   const seen = new Set(stored || []);
   const fresh = new Set();
   let loading = false;
-  $('sort').value = state.sort;
   if (index.dates.length) { $('dayq').min = index.dates[index.dates.length - 1]; $('dayq').max = index.dates[0]; }
 
   // TDnet の監視は平日 8〜20時(JST)。新しい開示が無ければデータは更新されないので、監視中かどうかは時間帯で示す
@@ -284,11 +276,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
     const rows = visible();
     const total = (index.days || []).reduce((s, x) => s + x.n, 0) || allRows().length;
     $('count').textContent = `${rows.length}件 / 決算・修正 ${total}件`;
-    const [k, dir] = state.sort.split(':');
-    document.querySelectorAll('th').forEach(th => {
-      const ar = th.querySelector('.ar'); if (ar) ar.textContent = th.dataset.k === k ? (dir === 'desc' ? '▼' : '▲') : '';
-    });
-    const byTime = k === 'time';
+    const byTime = true;
     let html = '', day = null;
     rows.forEach((r, i) => {
       if (byTime && r.date !== day) {
@@ -383,17 +371,9 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
     if (state.q.trim()) qTimer = setTimeout(loadAll, 300);     // 検索は全期間を対象にする
   });
   $('onlyNew').addEventListener('change', e => { state.onlyNew = e.target.checked; render(); });
-  $('sort').addEventListener('change', e => { state.sort = e.target.value; save('tdnet-sort', state.sort); render(); });
   $('reload').addEventListener('click', () => refresh(true));
   $('csv').addEventListener('click', csv);
   $('more').addEventListener('click', e => { if (e.target.id === 'moreBtn') loadMore(); });
-  document.querySelector('thead').addEventListener('click', e => {
-    const th = e.target.closest('th'); if (!th || !th.querySelector('.ar')) return;
-    const [k, dir] = state.sort.split(':');
-    state.sort = `${th.dataset.k}:${k === th.dataset.k && dir === 'desc' ? 'asc' : 'desc'}`;
-    if ([...$('sort').options].some(o => o.value === state.sort)) $('sort').value = state.sort;
-    save('tdnet-sort', state.sort); render();
-  });
   $('tb').addEventListener('click', e => {
     if (e.target.closest('a')) return;
     const tr = e.target.closest('tr.row'); if (!tr) return;
