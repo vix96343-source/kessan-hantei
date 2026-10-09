@@ -113,3 +113,17 @@ def test_details_for_earnings_and_revision():
 ])
 def test_period_label(row, feat, label):
     assert site.period_label(row, feat) == label
+
+
+def test_pdf_links_attach_presentations_within_a_week():
+    earn = {**_row(kind="earnings_report"), "code": "4735", "disclosed_at": "2026-10-09T16:00", "pdf_url": "tanshin.pdf"}
+    pres = {"4735": [
+        {"disclosed_at": "2026-10-09T16:00", "pdf_url": "setsumei.pdf", "title": "決算説明資料"},
+        {"disclosed_at": "2026-10-14T15:00", "pdf_url": "hosoku.pdf", "title": "決算補足資料"},
+        {"disclosed_at": "2026-10-30T15:00", "pdf_url": "next.pdf", "title": "別の資料"},      # 7日より後
+        {"disclosed_at": "2026-10-08T15:00", "pdf_url": "before.pdf", "title": "前日の資料"},   # 短信より前
+    ]}
+    links = site.pdf_links(earn, pres)
+    assert [(l["label"], l["url"]) for l in links] == [("短信", "tanshin.pdf"), ("資料", "setsumei.pdf"), ("資料2", "hosoku.pdf")]
+    rev = {**_row(), "pdf_url": "shusei.pdf"}
+    assert site.pdf_links(rev, pres) == [{"label": "修正", "url": "shusei.pdf"}]

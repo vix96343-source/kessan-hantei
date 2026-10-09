@@ -56,7 +56,11 @@ tr.detail td { white-space: normal; background: #141724 !important; padding: 8px
 .dl div { display: flex; justify-content: space-between; gap: 8px; border-bottom: 1px dotted var(--line); padding: 2px 0; }
 .dl span:first-child { color: var(--muted); } .dl span:last-child { white-space: nowrap; }
 .dl .up { color: var(--green); } .dl .down { color: var(--red); }
-.dlinks { margin-top: 8px; } .dlinks a { color: var(--teal); margin-right: 16px; }
+td.c-pdf { white-space: nowrap; }
+a.pdf { display: inline-block; font-size: 12px; line-height: 1.5; padding: 0 6px; margin-right: 4px; border-radius: 3px;
+  color: #dff7f4; background: var(--teal-bg); border: 1px solid var(--teal-line); text-decoration: none; }
+a.pdf:hover { filter: brightness(1.25); }
+a.pdf.sub { background: transparent; color: var(--teal); }
 .more { max-width: 900px; padding: 14px 10px; color: var(--muted); text-align: center; font-size: 12px; }
 .more button { margin-top: 4px; }
 footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14px 30px; max-width: 900px; }
@@ -68,7 +72,11 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
   th.c-date, td.c-date { width: 0; padding: 0 !important; font-size: 0; border: 0; overflow: hidden; }
   tr.dayrow { display: table-row; }
   table { table-layout: fixed; }
-  th.c-time { width: 48px; } th.c-code { width: 42px; } th.c-kind { width: 70px; } th.c-per { width: 38px; } th.c-pct { width: 46px; }
+  th.c-time { width: 42px; } th.c-code { width: 38px; } th.c-kind { width: 56px; } th.c-per { width: 32px; }
+  th.c-pct { width: 40px; } th.c-pdf { width: 66px; }
+  td { font-size: 12.5px; }
+  td.c-pdf { white-space: normal; overflow: hidden; }       /* 短信+資料は縦に並べてはみ出さない */
+  a.pdf { font-size: 11px; padding: 0 3px; margin: 1px 2px 1px 0; }
   td, th { padding: 6px 4px; }
   .wrap { padding: 0 8px 10px; }
   td.c-name, td.c-kind { overflow: hidden; text-overflow: ellipsis; max-width: none; }
@@ -112,13 +120,14 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
     <th class="c-kind" data-k="group">種別<span class="ar"></span></th>
     <th class="c-per" data-k="period">期<span class="ar"></span></th>
     <th class="c-pct" data-k="pct"><span class="lg">上昇確度</span><span class="sm">確度</span><span class="ar"></span></th>
+    <th class="c-pdf">PDF</th>
   </tr></thead>
   <tbody id="tb"></tbody>
 </table>
 <div class="more" id="more"></div>
 </div>
 <footer>
-  出典: TDnet(日本取引所グループ)。決算短信と業績・配当予想の修正を表示。平日8〜20時は1分ごとに自動更新。行をクリック/タップすると数値(売上・営業益の伸び、進捗率、修正率など)が開きます。<br>
+  出典: TDnet(日本取引所グループ)。決算短信と業績・配当予想の修正を表示。PDF列: 短信=決算短信、資料=決算説明資料・補足資料(短信から7日以内)、修正=修正の開示。平日8〜20時は1分ごとに自動更新。行をクリック/タップすると数値(売上・営業益の伸び、進捗率、修正率など)が開きます。<br>
   期: 決算は 1Q/2Q/3Q/通期、修正は対象の期間(通期/中間)。<br>
   上昇確度 = 似た開示(決算は「上がりやすい決算内容」の3つの型 ①リクルート ②キオクシア ③ローツェB に当てはまった数、修正は方向と幅)が過去に「開示前終値→開示後最初の終値」で上昇した割合。当てはまった型は行を開くと表示されます。
 </footer>
@@ -204,11 +213,15 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
     return `<td class="c-pct down">${r.pct === 50 ? '' : '▼'}${r.pct}%</td>`;
   }
 
+  function pdfLinks(r) {
+    return (r.pdfs || [{ label: 'PDF', url: r.url }]).map(p =>
+      `<a class="pdf${p.label === '短信' || p.label === '修正' ? '' : ' sub'}" href="${esc(p.url)}" target="_blank" rel="noopener" title="${esc(p.title || r.title)}">${esc(p.label)}</a>`).join('');
+  }
+
   function detail(r) {
     const items = (r.details || []).map(([k, v, t]) => `<div><span>${esc(k)}</span><span class="${esc(t)}">${esc(v)}</span></div>`).join('');
-    return `<tr class="detail"><td colspan="7">
+    return `<tr class="detail"><td colspan="8">
       <div class="dtitle">${esc(r.title)}</div>${items ? `<div class="dl">${items}</div>` : ''}
-      <div class="dlinks"><a href="${esc(r.url)}" target="_blank" rel="noopener">開示PDF</a><a href="https://kabutan.jp/stock/?code=${encodeURIComponent(r.code)}" target="_blank" rel="noopener">株探</a></div>
     </td></tr>`;
   }
 
@@ -224,7 +237,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
     let html = '', day = null;
     rows.forEach((r, i) => {
       if (byTime && r.date !== day) {
-        html += `<tr class="dayrow"><td colspan="7">${+r.date.slice(5, 7)}/${+r.date.slice(8, 10)}(${wd(r.date)})</td></tr>`;
+        html += `<tr class="dayrow"><td colspan="8">${+r.date.slice(5, 7)}/${+r.date.slice(8, 10)}(${wd(r.date)})</td></tr>`;
         day = r.date;
       }
       const isNew = fresh.has(r.id);
@@ -232,10 +245,11 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
         <td class="c-date">${r.date.replace(/-/g, '/')}</td><td class="c-time">${esc(r.time)}</td>
         <td class="c-code">${esc(r.code)}</td>
         <td class="c-name" title="${esc(r.title)}">${esc(r.name)}${isNew ? '<span class="badge-new">NEW</span>' : ''}</td>
-        <td class="c-kind">${esc(r.kind)}</td><td class="c-per">${esc(r.period)}</td>${pctCell(r)}</tr>`;
+        <td class="c-kind">${esc(r.kind)}</td><td class="c-per">${esc(r.period)}</td>${pctCell(r)}
+        <td class="c-pdf">${pdfLinks(r)}</td></tr>`;
       if (open.has(r.id)) html += detail(r);
     });
-    $('tb').innerHTML = html || `<tr><td colspan="7" class="more">${state.onlyNew ? '新着はありません' : '該当する開示はありません'}</td></tr>`;
+    $('tb').innerHTML = html || `<tr><td colspan="8" class="more">${state.onlyNew ? '新着はありません' : '該当する開示はありません'}</td></tr>`;
 
     const nd = nextDate();
     $('more').innerHTML = nd
@@ -272,10 +286,11 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
 
   function csv() {
     const rows = visible();
-    const head = ['日付', '時刻', 'コード', '企業名', '種別', '期', '上昇確度(%)', '表題', 'PDF'];
+    const head = ['日付', '時刻', 'コード', '企業名', '種別', '期', '上昇確度(%)', '表題', 'PDF', '説明資料PDF'];
     const q = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
     const lines = [head.map(q).join(',')].concat(rows.map(r =>
-      [r.date, r.time, r.code, r.name, r.kind, r.period, r.pct ?? '', r.title, r.url].map(q).join(',')));
+      [r.date, r.time, r.code, r.name, r.kind, r.period, r.pct ?? '', r.title, r.url,
+       (r.pdfs || []).filter(p => p.label.startsWith('資料')).map(p => p.url).join(' ')].map(q).join(',')));
     const blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);

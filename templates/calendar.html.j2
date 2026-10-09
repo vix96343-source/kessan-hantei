@@ -10,7 +10,7 @@
     {% for r in rows %}
     <tr>
       <td class="{{ 'warn' if r.intraday }}">{{ ("⚠" ~ r.time) if r.intraday else r.time }}</td>
-      <td><a href="https://kabutan.jp/stock/?code={{ r.code }}" target="_blank" rel="noopener">{{ r.code }}</a></td>
+      <td>{{ r.code }}</td>
       <td>{{ r.name }}</td>
       <td>{{ r.kind }}</td>
       <td class="c-pct"><span class="none">–</span></td>

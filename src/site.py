@@ -6,6 +6,7 @@
 """
 import json
 import re
+from datetime import date
 from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader
@@ -127,10 +128,26 @@ def details(r: dict, feat: dict | None) -> list[list]:
     return []
 
 
+def pdf_links(r: dict, presentations: dict[str, list[dict]], within_days: int = 7) -> list[dict]:
+    """行に並べるPDF。決算: 短信 + 決算説明資料(短信と同日〜within_days日以内、最大2件)。修正: 修正。"""
+    if r["kind"] != "earnings_report":
+        return [{"label": "修正", "url": r["pdf_url"]}]
+    links = [{"label": "短信", "url": r["pdf_url"]}]
+    d0 = date.fromisoformat(r["disclosed_at"][:10])
+    near = [p for p in presentations.get(r["code"], [])
+            if 0 <= (date.fromisoformat(p["disclosed_at"][:10]) - d0).days <= within_days]
+    for i, p in enumerate(sorted(near, key=lambda p: p["disclosed_at"])[:2]):
+        links.append({"label": "資料" if i == 0 else "資料2", "url": p["pdf_url"], "title": p["title"]})
+    return links
+
+
 def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:
     """取り込み済みの全期間の決算・修正(新しい順)。"""
-    disc = disclosures.load(data_dir)
-    disc = disc[disc["kind"].isin(FEED_KINDS) & (disc["is_correction"] != "True")]
+    all_disc = disclosures.load(data_dir)
+    presentations: dict[str, list[dict]] = {}
+    for p in all_disc[all_disc["kind"] == "earnings_presentation"].to_dict("records"):
+        presentations.setdefault(p["code"], []).append(p)
+    disc = all_disc[all_disc["kind"].isin(FEED_KINDS) & (all_disc["is_correction"] != "True")]
     stats = reaction.load_stats(data_dir)
     feats = earnings.by_disclosure(data_dir)
     rows = []
@@ -141,7 +158,8 @@ def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:
                      "code": r["code"], "name": r["name"], "kind": kind_label(r, f),
                      "group": "決算" if r["kind"] == "earnings_report" else "修正",
                      "period": period_label(r, f),
-                     "url": r["pdf_url"], "title": r["title"], "details": details(r, f),
+                     "url": r["pdf_url"], "pdfs": pdf_links(r, presentations),
+                     "title": r["title"], "details": details(r, f),
                      "pct": None if p is None else round(p * 100),
                      "up": p is not None and round(p * 100) > 50})
     return rows
@@ -168,7 +186,6 @@ def _group(rows: list[dict]) -> list[tuple[str, list[dict]]]:
 
 
 def _date_label(d: str) -> str:
-    from datetime import date
     x = date.fromisoformat(d)
     return f"{x.month}/{x.day}({'月火水木金土日'[x.weekday()]})"
 
