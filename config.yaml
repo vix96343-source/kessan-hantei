@@ -1,0 +1,51 @@
+# 決算持ち越し判定君 設定ファイル
+# 重み・閾値はここで調整する(コードにハードコードしない)
+
+http:
+  user_agent: "kessan-hantei/0.1 (personal research tool)"
+  min_interval_sec: 1.0   # 1リクエスト/秒以下
+  retries: 3
+  timeout_sec: 20
+
+disclosures:
+  # TDnetの一覧は約1ヶ月分しか遡れない
+  lookback_days: 1          # 通常実行時に再取得する過去日数(当日 + N日)
+  backfill_max_days: 31     # --days で指定できる上限
+  # disclosures.csv に保存する開示種別(other は捨てる)
+  store_kinds:
+    - forecast_revision
+    - dividend_revision
+    - forecast_dividend_revision
+    - forecast_initial
+    - actual_vs_forecast
+    - earnings_report
+    - earnings_presentation
+  # universe.csv があればその銘柄だけ残す(無ければ全銘柄を保存)
+  filter_by_universe: true
+  # XBRLを取得して修正率を読む種別
+  parse_xbrl_kinds:
+    - forecast_revision
+    - forecast_dividend_revision
+
+factors:
+  revision_recency:
+    weight: -0.10            # 負方向(直前に修正済みならサプライズ余地が減る)
+    window_days: 90
+    decay: linear            # linear: 新しい修正ほど1に近い / flat: 窓内なら1
+    count_kinds:
+      - forecast_revision
+      - forecast_dividend_revision
+    exclude_corrections: true
+    # 前回決算短信と同日の修正は「前回決算の一部」とみなして除外
+    exclude_same_day_as_earnings: true
+
+universe:
+  turnover_days: 20
+  update_weekday: 0          # dailyワークフローで週1更新する曜日(0=月曜)
+
+calendar:
+  horizon_business_days: 5   # 翌営業日〜N営業日先
+  intraday_cutoff: "15:00"   # これより前の発表は「場中」
+
+judge:
+  min_avg_turnover: 100000000   # 一次フィルタ: 平均売買代金 1億円/日

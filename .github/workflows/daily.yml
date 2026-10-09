@@ -1,0 +1,49 @@
+name: daily
+
+# 平日 18:30 JST: (月曜) universe → calendar → サイト再生成
+# JPXの決算発表予定日は毎営業日17時頃に更新される
+on:
+  schedule:
+    - cron: '30 9 * * 1-5'
+  workflow_dispatch:
+    inputs:
+      force_universe:
+        description: 'universe(銘柄一覧・売買代金)も更新する'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: data-commit
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Run
+        run: python -m src.cli run ${{ github.event.inputs.force_universe == 'true' && '--force-universe' || '' }}
+
+      - name: Commit data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/ docs/
+          if git diff --cached --quiet; then
+            echo "no changes"; exit 0
+          fi
+          git commit -m "data: daily $(TZ=Asia/Tokyo date '+%Y-%m-%d %H:%M')"
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+          git push

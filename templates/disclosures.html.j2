@@ -1,0 +1,108 @@
+{% extends "_base.html.j2" %}
+{% set page = "disclosures" %}
+{% block title %}適時開示ウォッチ{% endblock %}
+{% block sub %}TDnet 取り込み {{ generated_at }} 更新 ・ 履歴 {{ coverage_start }} 以降{% endblock %}
+{% block content %}
+  <section class="tiles" aria-label="直近7日のサマリ">
+    <div class="tile up"><div class="k">上方修正(7日)</div><div class="v">{{ s.up7 }}</div></div>
+    <div class="tile down"><div class="k">下方修正(7日)</div><div class="v">{{ s.down7 }}</div></div>
+    <div class="tile"><div class="k">決算短信(7日)</div><div class="v">{{ s.er7 }}</div></div>
+    <div class="tile"><div class="k">説明資料(7日)</div><div class="v">{{ s.pr7 }}</div></div>
+  </section>
+
+  <div class="controls">
+    <div class="seg" id="kindSeg" role="group" aria-label="種別">
+      <button data-v="rev" aria-pressed="true">修正</button>
+      <button data-v="earnings_report" aria-pressed="false">短信</button>
+      <button data-v="earnings_presentation" aria-pressed="false">説明資料</button>
+      <button data-v="all" aria-pressed="false">すべて</button>
+    </div>
+    <div class="seg" id="dirSeg" role="group" aria-label="方向">
+      <button data-v="all" aria-pressed="true">全方向</button>
+      <button data-v="up" aria-pressed="false">上方</button>
+      <button data-v="down" aria-pressed="false">下方</button>
+    </div>
+    <input type="search" id="q" placeholder="コード・会社名・表題で検索" aria-label="検索">
+    <span class="count" id="count"></span>
+  </div>
+
+  <div id="out"></div>
+{% endblock %}
+{% block footer %}出典: TDnet 適時開示情報閲覧サービス(日本取引所グループ)。修正率はXBRLの代表指標(営業利益 → 経常利益 → 純利益 → 売上の順)。{% endblock %}
+{% block script %}
+<script id="data" type="application/json">{{ data_json | safe }}</script>
+<script>
+const ROWS = JSON.parse(document.getElementById('data').textContent);
+const KIND = {
+  forecast_revision: '業績修正', forecast_dividend_revision: '業績・配当修正', dividend_revision: '配当修正',
+  forecast_initial: '予想公表', actual_vs_forecast: '予実差異', earnings_report: '決算短信',
+  earnings_presentation: '説明資料'
+};
+const REV = new Set(['forecast_revision', 'forecast_dividend_revision', 'dividend_revision', 'forecast_initial', 'actual_vs_forecast']);
+function metricLabel(m) {
+  if (/Operating(Income|Profit)/.test(m)) return '営業利益';
+  if (/Ordinary/.test(m)) return '経常利益';
+  if (/ProfitAttributable|NetIncome|Profit/.test(m)) return '純利益';
+  if (/Sales|Revenue/.test(m)) return '売上';
+  return m;
+}
+const state = { kind: 'rev', dir: 'all', q: '' };
+try { Object.assign(state, JSON.parse(localStorage.getItem('dw-filter') || '{}'), { q: '' }); } catch (e) {}
+
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+function dirCell(r) {
+  if (r.direction === 'up' || r.direction === 'down') {
+    const arrow = r.direction === 'up' ? '▲' : '▼';
+    const pct = r.change_pct !== '' ? ` ${Math.abs(+r.change_pct).toFixed(1)}%` : '';
+    return `<span class="dir ${r.direction}">${arrow}${pct}</span>`;
+  }
+  if (r.direction === 'flat') return '<span class="dir none">据え置き</span>';
+  return '<span class="dir none">–</span>';
+}
+
+function render() {
+  const q = state.q.trim().toLowerCase();
+  const rows = ROWS.filter(r =>
+    (state.kind === 'all' || (state.kind === 'rev' ? REV.has(r.kind) : r.kind === state.kind)) &&
+    (state.dir === 'all' || r.direction === state.dir) &&
+    (!q || (r.code + ' ' + r.name + ' ' + r.title).toLowerCase().includes(q)));
+  document.getElementById('count').textContent = `${rows.length} 件`;
+  if (!rows.length) { document.getElementById('out').innerHTML = '<div class="list"><div class="empty">該当する開示はありません</div></div>'; return; }
+
+  let html = '', day = null;
+  for (const r of rows) {
+    const d = r.disclosed_at.slice(0, 10);
+    if (d !== day) {
+      if (day) html += '</div>';
+      const dt = new Date(d + 'T00:00:00');
+      html += `<div class="day">${d.replace(/-/g, '/')}(${'日月火水木金土'[dt.getDay()]})</div><div class="list">`;
+      day = d;
+    }
+    const metric = r.metric ? `<span class="metric">${r.period.startsWith('CurrentAccumulatedQ2') ? '中間' : '通期'}${metricLabel(r.metric)}</span>` : '';
+    html += `<div class="row">
+      <span class="time">${r.disclosed_at.slice(11)}</span>
+      <span class="co"><a href="https://kabutan.jp/stock/?code=${encodeURIComponent(r.code)}" target="_blank" rel="noopener"><span class="code">${esc(r.code)}</span><span class="name">${esc(r.name)}</span></a></span>
+      <span class="kind"><span class="badge ${REV.has(r.kind) ? 'rev' : ''}">${KIND[r.kind] || r.kind}</span>${r.is_correction === 'True' ? '<span class="badge corr">訂正</span>' : ''}</span>
+      ${dirCell(r)}
+      <span class="title"><a href="${esc(r.pdf_url)}" target="_blank" rel="noopener">${esc(r.title)}</a>${metric}</span>
+    </div>`;
+  }
+  document.getElementById('out').innerHTML = html + '</div>';
+}
+
+function bindSeg(id, key) {
+  const seg = document.getElementById(id);
+  const sync = () => seg.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === state[key]));
+  seg.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    state[key] = b.dataset.v; sync(); render();
+    try { localStorage.setItem('dw-filter', JSON.stringify({ kind: state.kind, dir: state.dir })); } catch (e) {}
+  });
+  sync();
+}
+bindSeg('kindSeg', 'kind'); bindSeg('dirSeg', 'dir');
+document.getElementById('q').addEventListener('input', e => { state.q = e.target.value; render(); });
+render();
+</script>
+{% endblock %}
