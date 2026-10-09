@@ -355,6 +355,14 @@ def _change(facts: dict, ctx: str, key: str) -> float | None:
     return None if v is None else round(v * 100, 4)      # scale=-2 で比率になっているので % に戻す
 
 
+_EPS = re.compile(r"^(NetIncomePerShare|BasicEarnings(Loss)?PerShare|EarningsPerShare)(IFRS|US|JMIS)?$")
+
+
+def _eps(facts: dict, ctx: str) -> float | None:
+    hits = [v for (n, c), v in facts.items() if c == ctx and _EPS.match(n)]
+    return hits[0] if hits else None
+
+
 def _yes_no(texts: dict, *names: str) -> bool | None:
     for n in names:
         v = texts.get(n, "").strip()
@@ -422,6 +430,8 @@ def parse_earnings_xbrl(zip_bytes: bytes) -> dict:
         "forecast_q2": block(q2_ctx) if n_q == 1 else {},
         "forecast_q2_change": block(q2_ctx, _change) if n_q == 1 else {},
         "revised": {"有": True, "true": True, "無": False, "false": False}.get(revised_txt) if revised_txt else None,
+        # 1株当たり純利益(累計)。日本基準 NetIncomePerShare、IFRS BasicEarningsPerShareIFRS
+        "eps": {"cum": _eps(facts, cur), "prior": _eps(facts, prior)},
         "company_url": texts.get("URL", ""),
         # 短信1ページ目の「決算補足説明資料作成の有無」「決算説明会開催の有無」
         # (本決算の短信は項目名に Annual が付く)

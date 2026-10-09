@@ -212,6 +212,45 @@ def fin_panel(r: dict, arch: dict | None, hist: list[dict], n_quarters: int = 8)
     return {"quarters": table, "plan": plan}
 
 
+def _f0(v):
+    return None if v in ("", None) or (isinstance(v, float) and v != v) else float(v)
+
+
+def _growth(cur, base):
+    return None if cur is None or base is None or base <= 0 else round((cur / base - 1) * 100, 1)
+
+
+def quarter_numbers(arch: dict | None, hist: list[dict]) -> dict | None:
+    """一覧に出す数値。値と YoY は短信1ページ目と同じ累計(前年同期比)。
+    QoQ は単独四半期(3か月)どうしの前四半期比(EPS は純利の QoQ)。売上〜純利は百万円、EPS は円。"""
+    if not arch:
+        return None
+    n_q, end = int(float(arch["n_q"])), str(arch["period_end"])[:7]
+    qs = {q["end"]: q for q in hist}
+    cum = {f: _f0(arch.get(f"cum_{f}")) for f in FIN_FIELDS}
+    prior = {f: _f0(arch.get(f"prior_{f}")) for f in FIN_FIELDS}
+    prev_in_fy = [qs.get(_ym_shift(end, -3 * k)) for k in range(1, n_q)]
+
+    def single(c, prevs, f):
+        if c is None:
+            return None
+        if n_q == 1:
+            return c
+        if any(p is None or p.get(f) is None for p in prevs):
+            return None
+        return c - sum(p[f] for p in prevs)
+
+    out = {}
+    for f in FIN_FIELDS:
+        cur_q = single(cum[f], prev_in_fy, f)              # QoQ 用の単独四半期
+        prv = (qs.get(_ym_shift(end, -3)) or {}).get(f)
+        # 値と YoY は短信1ページ目と同じ累計(前年同期比)
+        out[f] = {"v": _mil(cum[f]), "yoy": _growth(cum[f], prior[f]), "qoq": _growth(cur_q, prv)}
+    ce, pe = _f0(arch.get("cum_eps")), _f0(arch.get("prior_eps"))
+    out["eps"] = {"v": None if ce is None else round(ce, 2), "yoy": _growth(ce, pe), "qoq": out["net"]["qoq"]}
+    return out
+
+
 def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:
     """取り込み済みの全期間の決算・修正(新しい順)。"""
     all_disc = disclosures.load(data_dir)
@@ -240,6 +279,8 @@ def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:
                          manual={k: v for k, v in manual.items()
                                  if k[1] or latest_earn.get(r["code"]) == r["disclosed_at"]}),
                      "title": r["title"], "details": details(r, f),
+                     "nums": quarter_numbers(arch.get(r["disclosure_id"]) if r["kind"] == "earnings_report" else None,
+                                             [q for q in hist.get(r["code"], []) if q["announced"] < r["disclosed_at"][:10]]),
                      "fin": fin_panel(r, arch.get(r["disclosure_id"]) if r["kind"] == "earnings_report" else None,
                                       [q for q in hist.get(r["code"], []) if q["announced"] <= r["disclosed_at"][:10]
                                        or r["kind"] != "earnings_report"]),

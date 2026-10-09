@@ -32,7 +32,7 @@ FEATURE_COLUMNS = [
 ]
 ARCHIVE_COLUMNS = ["disclosure_id", "code", "disclosed_at", "n_q", "period_end", "scope"] + \
     [f"cum_{f}" for f in FIELDS] + [f"prior_{f}" for f in FIELDS] + \
-    [f"fc_{f}" for f in FIELDS] + ["fc_next_year"]          # 会社予想(通期。本決算の短信は来期)
+    [f"fc_{f}" for f in FIELDS] + ["fc_next_year"] +     ["cum_eps", "prior_eps"]                                  # 会社予想(通期。本決算の短信は来期)、累計EPS
 TYPE_MARKS = {"recruit": "①", "kioxia": "②", "rorze_b": "③"}
 
 
@@ -98,7 +98,8 @@ def archive_row(disclosure_id: str, code: str, disclosed_at: str, x: dict) -> di
     return {"disclosure_id": disclosure_id, "code": code, "disclosed_at": disclosed_at, "n_q": x["n_q"],
             "period_end": x["period_end"], "scope": x["scope"],
             **{f"cum_{f}": x["cum"].get(f) for f in FIELDS}, **{f"prior_{f}": x["prior_cum"].get(f) for f in FIELDS},
-            **{f"fc_{f}": x["forecast"].get(f) for f in FIELDS}, "fc_next_year": bool(x.get("forecast_is_next_year"))}
+            **{f"fc_{f}": x["forecast"].get(f) for f in FIELDS}, "fc_next_year": bool(x.get("forecast_is_next_year")),
+            "cum_eps": x.get("eps", {}).get("cum"), "prior_eps": x.get("eps", {}).get("prior")}
 
 
 def archive_index(rows: list[dict]) -> dict[tuple[str, str], dict]:

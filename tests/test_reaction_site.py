@@ -142,3 +142,15 @@ def test_fin_panel_current_quarter_and_plan():
     p = f["plan"]
     assert p["fy"] == "2027年3月期" and p["fc_label"] == "会社予想"
     assert p["rows"][0] == ["売上", 120, 250, None, None, 500, 50.0]           # 1Q累計, 2Q累計, 3Q, 通期, 予想, 進捗率
+
+
+def test_quarter_numbers_single_quarter_yoy_qoq_and_eps():
+    hist = [{"end": "2025-09", "sales": 100e6, "op": 10e6, "ordinary": 10e6, "net": 6e6, "announced": "2025-10-30"},
+            {"end": "2026-03", "sales": 100e6, "op": 10e6, "ordinary": 10e6, "net": 6e6, "announced": "2026-05-10"},
+            {"end": "2026-06", "sales": 110e6, "op": 11e6, "ordinary": 11e6, "net": 7e6, "announced": "2026-08-01"}]
+    arch = {"n_q": "2", "period_end": "2026-09-30", "cum_sales": 230e6, "cum_op": 25e6, "cum_ordinary": 25e6,
+            "cum_net": 16e6, "prior_sales": 200e6, "prior_op": 20e6, "prior_ordinary": 20e6, "prior_net": 12e6,
+            "cum_eps": 32.0, "prior_eps": 24.0}
+    n = site.quarter_numbers(arch, hist)
+    assert n["sales"] == {"v": 230, "yoy": 15.0, "qoq": 9.1}            # 累計230(前年200)、単独120 vs 前四半期110
+    assert n["eps"] == {"v": 32.0, "yoy": 33.3, "qoq": n["net"]["qoq"]}

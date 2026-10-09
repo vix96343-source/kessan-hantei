@@ -41,16 +41,20 @@ tbody tr.row td { background: var(--row); }
 tbody tr.row.alt td { background: var(--row2); }
 tr.row { cursor: pointer; } tr.row:hover td { background: #262b42 !important; }
 /* お手本と同じ見た目: 濃紺の背景、▲の行は明るい緑の太字、▼の行は白っぽい灰色の普通の太さ */
-table#list { width: auto; min-width: 520px; max-width: 900px; font-size: 12px; line-height: 1.3; background: #111827; }
+table#list { width: auto; min-width: 520px; font-size: 12px; line-height: 1.3; background: #111827; }
 table#list th { font-size: 12px; font-weight: 400; padding: 2px 12px; text-align: center; color: #8d97aa;
   background: #111827; border-bottom: 1px solid #2a3147; }
-table#list td { padding: 2px 12px; font-weight: 400; color: #5fa4f9; background: #111827 !important;
+table#list td { padding: 2px 12px; font-weight: 400; color: #48c8a8; background: #111827 !important;
   border-bottom: 1px solid #222839; }
 table#list tr.row.alt td { background: #151c2e !important; }
 table#list tr.row.up td { color: #2ee87b; font-weight: 700; }
 table#list td.c-time, table#list td.c-code, table#list td.c-kind, table#list td.c-per { text-align: center; }
 table#list td.c-pct { text-align: right; }
-table#list td.c-pct.down { color: #5fa4f9; font-weight: 400; }
+table#list th.n, table#list th.g { padding-left: 6px; padding-right: 6px; }
+table#list td.n, table#list td.g { text-align: right; padding-left: 6px; padding-right: 6px; font-variant-numeric: tabular-nums; }
+table#list td.g { font-size: 11px; opacity: .85; }
+table#list th.n { border-left: 1px solid #2a3147; } table#list td.n { border-left: 1px solid #1e2537; }
+table#list td.c-pct.down { color: #48c8a8; font-weight: 400; }
 table#list tr.row.up td.c-pct { color: #2ee87b; font-weight: 700; }
 /* 種別は枠なしの文字(行と同じ色)。押すとPDF */
 table#list a.pdf { background: none; border: 0; padding: 0; margin: 0 3px; font-size: inherit; font-weight: inherit;
@@ -132,6 +136,11 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
     <th class="c-name" data-k="name">企業名</th>
     <th class="c-kind" data-k="group">種別</th>
     <th class="c-per" data-k="period">期</th>
+    <th class="n">売上</th><th class="g">YoY</th><th class="g">QoQ</th>
+    <th class="n">営利</th><th class="g">YoY</th><th class="g">QoQ</th>
+    <th class="n">経利</th><th class="g">YoY</th><th class="g">QoQ</th>
+    <th class="n">純利</th><th class="g">YoY</th><th class="g">QoQ</th>
+    <th class="n">EPS</th><th class="g">YoY</th><th class="g">QoQ</th>
   </tr></thead>
   <tbody id="tb"></tbody>
 </table>
@@ -227,6 +236,18 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
                  : `${r.code} ${r.name} ${r.title}`.toLowerCase().includes(q)))));
   }
 
+  // 決算短信の数値(単独四半期)と YoY・QoQ
+  const fmtN = (v, eps) => v == null ? '–' : eps ? v.toFixed(1) : v.toLocaleString('ja-JP');
+  const fmtG = g => g == null ? '–' : (g > 0 ? '+' : '') + (Math.abs(g) >= 1000 ? Math.round(g) : g.toFixed(1)) + '%';
+  function numCells(r) {
+    const keys = ['sales', 'op', 'ordinary', 'net', 'eps'];
+    if (!r.nums) return keys.map(() => '<td class="n"></td><td class="g"></td><td class="g"></td>').join('');
+    return keys.map(k => {
+      const x = r.nums[k] || {};
+      return `<td class="n">${fmtN(x.v, k === 'eps')}</td><td class="g">${fmtG(x.yoy)}</td><td class="g">${fmtG(x.qoq)}</td>`;
+    }).join('');
+  }
+
   function pctCell(r) {
     if (r.pct == null) return '<td class="c-pct down">–</td>';
     if (r.up) return `<td class="c-pct up">▲${r.pct}%</td>`;
@@ -264,7 +285,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
 
   function detail(r) {
     const items = (r.details || []).map(([k, v, t]) => `<div><span>${esc(k)}</span><span class="${esc(t)}">${esc(v)}</span></div>`).join('');
-    return `<tr class="detail"><td colspan="6">
+    return `<tr class="detail"><td colspan="21">
       <div class="dtitle">${esc(r.title)}</div>
       <div class="dlinks">${(r.pdfs || []).map(p => `<a href="${esc(p.url)}" target="_blank" rel="noopener" title="${esc(p.title || '')}">${esc(p.label === '資料' || p.label === '資料2' ? '説明資料' : p.label === '短信' ? '決算短信' : '修正の開示')}(PDF)</a>`).join('')}</div>
       ${finTables(r.fin)}${items ? `<div class="dl">${items}</div>` : ''}
@@ -280,7 +301,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
     rows.forEach((r, i) => {
       if (byTime && r.date !== day) {
         const c = (index.days || []).find(x => x.date === r.date);
-        html += `<tr class="dayrow"><td colspan="6"><span class="dd">${r.date.replace(/-/g, '/')}(${wd(r.date)})</span>`
+        html += `<tr class="dayrow"><td colspan="21"><span class="dd">${r.date.replace(/-/g, '/')}(${wd(r.date)})</span>`
               + (c ? `<span class="dn">決算 ${c.earn}件 ・ 修正 ${c.rev}件</span>` : '') + '</td></tr>';
         day = r.date;
       }
@@ -289,10 +310,10 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
         <td class="c-date">${r.date.slice(5).replace('-', '/')}</td><td class="c-time">T${esc(r.time)}</td>
         <td class="c-code">${esc(r.code)}</td>
         <td class="c-name" title="${esc(r.title)}">${esc(r.name)}${isNew ? '<span class="badge-new">NEW</span>' : ''}</td>
-        <td class="c-kind"><a class="pdf" href="${esc(r.url)}" target="_blank" rel="noopener" title="${esc(r.title)}">${esc(r.group)}</a></td><td class="c-per">${esc(r.period)}</td></tr>`;
+        <td class="c-kind"><a class="pdf" href="${esc(r.url)}" target="_blank" rel="noopener" title="${esc(r.title)}">${esc(r.group)}</a></td><td class="c-per">${esc(r.period)}</td>${numCells(r)}</tr>`;
       if (open.has(r.id)) html += detail(r);
     });
-    $('tb').innerHTML = html || `<tr><td colspan="6" class="more">${state.onlyNew ? '新着はありません' : '該当する開示はありません'}</td></tr>`;
+    $('tb').innerHTML = html || `<tr><td colspan="21" class="more">${state.onlyNew ? '新着はありません' : '該当する開示はありません'}</td></tr>`;
 
     const nd = state.day ? null : nextDate();
     $('more').innerHTML = state.day ? '' : nd
