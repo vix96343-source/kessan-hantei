@@ -57,7 +57,7 @@ table#list a.pdf { background: none; border: 0; padding: 0; margin: 0 3px; font-
   color: inherit; text-decoration: none; }
 table#list a.pdf:hover { text-decoration: underline; }
 table#list tr.row:hover td { background: #232a40 !important; }
-th.c-date, td.c-date { display: none; }       /* 日付は区切り行で出す */
+table#list td.c-date { text-align: center; }
 td.c-per { color: var(--text); }
 td.c-name { max-width: 260px; overflow: hidden; text-overflow: ellipsis; }
 td.c-pct, th.c-pct { text-align: right; }
@@ -102,16 +102,13 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
 @media (max-width: 600px) {
   body { font-size: 13px; }
   header { flex-wrap: wrap; gap: 4px 10px; } header .status { margin-left: 0; width: 100%; }
-  /* スマホは日付列を幅0にして(列数は保つ)、代わりに日付の区切り行を出す */
-  table#list { min-width: 0; width: 100%; font-size: 12px; }
-  table#list td, table#list th { padding: 3px 4px; }
-  table { table-layout: fixed; }
-  th.c-time { width: 44px; } th.c-code { width: 40px; } th.c-kind { width: 70px; } th.c-per { width: 34px; }
-  th.c-pct { width: 42px; }
-  td { font-size: 12.5px; }
-  td.c-kind { white-space: normal; overflow: hidden; }      /* 短信+資料は縦に並べてはみ出さない */
-  a.pdf { font-size: 11px; padding: 0 3px; margin: 1px 2px 1px 0; }
-  td, th { padding: 6px 4px; }
+  /* スマホ: 列幅を固定して1画面に収める */
+  table#list { min-width: 0; width: 100%; font-size: 11.5px; table-layout: fixed; }
+  table#list td, table#list th { padding: 4px 2px; overflow: hidden; }
+  table#list th { font-size: 11px; }
+  th.c-date { width: 40px; } th.c-time { width: 50px; } th.c-code { width: 38px; } th.c-kind { width: 56px; }
+  th.c-per { width: 30px; } th.c-pct { width: 42px; }
+  table#list td.c-kind { white-space: normal; }            /* 短信+資料は縦に並べてはみ出さない */
   .wrap { padding: 0 8px 10px; }
   td.c-name { overflow: hidden; text-overflow: ellipsis; max-width: none; }
   .lg { display: none; } .sm { display: inline; }
@@ -291,7 +288,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
 
   function detail(r) {
     const items = (r.details || []).map(([k, v, t]) => `<div><span>${esc(k)}</span><span class="${esc(t)}">${esc(v)}</span></div>`).join('');
-    return `<tr class="detail"><td colspan="6">
+    return `<tr class="detail"><td colspan="7">
       <div class="dtitle">${esc(r.title)}</div>${finTables(r.fin)}${items ? `<div class="dl">${items}</div>` : ''}
     </td></tr>`;
   }
@@ -309,19 +306,19 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
     rows.forEach((r, i) => {
       if (byTime && r.date !== day) {
         const c = (index.days || []).find(x => x.date === r.date);
-        html += `<tr class="dayrow"><td colspan="6"><span class="dd">${r.date.replace(/-/g, '/')}(${wd(r.date)})</span>`
+        html += `<tr class="dayrow"><td colspan="7"><span class="dd">${r.date.replace(/-/g, '/')}(${wd(r.date)})</span>`
               + (c ? `<span class="dn">決算 ${c.earn}件 ・ 修正 ${c.rev}件</span>` : '') + '</td></tr>';
         day = r.date;
       }
       const isNew = fresh.has(r.id);
       html += `<tr class="row${i % 2 ? ' alt' : ''}${r.up ? ' up' : ''}${isNew ? ' new' : ''}" data-id="${esc(r.id)}">
-        <td class="c-date">${r.date.replace(/-/g, '/')}</td><td class="c-time">T${esc(r.time)}</td>
+        <td class="c-date">${r.date.slice(5).replace('-', '/')}</td><td class="c-time">T${esc(r.time)}</td>
         <td class="c-code">${esc(r.code)}</td>
         <td class="c-name" title="${esc(r.title)}">${esc(r.name)}${isNew ? '<span class="badge-new">NEW</span>' : ''}</td>
         <td class="c-kind">${pdfLinks(r)}</td><td class="c-per">${esc(r.period)}</td>${pctCell(r)}</tr>`;
       if (open.has(r.id)) html += detail(r);
     });
-    $('tb').innerHTML = html || `<tr><td colspan="6" class="more">${state.onlyNew ? '新着はありません' : '該当する開示はありません'}</td></tr>`;
+    $('tb').innerHTML = html || `<tr><td colspan="7" class="more">${state.onlyNew ? '新着はありません' : '該当する開示はありません'}</td></tr>`;
 
     const nd = state.day ? null : nextDate();
     $('more').innerHTML = state.day ? '' : nd
