@@ -75,16 +75,16 @@ M5 review(実績取込・答え合わせ) → predictions.csv 更新 + stats.jso
 │   ├── predictions.csv    # ★ コア資産
 │   ├── stats.json         # GAP判定クラス別の実測成績
 │   ├── disclosures.csv    # 適時開示(修正・短信・説明資料)。disclosure_idキーで追記
-│   ├── quarterly_history.csv  # 単独四半期の業績履歴(初回IRBANK、以降は短信XBRLから追記)
+│   ├── tdnet_earnings.csv  # 決算短信XBRLの累計値(②の前四半期比に使う。自前で蓄積)
 │   ├── earnings_features.csv  # 決算短信ごとの型判定(①②③)
 │   ├── reactions.csv / reaction_stats.json  # 開示後の株価反応と上昇確度の集計
 │   └── disclosures_meta.json  # coverage_start(欠損なし期間の開始日)/ last_date
 ├── docs/                  # GitHub Pages出力先(生成物)
 ├── templates/             # Jinja2テンプレート
 └── .github/workflows/
-    ├── daily.yml          # 平日18:30 JST(cron: '30 9 * * 1-5')+ workflow_dispatch
+    ├── daily.yml          # 平日20:05 JST(cron: '5 11 * * 1-5')+ workflow_dispatch
     ├── review.yml         # 平日19:30 JST + workflow_dispatch
-    └── disclosures.yml    # 平日 JST 8:00〜19:45 に15分おき + workflow_dispatch
+    └── watch.yml          # 平日 JST 8:00〜20:00 に1分おき(TDnet 監視・リアルタイム表示)
 ```
 
 CLIコマンド体系:
@@ -165,21 +165,23 @@ python -m src.cli revisions --code 4617 [--date YYYY-MM-DD]  # 直近修正と r
 ---
 
 ### 決算短信の型判定と上昇確度(earnings.py / reaction.py / site.py)
-利用者が提示した「上がりやすい決算内容」の3つの型への親和性を、決算短信ごとに数値で判定する。3つのうち1つでも該当すれば調査対象、複数該当は優先。
+利用者が提示した「上がりやすい決算内容」の3つの型への親和性を、**TDnet の決算短信XBRLだけで**判定する(株探・IRBANK は GitHub Actions のIPを拒否するため使わない)。3つのうち1つでも該当すれば調査対象、複数該当は優先。
 
 | 型 | 自動判定(config: earnings.types) | 未判定(Phase 2 の文章レイヤー) |
 |---|---|---|
-| ① リクルート型 | 単Q売上YoY − 直近1年売上YoY ≥ 3pt かつ 営業利益率の前年同期差 ≥ 0(q-accel と同じ) | 会社固有KPI(単価・課金率・継続率・ARR) |
-| ② キオクシア型 | 単Q売上QoQ ≥ +20% かつ 営業益QoQ ≥ +50%(赤字→黒字含む)、前年の同じQoQより10pt以上強い(季節性除外) | 製品価格の上昇、部門利益 |
-| ③ ローツェ型B | 予想修正なし かつ 単Q営業益YoY > 0 かつ 慎重度 ≤ 0.85(残り期間の想定営業益 ÷ 前年同期間×今期累計の伸び。1Qで上期予想があれば上期予想−1Q) | 経営陣の強気コメント |
+| ① リクルート型 | 今期累計の売上YoY − 前年同期の売上YoY(短信に載っている去年の伸び率)≥ 3pt かつ 営業利益率の前年同期差 ≥ 0。1Qは累計=単Qなので q-accel と同じ | 会社固有KPI(単価・課金率・継続率・ARR) |
+| ② キオクシア型 | 単Q売上QoQ ≥ +20% かつ 営業益QoQ ≥ +50%(赤字→黒字含む)、前年の同じQoQより10pt以上強い(季節性除外)。単Q = 今回の累計 − 前回の短信の累計 | 製品価格の上昇、部門利益 |
+| ③ ローツェ型B | 予想修正なし かつ 累計営業益YoY > 0 かつ 慎重度 ≤ 0.85。前期実績 = 会社予想 ÷ (1+予想の前期比)、慎重度 = (予想 − 累計) ÷ (前年の残り期間の実績 × 今期累計の伸び)。1Qで上期予想があれば上期で計算 | 経営陣の強気コメント |
 | ③ ローツェ型A | ―(受注高はXBRLに無い) | 受注QoQ +20% |
 
-- データ: 当四半期 = TDnet 決算短信サマリーXBRL(開示と同時)。過去の単独四半期 = data/quarterly_history.csv(history.py)。
-  - 初回のみ手元のPCで `python -m src.cli history --years 3` を実行し、IRBANK 四半期進捗ページ(irbank.net/{code}/quarter の「四半期毎履歴(百万円)」実績行)から過去3年分を取得(source=irbank)。株探・IRBANK とも GitHub Actions のIPを拒否する(405/403)ため、Actions からは取りに行かない。IRBANK のデータは出典明示で再配信可(サイトのフッターに出典を表示)。
-  - 以降は決算短信を評価するたびに、短信XBRLから復元した当四半期を追記(source=tdnet)。Actions だけで履歴が伸びる。1Qは累計=単独なので、履歴が無い銘柄も1年で揃う。
-- 単独四半期 = 短信の累計 − 同じ期の過去四半期(履歴)。履歴の最終四半期が当四半期の3ヶ月前に終わっていなければ判定しない(status=no_history。履歴が増えたら次回以降に再評価)。
-- 上昇確度 = 同じバケット(決算は型の該当数 0/1/2以上、修正・配当は方向×幅)の過去開示で「開示前終値→開示後最初の終値」が上昇した割合を、全体の上昇率に prior_n 件ぶん寄せて縮小推定(reaction_stats.json)。型ごとの成績は reaction_stats.json の types に参考として出す(基準の検証用)。
+- ②に必要な「前回の短信」は data/tdnet_earnings.csv に自前で蓄積する(TDnet は31日で消えるため、2026-09以降の分から)。前回の短信が揃っていない銘柄は②を判定しない(詳細表示にも出さない)。
+- 上昇確度 = 同じバケット(決算は型の該当数 0/1/2以上、修正・配当は方向×幅)の過去開示で「開示前終値→開示後最初の終値」が上昇した割合を、全体の上昇率に prior_n 件ぶん寄せて縮小推定(reaction_stats.json)。型ごとの成績は types に参考として出す。
 - 結果は data/earnings_features.csv(disclosure_id キー)。
+
+### リアルタイム表示(watch.yml / feed.html.j2)
+- watch.yml が平日 8:00〜20:00 JST に1分おきに TDnet を確認し、新しい開示があれば型判定・サイト再生成・push(ジョブ6時間制限のため 8:00〜14:00 と 14:00〜20:00 の2本)。daily.yml は watch の後(20:05)。
+- トップページは docs/feed.json を1分ごとに読み直して自動更新。新着は NEW で強調、行タップで数値(売上・営業益YoY、加速、利益率、進捗率、QoQ、慎重度、修正率)を表示。
+- 開示から表示までの遅れは、確認間隔(〜1分)+ Pages のデプロイ(〜1分)+ ページの再読込(〜1分)で数分。
 
 ## 4. predictions.csv スキーマ(確定)
 

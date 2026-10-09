@@ -1,0 +1,57 @@
+name: watch
+
+# TDnet を1分おきに確認し、決算短信・修正などの新しい開示があればすぐにサイトへ反映する。
+# ジョブは最長6時間なので2本に分ける: 8:00〜14:00 JST と 14:00〜20:00 JST。
+# 2本目は 13:50 に予約し、同じ concurrency グループで1本目の終了を待ってすぐ始まる。
+on:
+  schedule:
+    - cron: '0 23 * * 0-4'      # JST 8:00 (月〜金)
+    - cron: '50 4 * * 1-5'      # JST 13:50 (月〜金)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# data/ と docs/ にコミットする他のワークフロー(daily)と直列化する
+concurrency:
+  group: data-commit
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Watch TDnet every minute
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # 午前に始まったジョブは 14:00、午後は 20:00 JST まで
+          if [ "$(TZ=Asia/Tokyo date +%H)" -lt 13 ]; then end="14:00"; else end="20:00"; fi
+          end_ts=$(TZ=Asia/Tokyo date -d "today $end" +%s)
+          echo "watching until $end JST"
+          while [ "$(date +%s)" -lt "$end_ts" ]; do
+            t0=$(date +%s)
+            python -m src.cli disclosures --days 0 || echo "::warning::tick failed"
+            git add data/ docs/
+            if ! git diff --cached --quiet; then
+              git commit -q -m "data: watch $(TZ=Asia/Tokyo date '+%Y-%m-%d %H:%M')"
+              if ! { git pull -q --rebase origin "${GITHUB_REF_NAME}" && git push -q; }; then
+                # 競合したらこの回の結果は捨てて最新に合わせる(次の回で取り直す)
+                git rebase --abort 2>/dev/null || true
+                git fetch -q origin "${GITHUB_REF_NAME}" && git reset -q --hard "origin/${GITHUB_REF_NAME}"
+                echo "::warning::push failed, resynced"
+              fi
+            fi
+            elapsed=$(( $(date +%s) - t0 ))
+            [ "$elapsed" -lt 60 ] && sleep $(( 60 - elapsed ))
+          done

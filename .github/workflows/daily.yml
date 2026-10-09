@@ -1,10 +1,10 @@
 name: daily
 
-# 平日 18:30 JST: (月曜) universe → calendar → サイト再生成
+# 平日 20:05 JST: (月曜) universe → calendar → 株価反応 → サイト再生成
 # JPXの決算発表予定日は毎営業日17時頃に更新される
 on:
   schedule:
-    - cron: '30 9 * * 1-5'
+    - cron: '5 11 * * 1-5'       # JST 20:05(watch の終了後。JPXの決算発表予定日は17時頃更新)
   workflow_dispatch:
     inputs:
       force_universe:

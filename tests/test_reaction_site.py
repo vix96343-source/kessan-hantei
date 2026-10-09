@@ -80,3 +80,21 @@ def test_build_stats():
 ])
 def test_kind_label(row, label):
     assert site.kind_label(row, row.get("_feat")) == label
+
+
+def test_details_for_earnings_and_revision():
+    feat = {"status": "ok", "n_q": "2", "sales_ytd_yoy": "12.5", "op_ytd_yoy": "-3.0", "accel": "4.0",
+            "margin_delta": "0.5", "progress": "62.0", "sales_qoq": "", "op_qoq": "", "conservatism": "0.7",
+            "revised": "False"}
+    d = {k: (v, t) for k, v, t in site.details(_row(kind="earnings_report"), feat)}
+    assert d["売上(累計YoY)"] == ("+12.5%", "up")
+    assert d["営業益(累計YoY)"] == ("-3.0%", "down")
+    assert d["進捗率(営業益)"] == ("62%(標準50%)", "up")
+    assert "売上(前四半期比)" not in d                     # 前の短信が無ければ出さない
+    assert d["今回の予想修正"] == ("なし", "")
+
+    rev = _row(direction="up", change_pct="18.1", period="CurrentYearDuration",
+               xbrl_changes='{"NetSales": 2.0, "OperatingIncome": 18.1, "OrdinaryIncome": 15.0, "ProfitAttributableToOwnersOfParent": 30.2}')
+    d = {k: v for k, v, _ in site.details(rev, None)}
+    assert d == {"通期売上(修正率)": "+2.0%", "通期営業益(修正率)": "+18.1%", "通期経常益(修正率)": "+15.0%",
+                 "通期純利益(修正率)": "+30.2%"}

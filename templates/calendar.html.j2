@@ -1,0 +1,25 @@
+{% extends "_base.html.j2" %}
+{% block title %}決算予定{% endblock %}
+{% block content %}
+<table>
+  <colgroup><col class="c-time"><col class="c-code"><col><col class="c-kind"><col class="c-pct"></colgroup>
+  <thead><tr><th class="c-time">発表</th><th class="c-code">コード</th><th>企業名</th><th class="c-kind">種別</th><th class="c-pct">上昇確度</th></tr></thead>
+  <tbody>
+  {% for d, rows in groups %}
+    <tr class="day"><td colspan="5">{{ d | dlabel }}</td></tr>
+    {% for r in rows %}
+    <tr>
+      <td class="{{ 'warn' if r.intraday }}">{{ ("⚠" ~ r.time) if r.intraday else r.time }}</td>
+      <td><a href="https://kabutan.jp/stock/?code={{ r.code }}" target="_blank" rel="noopener">{{ r.code }}</a></td>
+      <td>{{ r.name }}</td>
+      <td>{{ r.kind }}</td>
+      <td class="c-pct"><span class="none">–</span></td>
+    </tr>
+    {% endfor %}
+  {% else %}
+    <tr><td colspan="5" class="none">データがありません</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
+{% block footer %}決算発表予定日は JPX の公表分(翌営業日〜5営業日先、プライム・スタンダード)。発表時刻は確定したものだけ表示。上昇確度は持ち越し判定(M3)の実装後に表示します。{% endblock %}

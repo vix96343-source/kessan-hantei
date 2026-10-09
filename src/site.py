@@ -1,9 +1,11 @@
 """docs/ の静的サイト(GitHub Pages)を生成する。
 
-- index.html: 適時開示フィード(時刻 / コード / 企業名 / 種別 / 上昇確度)
+- index.html: 適時開示フィード(時刻 / コード / 企業名 / 種別 / 上昇確度)。feed.json を1分ごとに読み直して自動更新
 - calendar.html: 翌営業日〜N営業日先の決算予定
 上昇確度は score_of() に集約。決算短信は3つの型(earnings.py)への該当数ごとの過去の上昇率。
 """
+import json
+import re
 from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader
@@ -38,18 +40,57 @@ def score_of(r: dict, stats: dict, cfg: dict, feats: dict) -> float | None:
     return reaction.probability(reaction.bucket(r, rc["large_change_pct"], feats), stats, rc["prior_n"])
 
 
-def detail(feat: dict | None) -> str:
-    """行のツールチップ用: 型判定の根拠"""
-    if not feat or feat.get("status") != "ok":
-        return {"no_history": "過去の四半期データ不足で型判定なし", "no_xbrl": "XBRLなしで型判定なし"}.get(
-            (feat or {}).get("status"), "")
-    def p(v, unit="%"):
-        return "–" if v in ("", None) else f"{float(v):+.1f}{unit}"
-    parts = [f"①加速{p(feat['accel'], 'pt')} 利益率{p(feat['margin_delta'], 'pt')}",
-             f"②売上QoQ{p(feat['sales_qoq'])} 営業益QoQ{p(feat['op_qoq'])}",
-             f"③慎重度{'–' if feat['conservatism'] in ('', None) else format(float(feat['conservatism']), '.2f')}"
-             f" 修正{'なし' if feat['revised'] == 'False' else 'あり' if feat['revised'] == 'True' else '–'}"]
-    return " / ".join(parts)
+def _f(v):
+    return None if v in ("", None) else float(v)
+
+
+def _pct_item(label: str, v, unit: str = "%") -> list:
+    """[ラベル, 表示, トーン]"""
+    v = _f(v)
+    if v is None:
+        return [label, "–", ""]
+    if v >= 999:
+        return [label, "黒字転換", "up"]
+    return [label, f"{v:+.1f}{unit}", "up" if v > 0 else "down" if v < 0 else ""]
+
+
+METRIC_LABELS = [("Sales|Revenue", "売上"), ("Operating(Income|Profit)", "営業益"), ("Ordinary", "経常益"),
+                 ("ProfitAttributable|NetIncome|Profit", "純利益")]
+
+
+def details(r: dict, feat: dict | None) -> list[list]:
+    """行をタップしたときに出す数値。"""
+    if r["kind"] == "earnings_report":
+        if not feat or feat.get("status") != "ok":
+            return [["内容", "XBRLなし" if (feat or {}).get("status") == "no_xbrl" else "集計中", ""]]
+        n_q = int(_f(feat["n_q"]) or 0)
+        span = "単Q" if n_q == 1 else "累計"
+        items = [_pct_item(f"売上({span}YoY)", feat["sales_ytd_yoy"]),
+                 _pct_item(f"営業益({span}YoY)", feat["op_ytd_yoy"]),
+                 _pct_item("売上の加速", feat["accel"], "pt"),
+                 _pct_item("営業利益率の変化", feat["margin_delta"], "pt")]
+        if _f(feat["progress"]) is not None:
+            std = n_q * 25
+            pr = _f(feat["progress"])
+            items.append(["進捗率(営業益)", f"{pr:.0f}%(標準{std}%)", "up" if pr > std + 5 else "down" if pr < std - 5 else ""])
+        if _f(feat["sales_qoq"]) is not None:
+            items += [_pct_item("売上(前四半期比)", feat["sales_qoq"]), _pct_item("営業益(前四半期比)", feat["op_qoq"])]
+        if _f(feat["conservatism"]) is not None:
+            c = _f(feat["conservatism"])
+            items.append(["予想の慎重度", f"{c:.2f}(1未満=慎重)", "up" if c <= 0.85 else ""])
+        items.append(["今回の予想修正", {"True": "あり", "False": "なし"}.get(feat["revised"], "–"), ""])
+        return items
+    if r["kind"] in ("forecast_revision", "forecast_dividend_revision") and r.get("xbrl_changes"):
+        ch = json.loads(r["xbrl_changes"])
+        span = "中間" if str(r.get("period", "")).startswith("CurrentAccumulatedQ2") else "通期"
+        items, used = [], set()
+        for pat, label in METRIC_LABELS:
+            k = next((k for k in ch if re.search(pat, k) and k not in used), None)
+            if k is not None:
+                used.add(k)
+                items.append(_pct_item(f"{span}{label}(修正率)", ch[k]))
+        return items
+    return []
 
 
 def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:
@@ -63,9 +104,9 @@ def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:
     for r in disc.sort_values(["disclosed_at", "code"], ascending=[False, True]).to_dict("records"):
         p = score_of(r, stats, cfg, feats)
         f = feats.get(r["disclosure_id"])
-        rows.append({"date": r["disclosed_at"][:10], "time": r["disclosed_at"][11:16], "code": r["code"],
-                     "name": r["name"], "kind": kind_label(r, f), "url": r["pdf_url"],
-                     "title": r["title"] + (f"\n{detail(f)}" if detail(f) else ""),
+        rows.append({"id": r["disclosure_id"], "date": r["disclosed_at"][:10], "time": r["disclosed_at"][11:16],
+                     "code": r["code"], "name": r["name"], "kind": kind_label(r, f), "url": r["pdf_url"],
+                     "title": r["title"], "details": details(r, f),
                      "pct": None if p is None else round(p * 100),
                      "up": p is not None and round(p * 100) > 50})
     return rows
@@ -100,15 +141,18 @@ def _date_label(d: str) -> str:
 def render_all(cfg: dict, data_dir: Path = DATA_DIR, docs_dir: Path = DOCS_DIR) -> list[str]:
     env = Environment(loader=FileSystemLoader(ROOT / "templates"), autoescape=True)
     env.filters["dlabel"] = _date_label
-    now = now_jst().strftime("%Y-%m-%d %H:%M")
+    now = now_jst().strftime("%Y-%m-%d %H:%M:%S")
     docs_dir.mkdir(parents=True, exist_ok=True)
+    feed = {"generated_at": now, "rows": feed_rows(cfg, data_dir)}
+    feed_json = json.dumps(feed, ensure_ascii=False, separators=(",", ":"))
+    (docs_dir / "feed.json").write_text(feed_json, encoding="utf-8")
     pages = {
-        "index.html": dict(page="feed", groups=_group(feed_rows(cfg, data_dir))),
-        "calendar.html": dict(page="calendar", groups=_group(calendar_rows(data_dir))),
+        "index.html": ("feed.html.j2", dict(page="feed", feed_json=feed_json.replace("</", "<\\/"))),
+        "calendar.html": ("calendar.html.j2", dict(page="calendar", groups=_group(calendar_rows(data_dir)))),
     }
-    out = []
-    for name, ctx in pages.items():
+    out = [str(docs_dir / "feed.json")]
+    for name, (tpl, ctx) in pages.items():
         p = docs_dir / name
-        p.write_text(env.get_template("site.html.j2").render(generated_at=now, **ctx), encoding="utf-8")
+        p.write_text(env.get_template(tpl).render(generated_at=now, **ctx), encoding="utf-8")
         out.append(str(p))
     return out

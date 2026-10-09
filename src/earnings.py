@@ -1,18 +1,22 @@
-"""決算短信の「上がりやすい決算内容」への親和性(3つの型)を数値化する。
+"""決算短信の「上がりやすい決算内容」への親和性(3つの型)を、TDnet の決算短信XBRLだけで数値化する。
 
-① リクルート型: 売上の伸びが加速し、利益率も改善(q-accel と同じ: 単Q売上YoY − 直近1年売上YoY)
+① リクルート型: 売上の伸びが加速し、利益率も改善
+   = 今期累計の売上YoY − 前年同期の売上YoY(短信に載っている去年の伸び率)≥ 3pt かつ 営業利益率の前年同期差 ≥ 0
+   1Qは累計=単独四半期なので q-accel と同じ単Qベース。2Q以降は累計ベース。
 ② キオクシア型: 単独四半期で前四半期から売上・営業益が急改善(季節性は前年の同じQoQと比べて補正)
-③ ローツェ型 B: 予想を修正せず、好調なのに残り期間の想定利益が直近の実力より不自然に低い
+   単独四半期 = 今回の累計 − 前回の短信の累計。前回の短信を tdnet_earnings.csv に自前で蓄積しておき、
+   揃っている銘柄だけ判定する(TDnet は31日で消えるため、蓄積は運用開始から)。
+③ ローツェ型 B: 予想を修正せず、好調なのに残り期間の想定利益が慎重
+   前期の通期実績 = 会社予想 ÷ (1 + 予想の前期比)。残り期間の想定 = 予想 − 累計。
+   慎重度 = 残り期間の想定 ÷ (前年の残り期間の実績 × 今期累計の伸び)
 ③ ローツェ型 A(受注急増)・KPI・製品価格は短信の数値に無いため、文章を読むレイヤー(Phase 2)で扱う
-
-データ: 当四半期 = 決算短信サマリーXBRL(開示と同時) / 過去の単独四半期 = quarterly_history.csv(history.py)
 """
 import logging
 from pathlib import Path
 
 import pandas as pd
 
-from . import disclosures, history, universe
+from . import disclosures, universe
 from .config import DATA_DIR, now_jst
 from .datasources import tdnet
 from .datasources.http import RateLimitedSession
@@ -22,15 +26,21 @@ log = logging.getLogger(__name__)
 FIELDS = ["sales", "op", "ordinary", "net"]
 FEATURE_COLUMNS = [
     "disclosure_id", "code", "disclosed_at", "n_q", "period_end", "revised",
-    "sales_q", "op_q", "sales_q_yoy", "sales_ttm_yoy", "accel", "margin", "margin_delta", "op_q_yoy",
-    "sales_qoq", "op_qoq", "sales_qoq_ly", "conservatism",
+    "sales_ytd_yoy", "sales_ytd_yoy_ly", "accel", "margin", "margin_delta", "op_ytd_yoy",
+    "sales_q", "op_q", "sales_qoq", "op_qoq", "sales_qoq_ly", "conservatism", "progress",
     "recruit", "kioxia", "rorze_b", "types", "status", "computed_at",
 ]
+ARCHIVE_COLUMNS = ["disclosure_id", "code", "disclosed_at", "n_q", "period_end", "scope"] + \
+    [f"cum_{f}" for f in FIELDS] + [f"prior_{f}" for f in FIELDS]
 TYPE_MARKS = {"recruit": "①", "kioxia": "②", "rorze_b": "③"}
 
 
 def features_path(data_dir: Path = DATA_DIR) -> Path:
     return data_dir / "earnings_features.csv"
+
+
+def archive_path(data_dir: Path = DATA_DIR) -> Path:
+    return data_dir / "tdnet_earnings.csv"
 
 
 def load(data_dir: Path = DATA_DIR) -> pd.DataFrame:
@@ -41,34 +51,19 @@ def load(data_dir: Path = DATA_DIR) -> pd.DataFrame:
                        keep_default_na=False).reindex(columns=FEATURE_COLUMNS, fill_value="")
 
 
-# ---------------------------------------------------------------- 単独四半期の系列
+def load_archive(data_dir: Path = DATA_DIR) -> pd.DataFrame:
+    p = archive_path(data_dir)
+    if not p.exists():
+        return pd.DataFrame(columns=ARCHIVE_COLUMNS)
+    return pd.read_csv(p, dtype={"disclosure_id": str, "code": str, "period_end": str},
+                       keep_default_na=False).reindex(columns=ARCHIVE_COLUMNS)
 
-def _month_index(ym: str) -> int:
-    y, m = ym[:7].split("-")
-    return int(y) * 12 + int(m)
+
+def by_disclosure(data_dir: Path = DATA_DIR) -> dict[str, dict]:
+    return {r["disclosure_id"]: r for r in load(data_dir).to_dict("records")}
 
 
-def quarter_series(history: list[dict], x: dict, disclosed_date: str) -> list[dict] | None:
-    """履歴(開示日より前に発表された分)+ 当四半期(XBRL累計から差し引き)を古い順に返す。
-
-    履歴の最後が当四半期のちょうど3ヶ月前に終わっていなければ None(期ずれ・決算期変更)。
-    """
-    hist = [h for h in history if h.get("announced") and h["announced"] < disclosed_date]
-    end = _month_index(x["period_end"])
-    hist = [h for h in hist if _month_index(h["end"]) < end]
-    if not hist or end - _month_index(hist[-1]["end"]) != 3:
-        return None
-    n_q = x["n_q"]
-    prev_in_fy = hist[-(n_q - 1):] if n_q > 1 else []
-    if len(prev_in_fy) != n_q - 1:
-        return None
-    cur = {"end": x["period_end"][:7]}
-    for f in FIELDS:
-        c = x["cum"].get(f)
-        prev = [h.get(f) for h in prev_in_fy]
-        cur[f] = None if c is None or any(p is None for p in prev) else c - sum(prev)
-    return hist + [cur]
-
+# ---------------------------------------------------------------- 計算の部品
 
 def _pct(a, b):
     if a is None or b is None or b <= 0:
@@ -82,148 +77,175 @@ def _ratio(a, b):
     return a / b
 
 
+def _num(v):
+    if v is None or v == "" or (isinstance(v, float) and pd.isna(v)):
+        return None
+    return float(v)
+
+
+def _month(period_end: str) -> str:
+    return str(period_end)[:7]
+
+
+def _shift(ym: str, months: int) -> str:
+    y, m = int(ym[:4]), int(ym[5:7])
+    i = y * 12 + (m - 1) + months
+    return f"{i // 12}-{i % 12 + 1:02d}"
+
+
+def archive_row(disclosure_id: str, code: str, disclosed_at: str, x: dict) -> dict:
+    return {"disclosure_id": disclosure_id, "code": code, "disclosed_at": disclosed_at, "n_q": x["n_q"],
+            "period_end": x["period_end"], "scope": x["scope"],
+            **{f"cum_{f}": x["cum"].get(f) for f in FIELDS}, **{f"prior_{f}": x["prior_cum"].get(f) for f in FIELDS}}
+
+
+def archive_index(rows: list[dict]) -> dict[tuple[str, str], dict]:
+    """(code, 'YYYY-MM') -> 短信1件。同じ四半期が複数あれば後の開示(訂正後)を使う。"""
+    idx = {}
+    for r in sorted(rows, key=lambda r: str(r["disclosed_at"])):
+        idx[(r["code"], _month(r["period_end"]))] = r
+    return idx
+
+
+def single_quarter(idx: dict, code: str, ym: str, field: str, which: str = "cum") -> float | None:
+    """単独四半期の値。which='cum' は今期、'prior' は前年同期。1Qは累計=単独。
+    2Q以降は1つ前の四半期の短信(同じ期で n_q が1つ小さい)が必要。"""
+    r = idx.get((code, ym))
+    if r is None:
+        return None
+    v = _num(r.get(f"{which}_{field}"))
+    if v is None:
+        return None
+    if int(r["n_q"]) == 1:
+        return v
+    prev = idx.get((code, _shift(ym, -3)))
+    if prev is None or int(prev["n_q"]) != int(r["n_q"]) - 1 or prev["scope"] != r["scope"]:
+        return None
+    pv = _num(prev.get(f"{which}_{field}"))
+    return None if pv is None else v - pv
+
+
 # ---------------------------------------------------------------- 特徴量と型判定
 
-def compute(series: list[dict], x: dict, tcfg: dict) -> dict:
-    cur = series[-1]
-    q = lambda i, f: series[i][f] if len(series) >= -i and series[i].get(f) is not None else None  # noqa: E731
-
-    f = {"sales_q": cur.get("sales"), "op_q": cur.get("op")}
-    # ① 加速: 単Q売上YoY − 直近4四半期合計の売上YoY
-    f["sales_q_yoy"] = _pct(q(-1, "sales"), q(-5, "sales"))
-    if len(series) >= 8 and all(s.get("sales") is not None for s in series[-8:]):
-        f["sales_ttm_yoy"] = _pct(sum(s["sales"] for s in series[-4:]), sum(s["sales"] for s in series[-8:-4]))
+def conservatism(x: dict) -> float | None:
+    """③B 慎重度。1未満ほど、会社予想が残り期間に前年より弱い伸びしか見込んでいない。"""
+    n_q, cum, prior = x["n_q"], x["cum"].get("op"), x["prior_cum"].get("op")
+    growth = _ratio(cum, prior)
+    if n_q == 4 or growth is None:
+        return None
+    if n_q == 1 and x.get("forecast_q2", {}).get("op") is not None:
+        fc, chg = x["forecast_q2"]["op"], x.get("forecast_q2_change", {}).get("op")
     else:
-        f["sales_ttm_yoy"] = None
-    f["accel"] = None if f["sales_q_yoy"] is None or f["sales_ttm_yoy"] is None else f["sales_q_yoy"] - f["sales_ttm_yoy"]
-    margin = lambda i: _ratio(q(i, "op"), q(i, "sales"))  # noqa: E731
-    f["margin"] = None if margin(-1) is None else margin(-1) * 100
-    f["margin_delta"] = None if margin(-1) is None or margin(-5) is None else (margin(-1) - margin(-5)) * 100
-    f["op_q_yoy"] = _pct(q(-1, "op"), q(-5, "op"))
+        fc, chg = x["forecast"].get("op"), x.get("forecast_change", {}).get("op")
+    if fc is None or chg is None or chg <= -100:
+        return None
+    prior_full = fc / (1 + chg / 100)          # 前期(1Qで上期予想を使う場合は前年上期)の実績
+    ly_rest = prior_full - prior                # 前年の残り期間の実績
+    implied = fc - cum                          # 会社予想が想定する残り期間
+    if ly_rest <= 0:
+        return None
+    return implied / (ly_rest * growth)
 
-    # ② QoQ と前年の同じQoQ(季節性)
-    f["sales_qoq"] = _pct(q(-1, "sales"), q(-2, "sales"))
-    f["sales_qoq_ly"] = _pct(q(-5, "sales"), q(-6, "sales"))
-    prev_op, cur_op = q(-2, "op"), q(-1, "op")
-    if prev_op is not None and cur_op is not None and prev_op <= 0 < cur_op:
-        f["op_qoq"] = 999.0                       # 赤字→黒字転換は急改善として扱う
+
+def compute(x: dict, idx: dict, code: str, tcfg: dict) -> dict:
+    cum, prior, pchg = x["cum"], x["prior_cum"], x.get("prior_change", {})
+    f = {}
+    # ① 加速と利益率
+    f["sales_ytd_yoy"] = _pct(cum.get("sales"), prior.get("sales"))
+    f["sales_ytd_yoy_ly"] = pchg.get("sales")
+    f["accel"] = None if f["sales_ytd_yoy"] is None or f["sales_ytd_yoy_ly"] is None \
+        else f["sales_ytd_yoy"] - f["sales_ytd_yoy_ly"]
+    m_now, m_ly = _ratio(cum.get("op"), cum.get("sales")), _ratio(prior.get("op"), prior.get("sales"))
+    f["margin"] = None if m_now is None else m_now * 100
+    f["margin_delta"] = None if m_now is None or m_ly is None else (m_now - m_ly) * 100
+    f["op_ytd_yoy"] = _pct(cum.get("op"), prior.get("op"))
+
+    # ② 単独四半期のQoQ(前回までの短信が蓄積されている銘柄のみ)
+    ym = _month(x["period_end"])
+    sq = lambda ymx, fld, w="cum": single_quarter(idx, code, ymx, fld, w)  # noqa: E731
+    f["sales_q"], f["op_q"] = sq(ym, "sales"), sq(ym, "op")
+    prev_sales, prev_op = sq(_shift(ym, -3), "sales"), sq(_shift(ym, -3), "op")
+    f["sales_qoq"] = _pct(f["sales_q"], prev_sales)
+    if prev_op is not None and f["op_q"] is not None and prev_op <= 0 < f["op_q"]:
+        f["op_qoq"] = 999.0                    # 赤字→黒字転換は急改善として扱う
     else:
-        f["op_qoq"] = _pct(cur_op, prev_op)
+        f["op_qoq"] = _pct(f["op_q"], prev_op)
+    f["sales_qoq_ly"] = _pct(sq(ym, "sales", "prior"), sq(_shift(ym, -3), "sales", "prior"))
 
-    # ③B 慎重度: 会社予想が想定する残り期間の営業益 ÷ (前年の同じ期間の実績 × 今期の伸び)
-    f["conservatism"] = _conservatism(series, x)
+    # ③B と進捗率(累計営業益 ÷ 通期予想。標準は 1Q 25% / 2Q 50% / 3Q 75%)
+    f["conservatism"] = conservatism(x)
+    fc_op = x["forecast"].get("op") if x["n_q"] < 4 else None
+    f["progress"] = None if fc_op is None or fc_op <= 0 or cum.get("op") is None else cum["op"] / fc_op * 100
 
-    f["recruit"] = bool(f["accel"] is not None and f["accel"] >= tcfg["recruit"]["min_accel"]
-                        and f["margin_delta"] is not None and f["margin_delta"] >= tcfg["recruit"]["min_margin_delta"])
+    rc, kc, bc = tcfg["recruit"], tcfg["kioxia"], tcfg["rorze_b"]
+    f["recruit"] = bool(f["accel"] is not None and f["accel"] >= rc["min_accel"]
+                        and f["margin_delta"] is not None and f["margin_delta"] >= rc["min_margin_delta"])
     # 季節性: 前年の同じQoQより min_qoq_excess pt 以上強いこと(前年データが無ければ問わない)
     seasonal_ok = f["sales_qoq"] is not None and (
-        f["sales_qoq_ly"] is None or f["sales_qoq"] - f["sales_qoq_ly"] >= tcfg["kioxia"]["min_qoq_excess"])
-    f["kioxia"] = bool(f["sales_qoq"] is not None and f["sales_qoq"] >= tcfg["kioxia"]["min_sales_qoq"]
-                       and f["op_qoq"] is not None and f["op_qoq"] >= tcfg["kioxia"]["min_op_qoq"] and seasonal_ok)
-    f["rorze_b"] = bool(x.get("revised") is False and f["op_q_yoy"] is not None and f["op_q_yoy"] > 0
-                        and f["conservatism"] is not None and f["conservatism"] <= tcfg["rorze_b"]["max_conservatism"])
+        f["sales_qoq_ly"] is None or f["sales_qoq"] - f["sales_qoq_ly"] >= kc["min_qoq_excess"])
+    f["kioxia"] = bool(f["sales_qoq"] is not None and f["sales_qoq"] >= kc["min_sales_qoq"]
+                       and f["op_qoq"] is not None and f["op_qoq"] >= kc["min_op_qoq"] and seasonal_ok)
+    f["rorze_b"] = bool(x.get("revised") is False and f["op_ytd_yoy"] is not None and f["op_ytd_yoy"] > 0
+                        and f["conservatism"] is not None and f["conservatism"] <= bc["max_conservatism"])
     f["types"] = "".join(m for k, m in TYPE_MARKS.items() if f[k])
     return f
 
 
-def _conservatism(series: list[dict], x: dict) -> float | None:
-    n_q, fc, cum, prior = x["n_q"], x["forecast"].get("op"), x["cum"].get("op"), x["prior_cum"].get("op")
-    if n_q == 1 and x.get("forecast_q2", {}).get("op") is not None:
-        # 上期予想 − 1Q実績 = 2Q想定 を、前年2Q実績 × 1Qの伸び と比べる
-        implied = x["forecast_q2"]["op"] - cum
-        ly = series[-4].get("op") if len(series) >= 4 else None
-        growth = _ratio(cum, prior)
-        return _ratio(implied, ly * growth) if ly and growth else None
-    if fc is None or cum is None:
-        return None
-    if n_q == 4:
-        # 来期予想 ÷ (今期実績 × 直近四半期の伸び)
-        growth = _ratio(series[-1].get("op"), series[-5].get("op")) if len(series) >= 5 else None
-        return _ratio(fc, cum * growth) if growth else None
-    implied = fc - cum                                 # 残り (4 − n_q) 四半期の想定営業益
-    ly_rest = [s.get("op") for s in series[-4:-n_q]] if len(series) >= 4 else []
-    growth = _ratio(cum, prior)
-    if len(ly_rest) != 4 - n_q or any(v is None for v in ly_rest) or not growth:
-        return None
-    return _ratio(implied, sum(ly_rest) * growth)
-
-
-def current_quarter(x: dict, series: list[dict] | None) -> dict | None:
-    """履歴に追記する当四半期の単独値。1Qは累計=単独なので履歴が無くても作れる。"""
-    if series is not None:
-        return series[-1]
-    if x and x.get("n_q") == 1 and x.get("period_end"):
-        return {"end": x["period_end"][:7], **{f: x["cum"].get(f) for f in FIELDS}}
-    return None
-
-
-def evaluate(code: str, disclosed_at: str, x: dict, history: list[dict], tcfg: dict) -> tuple[dict, dict | None]:
-    """(特徴量の行, 履歴に追記する当四半期 or None)"""
+def evaluate(code: str, disclosed_at: str, x: dict, idx: dict, tcfg: dict) -> dict:
     row = {"code": code, "disclosed_at": disclosed_at, "n_q": x.get("n_q", ""), "period_end": x.get("period_end", ""),
            "revised": "" if x.get("revised") is None else str(x["revised"])}
     if not x:
-        return {**row, "status": "no_xbrl"}, None
-    series = quarter_series(history, x, disclosed_at[:10])
-    cur = current_quarter(x, series)
-    if series is None:
-        return {**row, "status": "no_history"}, cur
-    f = compute(series, x, tcfg)
-    return {**row, **{k: (round(v, 2) if isinstance(v, float) else v) for k, v in f.items()}, "status": "ok"}, cur
+        return {**row, "status": "no_xbrl"}
+    if x["cum"].get("sales") is None and x["cum"].get("op") is None:
+        return {**row, "status": "no_data"}
+    f = compute(x, idx, code, tcfg)
+    return {**row, **{k: (round(v, 2) if isinstance(v, float) else v) for k, v in f.items()}, "status": "ok"}
 
 
 # ---------------------------------------------------------------- 取り込み
 
 def update(cfg: dict, data_dir: Path = DATA_DIR, tdnet_session: RateLimitedSession | None = None,
            limit: int | None = None) -> dict:
-    """未評価の決算短信(universe内・XBRLあり)を評価して earnings_features.csv に追記し、
-    当四半期の単独値を quarterly_history.csv に継ぎ足す(ネットワークは TDnet のみ)。"""
+    """未評価の決算短信(universe内)を TDnet の XBRL で評価し、短信の数値を tdnet_earnings.csv に蓄積する。"""
     ecfg = cfg["earnings"]
-    if not history.path(data_dir).exists():
-        log.info("quarterly_history.csv が無いため型判定をスキップ(手元で history コマンドを実行)")
-        return {"evaluated": 0, "history_appended": 0, "status": {}}
     tdnet_session = tdnet_session or RateLimitedSession.from_config(cfg)
 
     disc = disclosures.load(data_dir)
     uni = set(universe.load(data_dir)["code"])
     feats = load(data_dir)
-    hist_df = history.load(data_dir)
-    hist = history.by_code(hist_df)
-    # no_history は履歴が増えたら評価し直すが、TDnet への負荷を抑えるため1日1回まで
-    today = now_jst().strftime("%Y-%m-%d")
-    retried_today = (feats["status"] == "no_history") & (feats["computed_at"].astype(str).str[:10] == today)
-    done = set(feats.loc[feats["status"].isin(["ok", "no_xbrl"]) | retried_today, "disclosure_id"])
+    arch = load_archive(data_dir)
+    done = set(feats.loc[feats["status"].isin(["ok", "no_xbrl", "no_data"]), "disclosure_id"])
     todo = disc[(disc["kind"] == "earnings_report") & (disc["is_correction"] != "True")
                 & disc["code"].isin(uni) & ~disc["disclosure_id"].isin(done)]
-    todo = todo.sort_values("disclosed_at").head(limit or ecfg["max_per_run"])   # 古い順: 履歴を順に積む
+    todo = todo.sort_values("disclosed_at").head(limit or ecfg["max_per_run"])   # 古い順: 前の短信を先に蓄積
 
-    rows, appended = [], []
+    arch_rows = arch.to_dict("records")
+    idx = archive_index(arch_rows)
+    rows, new_arch = [], []
     for r in todo.itertuples():
         try:
             x = tdnet.fetch_earnings(tdnet_session, r.xbrl_url) if r.xbrl_url else {}
         except Exception as e:                       # 1件の失敗で止めない。次回再試行
             log.warning("決算評価失敗 %s %s: %s", r.code, r.disclosure_id, e)
             continue
-        feat, cur = evaluate(r.code, r.disclosed_at, x, hist.get(r.code, []), ecfg["types"])
-        rows.append({"disclosure_id": r.disclosure_id, **feat, "computed_at": now_jst().strftime("%Y-%m-%dT%H:%M")})
-        if cur and all(cur.get(f) is not None for f in ("sales", "op")):
-            h = {"code": r.code, **cur, "announced": r.disclosed_at[:10], "source": "tdnet"}
-            appended.append(h)
-            hist.setdefault(r.code, [])
-            hist[r.code] = [q for q in hist[r.code] if q["end"] != cur["end"]] + [h]
-            hist[r.code].sort(key=lambda q: q["end"])
+        if x and x.get("period_end"):
+            a = archive_row(r.disclosure_id, r.code, r.disclosed_at, x)
+            new_arch.append(a)
+            idx[(r.code, _month(a["period_end"]))] = a
+        rows.append({"disclosure_id": r.disclosure_id, **evaluate(r.code, r.disclosed_at, x, idx, ecfg["types"]),
+                     "computed_at": now_jst().strftime("%Y-%m-%dT%H:%M")})
 
     if rows:
         new = pd.DataFrame(rows).reindex(columns=FEATURE_COLUMNS, fill_value="")
         feats = pd.concat([feats[~feats["disclosure_id"].isin(new["disclosure_id"])], new])
-        feats = feats.sort_values(["disclosed_at", "disclosure_id"], ascending=False)
-        feats.to_csv(features_path(data_dir), index=False, encoding="utf-8")
-    if appended:
-        history.save(history.merge(hist_df, appended), data_dir)
-    stats = {"evaluated": len(rows), "history_appended": len(appended),
+        feats.sort_values(["disclosed_at", "disclosure_id"], ascending=False).to_csv(
+            features_path(data_dir), index=False, encoding="utf-8")
+    if new_arch:
+        na = pd.DataFrame(new_arch).reindex(columns=ARCHIVE_COLUMNS)
+        arch = pd.concat([arch[~arch["disclosure_id"].isin(na["disclosure_id"])], na])
+        arch.sort_values(["code", "period_end", "disclosed_at"]).to_csv(archive_path(data_dir), index=False,
+                                                                       encoding="utf-8")
+    stats = {"evaluated": len(rows), "archived": len(new_arch),
              "status": pd.Series([r["status"] for r in rows]).value_counts().to_dict() if rows else {}}
     log.info("earnings: %s", stats)
     return stats
-
-
-def by_disclosure(data_dir: Path = DATA_DIR) -> dict[str, dict]:
-    return {r["disclosure_id"]: r for r in load(data_dir).to_dict("records")}

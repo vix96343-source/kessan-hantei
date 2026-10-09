@@ -300,21 +300,36 @@ def _text_facts(ixbrl: str) -> dict[str, str]:
     return out
 
 
-def _metric(facts: dict, ctx: str, key: str) -> float | None:
+def _metric_named(facts: dict, ctx: str, key: str) -> tuple[str, float] | None:
     pat = METRIC_PATTERNS[key]
     hits = [(n, v) for (n, c), v in facts.items() if c == ctx and pat.match(n)]
     if not hits:
         return None
     # 同じ指標が複数タグで出る場合(Profit と ProfitAttributable... など)は優先度の高い方
     hits.sort(key=lambda nv: (0 if "Attributable" in nv[0] or key != "net" else 1))
-    return hits[0][1]
+    return hits[0]
+
+
+def _metric(facts: dict, ctx: str, key: str) -> float | None:
+    h = _metric_named(facts, ctx, key)
+    return h[1] if h else None
+
+
+def _change(facts: dict, ctx: str, key: str) -> float | None:
+    """同じ文脈の前年同期比(%)。短信に載っている ChangeIn〜 をそのまま使う。"""
+    h = _metric_named(facts, ctx, key)
+    if not h:
+        return None
+    v = facts.get((f"ChangeIn{h[0]}", ctx), facts.get((f"ChangesIn{h[0]}", ctx)))
+    return None if v is None else round(v * 100, 4)      # scale=-2 で比率になっているので % に戻す
 
 
 def parse_earnings_xbrl(zip_bytes: bytes) -> dict:
     """決算短信サマリーから累計実績・前年同期・会社予想・修正有無を返す。読めなければ空dict。
 
-    返り値: {n_q, period_end, scope, cum{}, prior_cum{}, forecast{}, forecast_q2{}, forecast_is_next_year, revised}
-    金額はすべて円。
+    返り値: {n_q, period_end, scope, cum{}, prior_cum{}, prior_change{}, forecast{}, forecast_change{},
+             forecast_q2{}, forecast_q2_change{}, forecast_is_next_year, revised}
+    金額はすべて円、伸び率は%。
     """
     try:
         z = zipfile.ZipFile(io.BytesIO(zip_bytes))
@@ -339,17 +354,18 @@ def parse_earnings_xbrl(zip_bytes: bytes) -> dict:
     cur = f"{period}_{scope}_ResultMember"
     prior = cur.replace("Current", "Prior", 1)
 
-    def block(ctx_prefix):
+    def block(ctx_prefix, fn=_metric):
         out = {}
         for k in METRIC_PATTERNS:
-            v = _metric(facts, f"{ctx_prefix}_ForecastMember", k)
+            v = fn(facts, f"{ctx_prefix}_ForecastMember", k)
             if v is None:
-                lo, up = _metric(facts, f"{ctx_prefix}_LowerMember", k), _metric(facts, f"{ctx_prefix}_UpperMember", k)
+                lo, up = fn(facts, f"{ctx_prefix}_LowerMember", k), fn(facts, f"{ctx_prefix}_UpperMember", k)
                 v = (lo + up) / 2 if lo is not None and up is not None else None
             out[k] = v
         return out
 
     fy_ctx = f"{'NextYearDuration' if n_q == 4 else 'CurrentYearDuration'}_{scope}"
+    q2_ctx = f"CurrentAccumulatedQ2Duration_{scope}"
     revised_txt = texts.get("CorrectionOfConsolidatedFinancialForecastInThisQuarter",
                             texts.get("CorrectionOfFinancialForecastInThisQuarter", ""))
     return {
@@ -358,9 +374,14 @@ def parse_earnings_xbrl(zip_bytes: bytes) -> dict:
         "scope": scope,
         "cum": {k: _metric(facts, cur, k) for k in METRIC_PATTERNS},
         "prior_cum": {k: _metric(facts, prior, k) for k in METRIC_PATTERNS},
+        # 前年同期の累計が、さらに前年からどれだけ伸びたか(%)= 去年の伸び率
+        "prior_change": {k: _change(facts, prior, k) for k in METRIC_PATTERNS},
         "forecast": block(fy_ctx),
+        # 会社予想の前期比(%)。前期の通期実績 = 予想 ÷ (1 + 伸び率) で逆算できる
+        "forecast_change": block(fy_ctx, _change),
         "forecast_is_next_year": n_q == 4,
-        "forecast_q2": block(f"CurrentAccumulatedQ2Duration_{scope}") if n_q == 1 else {},
+        "forecast_q2": block(q2_ctx) if n_q == 1 else {},
+        "forecast_q2_change": block(q2_ctx, _change) if n_q == 1 else {},
         "revised": {"有": True, "true": True, "無": False, "false": False}.get(revised_txt) if revised_txt else None,
     }
 

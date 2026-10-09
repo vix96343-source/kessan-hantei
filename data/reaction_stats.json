@@ -17,24 +17,24 @@
       "wins": 14
     },
     "earnings_nodata": {
-      "mean_ret_pct": -1.1,
-      "n": 190,
-      "wins": 73
+      "mean_ret_pct": -1.24,
+      "n": 189,
+      "wins": 71
     },
     "earnings_t0": {
-      "mean_ret_pct": -1.81,
-      "n": 180,
-      "wins": 55
+      "mean_ret_pct": -1.12,
+      "n": 171,
+      "wins": 57
     },
     "earnings_t1": {
-      "mean_ret_pct": 0.2,
-      "n": 59,
-      "wins": 27
+      "mean_ret_pct": -1.28,
+      "n": 70,
+      "wins": 30
     },
     "earnings_t2": {
-      "mean_ret_pct": -0.41,
-      "n": 15,
-      "wins": 8
+      "mean_ret_pct": -0.91,
+      "n": 14,
+      "wins": 5
     },
     "forecast_initial": {
       "mean_ret_pct": 3.8,
@@ -80,19 +80,14 @@
   "n": 662,
   "types": {
     "①": {
-      "mean_ret_pct": 0.51,
-      "n": 51,
-      "wins": 28
-    },
-    "②": {
-      "mean_ret_pct": -1.22,
-      "n": 4,
-      "wins": 1
+      "mean_ret_pct": -1.12,
+      "n": 61,
+      "wins": 27
     },
     "③": {
-      "mean_ret_pct": -0.63,
-      "n": 34,
-      "wins": 14
+      "mean_ret_pct": -1.25,
+      "n": 37,
+      "wins": 13
     }
   }
 }

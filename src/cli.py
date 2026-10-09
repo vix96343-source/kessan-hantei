@@ -5,7 +5,7 @@ import logging
 import sys
 from datetime import date
 
-from . import calendar_fetch, disclosures, earnings, history, reaction, site, universe
+from . import calendar_fetch, disclosures, earnings, reaction, site, universe
 from .config import load_config, now_jst
 
 
@@ -24,14 +24,6 @@ def cmd_earnings(args, cfg):
     print(json.dumps(earnings.update(cfg, limit=args.limit), ensure_ascii=False))
     reaction.restat(cfg)
     print(site.render_all(cfg))
-
-
-def cmd_history(args, cfg):
-    """初回だけ手元のPCで実行: IRBANK から過去の単独四半期を取得(Actions のIPは拒否される)"""
-    uni = universe.load()
-    # 売買代金の大きい順に取る(途中で止めても重要な銘柄から揃う)
-    codes = uni.sort_values("avg_turnover_20d", ascending=False)["code"].tolist()[: args.limit]
-    print(json.dumps(history.bootstrap(cfg, codes, years=args.years), ensure_ascii=False))
 
 
 def cmd_universe(args, cfg):
@@ -90,11 +82,6 @@ def main(argv=None):
     s = sub.add_parser("earnings", help="決算短信の型判定(①リクルート ②キオクシア ③ローツェB)")
     s.add_argument("--limit", type=int, help="評価する短信の上限")
     s.set_defaults(func=cmd_earnings)
-
-    s = sub.add_parser("history", help="初回のみ手元で: IRBANKから過去の単独四半期を取得")
-    s.add_argument("--years", type=int, default=3)
-    s.add_argument("--limit", type=int, help="取得する銘柄数の上限(売買代金の大きい順)")
-    s.set_defaults(func=cmd_history)
 
     s = sub.add_parser("run", help="universe(週1) → calendar → 株価反応 → サイト再生成")
     s.add_argument("--force-universe", action="store_true")

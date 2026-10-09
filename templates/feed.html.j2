@@ -1,0 +1,121 @@
+{% extends "_base.html.j2" %}
+{% block title %}適時開示{% endblock %}
+{% block style %}
+tr.row { cursor: pointer; }
+tr.row:hover td { background: #0b1117; }
+tr.open td { background: var(--panel); }
+tr.new td { background: var(--new); animation: flash 1.2s ease-out 2; }
+@keyframes flash { 0% { background: #6b5a00; } 100% { background: var(--new); } }
+.badge-new { display: inline-block; font-size: 10px; font-weight: 700; color: #000; background: var(--warn);
+  border-radius: 3px; padding: 0 4px; margin-left: 4px; vertical-align: 2px; }
+tr.detail td { white-space: normal; background: var(--panel); padding: 4px 10px 12px; border-bottom: 1px solid var(--line); }
+.dl { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px 14px; font-size: 13px; }
+.dl div { display: flex; justify-content: space-between; gap: 8px; border-bottom: 1px dotted var(--line); padding: 3px 0; }
+.dl span:first-child { color: var(--muted); font-weight: 400; }
+.dl span:last-child { white-space: nowrap; }
+@media (max-width: 480px) { .dl { grid-template-columns: 1fr; } }
+.dl .up { color: var(--green); } .dl .down { color: var(--red); }
+.dtitle { font: 400 13px/1.5 system-ui, sans-serif; color: var(--head); margin: 6px 0 8px; }
+.dtitle a { color: var(--head); }
+.links { margin-top: 8px; font-size: 13px; } .links a { color: #8fc7ff; margin-right: 14px; }
+{% endblock %}
+{% block status %}<span class="dot" id="dot"></span><span id="stamp">{{ generated_at[11:16] }} 更新</span>{% endblock %}
+{% block content %}
+<table>
+  <colgroup><col class="c-time"><col class="c-code"><col><col class="c-kind"><col class="c-pct"></colgroup>
+  <thead><tr><th class="c-time">時刻</th><th class="c-code">コード</th><th>企業名</th><th class="c-kind">種別</th><th class="c-pct">上昇確度</th></tr></thead>
+  <tbody id="tb"></tbody>
+</table>
+{% endblock %}
+{% block footer %}
+  1分ごとに自動更新(TDnet を1分おきに確認しています。表示までの遅れは数分)。行をタップすると数字が開きます。<br>
+  種別の ①②③ は該当した型(① リクルート型: 売上の伸びが加速+利益率改善 / ② キオクシア型: 単Q売上・営業益が前四半期から急改善 / ③ ローツェ型B: 好調なのに予想据え置きで残り期間の想定が慎重)。<br>
+  上昇確度 = 同じ型の数(決算)・同じ方向と幅(修正・配当)の過去の開示で「開示前終値→開示後最初の終値」が上昇した割合(件数が少ないものは全体平均に寄せる)。受注・KPI・製品価格は未判定。
+{% endblock %}
+{% block script %}
+<script id="data" type="application/json">{{ feed_json | safe }}</script>
+<script>
+(() => {
+  const tb = document.getElementById('tb');
+  const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const wd = d => '日月火水木金土'[new Date(d + 'T00:00:00').getDay()];
+  const label = d => `${+d.slice(5, 7)}/${+d.slice(8, 10)}(${wd(d)})`;
+  const open = new Set();
+  let known = null;           // 前回表示した開示ID(初回は前回訪問時の既読)
+  let fresh = new Set();      // NEW 表示中のID
+
+  const load = k => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } };
+  const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+
+  function pctCell(r) {
+    if (r.pct == null) return '<span class="none">–</span>';
+    if (r.up) return `▲${r.pct}%`;
+    return r.pct === 50 ? `${r.pct}%` : `▼${r.pct}%`;
+  }
+
+  function detailRow(r) {
+    const items = (r.details || []).map(([k, v, t]) => `<div><span>${esc(k)}</span><span class="${esc(t)}">${esc(v)}</span></div>`).join('');
+    return `<tr class="detail"><td colspan="5">
+      <div class="dtitle">${esc(r.title)}</div>
+      ${items ? `<div class="dl">${items}</div>` : ''}
+      <div class="links"><a href="${esc(r.url)}" target="_blank" rel="noopener">開示PDF</a><a href="https://kabutan.jp/stock/?code=${encodeURIComponent(r.code)}" target="_blank" rel="noopener">株探</a></div>
+    </td></tr>`;
+  }
+
+  function render(feed) {
+    const ids = new Set(feed.rows.map(r => r.id));
+    if (known === null) {
+      const seen = load('feed-seen');
+      known = new Set(seen || feed.rows.map(r => r.id));   // 初回訪問なら全部既読
+    }
+    for (const id of ids) if (!known.has(id)) fresh.add(id);
+    known = ids;
+    save('feed-seen', [...ids]);
+
+    let html = '', day = null;
+    for (const r of feed.rows) {
+      if (r.date !== day) { html += `<tr class="day"><td colspan="5">${label(r.date)}</td></tr>`; day = r.date; }
+      const cls = ['row', r.up ? 'up' : '', fresh.has(r.id) ? 'new' : '', open.has(r.id) ? 'open' : ''].join(' ');
+      html += `<tr class="${cls}" data-id="${esc(r.id)}">
+        <td>T${esc(r.time)}</td><td>${esc(r.code)}</td>
+        <td>${esc(r.name)}${fresh.has(r.id) ? '<span class="badge-new">NEW</span>' : ''}</td>
+        <td>${esc(r.kind)}</td><td class="c-pct">${pctCell(r)}</td></tr>`;
+      if (open.has(r.id)) html += detailRow(r);
+    }
+    tb.innerHTML = html || '<tr><td colspan="5" class="none">データがありません</td></tr>';
+    tb._rows = Object.fromEntries(feed.rows.map(r => [r.id, r]));
+
+    // 新しい開示が無ければファイルは更新されないので、監視中かどうかは時間帯で示す(平日 8〜20時 JST)
+    const jst = new Date(Date.now() + 9 * 3600e3), h = jst.getUTCHours(), d = jst.getUTCDay();
+    const live = d >= 1 && d <= 5 && h >= 8 && h < 20;
+    const t = feed.generated_at;
+    document.getElementById('stamp').textContent = `${live ? '監視中 ・ ' : ''}最終 ${+t.slice(5, 7)}/${+t.slice(8, 10)} ${t.slice(11, 16)}`;
+    document.getElementById('dot').className = 'dot' + (live ? ' live' : '');
+  }
+
+  tb.addEventListener('click', e => {
+    if (e.target.closest('a')) return;
+    const tr = e.target.closest('tr.row'); if (!tr) return;
+    const id = tr.dataset.id;
+    open.has(id) ? open.delete(id) : open.add(id);
+    fresh.delete(id);
+    render(current);
+  });
+
+  let current = JSON.parse(document.getElementById('data').textContent);
+  render(current);
+
+  async function poll() {
+    try {
+      const res = await fetch('feed.json?t=' + Date.now(), { cache: 'no-store' });
+      if (res.ok) {
+        const feed = await res.json();
+        if (feed.generated_at !== current.generated_at) { current = feed; render(current); }
+      }
+    } catch (e) {}
+  }
+  setInterval(poll, 60000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) poll(); });
+})();
+</script>
+{% endblock %}
