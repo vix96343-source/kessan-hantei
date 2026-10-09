@@ -20,10 +20,8 @@ header .status { margin-left: auto; color: var(--muted); font-size: 12px; white-
 .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--muted); margin-right: 6px; vertical-align: 1px; }
 .dot.ok { background: var(--teal); } .dot.busy { background: var(--warn); } .dot.err { background: var(--red); }
 .bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 10px 14px 6px; }
-.bar label.lb { color: var(--muted); font-size: 12px; }
 input, select, button { font: inherit; color: var(--text); background: var(--panel); border: 1px solid var(--line);
   border-radius: 4px; padding: 5px 9px; }
-input[type=date] { color-scheme: dark; }
 input[type=search] { flex: 1; min-width: 180px; max-width: 320px; }
 button { cursor: pointer; }
 button.primary { background: var(--teal-bg); border-color: var(--teal-line); color: #dff7f4; }
@@ -33,7 +31,7 @@ button:hover { filter: brightness(1.15); }
 .bar2 label { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; }
 .bar2 input[type=checkbox] { accent-color: var(--teal); width: 14px; height: 14px; padding: 0; }
 .note { margin: 0 14px 8px; padding: 7px 10px; background: var(--warn-bg); color: var(--warn); font-size: 12px; border-radius: 3px; }
-.wrap { padding: 0 14px 30px; overflow-x: auto; }
+.wrap { padding: 0 14px 10px; }
 table { border-collapse: collapse; width: 100%; max-width: 900px; font-variant-numeric: tabular-nums; }
 th { position: sticky; top: 0; z-index: 1; text-align: left; font-weight: 600; color: var(--text);
   background: var(--panel); padding: 7px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; cursor: pointer; user-select: none; }
@@ -42,12 +40,13 @@ td { padding: 6px 10px; white-space: nowrap; border-bottom: 1px solid #1f2333; }
 tbody tr.row td { background: var(--row); }
 tbody tr.row.alt td { background: var(--row2); }
 tr.row { cursor: pointer; } tr.row:hover td { background: #262b42 !important; }
-td.c-date, td.c-time, td.c-code { color: var(--teal); }
-td.c-kind { color: var(--teal); }
+td.c-date, td.c-time, td.c-code, td.c-kind { color: var(--teal); }
 td.c-name { max-width: 260px; overflow: hidden; text-overflow: ellipsis; }
 td.c-pct, th.c-pct { text-align: right; }
 td.c-pct.up { color: var(--green); font-weight: 700; } td.c-pct.down { color: var(--muted); }
 tr.new td { background: var(--new) !important; }
+tr.dayrow { display: none; }
+tr.dayrow td { color: var(--muted); font-size: 12px; padding: 10px 6px 4px; background: var(--bg); border-bottom: 1px solid var(--line); }
 .badge-new { display: inline-block; font-size: 10px; font-weight: 700; color: #1b1500; background: var(--warn);
   border-radius: 3px; padding: 0 4px; margin-left: 6px; vertical-align: 1px; }
 tr.detail td { white-space: normal; background: #141724 !important; padding: 8px 12px 12px; }
@@ -57,16 +56,19 @@ tr.detail td { white-space: normal; background: #141724 !important; padding: 8px
 .dl span:first-child { color: var(--muted); } .dl span:last-child { white-space: nowrap; }
 .dl .up { color: var(--green); } .dl .down { color: var(--red); }
 .dlinks { margin-top: 8px; } .dlinks a { color: var(--teal); margin-right: 16px; }
-.empty { color: var(--muted); padding: 24px 10px; }
-footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 0 14px 30px; max-width: 900px; }
+.more { max-width: 900px; padding: 14px 10px; color: var(--muted); text-align: center; font-size: 12px; }
+.more button { margin-top: 4px; }
+footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14px 30px; max-width: 900px; }
 .sm { display: none; }
 @media (max-width: 600px) {
   body { font-size: 13px; }
   header { flex-wrap: wrap; gap: 4px 10px; } header .status { margin-left: 0; width: 100%; }
   .c-date { display: none; }
+  tr.dayrow { display: table-row; }                   /* スマホは日付列の代わりに区切り行 */
   table { table-layout: fixed; }
   th.c-time { width: 50px; } th.c-code { width: 44px; } th.c-kind { width: 76px; } th.c-pct { width: 48px; }
   td, th { padding: 6px 4px; }
+  .wrap { padding: 0 8px 10px; }
   td.c-name, td.c-kind { overflow: hidden; text-overflow: ellipsis; max-width: none; }
   .lg { display: none; } .sm { display: inline; }
   input[type=search] { max-width: none; }
@@ -81,8 +83,6 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 0 14px
 </header>
 
 <div class="bar">
-  <label class="lb" for="day">開示日</label>
-  <input type="date" id="day">
   <input type="search" id="q" placeholder="銘柄コード・会社名・表題を検索" aria-label="検索">
   <button class="primary" id="reload">↻ 更新</button>
   <button id="csv">CSV出力</button>
@@ -100,12 +100,12 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 0 14px
     <option value="pct:desc">上昇確度：高い順</option>
   </select>
 </div>
-<div class="note" id="note">1分ごとに選択日を更新します。画面が非表示の間は取得を休止します。</div>
+<div class="note" id="note">1分ごとに最新の開示を確認します。画面が非表示の間は取得を休止します。下へスクロールすると過去の日付も表示されます。</div>
 
 <div class="wrap">
 <table>
   <thead><tr>
-    <th class="c-date" data-k="date">日付</th>
+    <th class="c-date" data-k="time">日付</th>
     <th class="c-time" data-k="time">時刻<span class="ar"></span></th>
     <th class="c-code" data-k="code">コード<span class="ar"></span></th>
     <th class="c-name" data-k="name">企業名</th>
@@ -114,6 +114,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 0 14px
   </tr></thead>
   <tbody id="tb"></tbody>
 </table>
+<div class="more" id="more"></div>
 </div>
 <footer>
   出典: TDnet(日本取引所グループ)。決算短信と業績・配当予想の修正を表示。行をクリック/タップすると数値(売上・営業益の伸び、進捗率、修正率など)が開きます。<br>
@@ -129,21 +130,20 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 0 14px
   const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const load = (k, d) => { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } };
   const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+  const wd = d => '日月火水木金土'[new Date(d + 'T00:00:00').getDay()];
 
   let index = JSON.parse($('index').textContent);
-  const cache = {};
+  const days = {};                                     // 読み込み済みの日 -> rows
   const d0 = JSON.parse($('day0').textContent);
-  if (d0.date) cache[d0.date] = d0;
+  if (d0.date) days[d0.date] = d0.rows;
 
-  const state = { day: d0.date, q: '', onlyNew: false, sort: load('tdnet-sort', 'time:desc') };
+  const state = { q: '', onlyNew: false, sort: load('tdnet-sort', 'time:desc') };
   const open = new Set();
   const stored = load('tdnet-seen', null);            // 既読の開示ID(新着判定)
   let firstVisit = stored === null;                   // 初回訪問は全部既読扱い(NEWだらけにしない)
   const seen = new Set(stored || []);
   const fresh = new Set();
-
-  $('day').value = state.day;
-  if (index.dates.length) { $('day').min = index.dates[index.dates.length - 1]; $('day').max = index.dates[0]; }
+  let loading = false;
   $('sort').value = state.sort;
 
   function setStatus(kind, text) {
@@ -165,6 +165,16 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 0 14px
     save('tdnet-seen', [...seen].slice(-5000));
   }
 
+  const loadedDates = () => index.dates.filter(d => days[d]);
+  const nextDate = () => index.dates.find(d => !days[d]);   // まだ読んでいない一番新しい日
+
+  async function loadDay(d) {
+    const j = await fetchJSON(`data/${d}.json`);
+    days[d] = j.rows;
+  }
+
+  function allRows() { return loadedDates().flatMap(d => days[d]); }
+
   function sorted(rows) {
     const [k, dir] = state.sort.split(':');
     const sgn = dir === 'desc' ? -1 : 1;
@@ -176,10 +186,8 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 0 14px
   }
 
   function visible() {
-    const day = cache[state.day];
-    if (!day) return null;
     const q = state.q.trim().toLowerCase();
-    return sorted(day.rows.filter(r =>
+    return sorted(allRows().filter(r =>
       (!state.onlyNew || fresh.has(r.id)) &&
       (!q || `${r.code} ${r.name} ${r.title}`.toLowerCase().includes(q))));
   }
@@ -200,16 +208,19 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 0 14px
 
   function render() {
     const rows = visible();
-    const day = cache[state.day];
-    if (!rows) { $('tb').innerHTML = '<tr><td colspan="6" class="empty">読み込み中…</td></tr>'; return; }
-    const total = day.rows.length;
+    const total = (index.days || []).reduce((s, x) => s + x.n, 0) || allRows().length;
     $('count').textContent = `${rows.length}件 / 決算・修正 ${total}件`;
     const [k, dir] = state.sort.split(':');
     document.querySelectorAll('th').forEach(th => {
       const ar = th.querySelector('.ar'); if (ar) ar.textContent = th.dataset.k === k ? (dir === 'desc' ? '▼' : '▲') : '';
     });
-    let html = '';
+    const byTime = k === 'time';
+    let html = '', day = null;
     rows.forEach((r, i) => {
+      if (byTime && r.date !== day) {
+        html += `<tr class="dayrow"><td colspan="6">${+r.date.slice(5, 7)}/${+r.date.slice(8, 10)}(${wd(r.date)})</td></tr>`;
+        day = r.date;
+      }
       const isNew = fresh.has(r.id);
       html += `<tr class="row${i % 2 ? ' alt' : ''}${isNew ? ' new' : ''}" data-id="${esc(r.id)}">
         <td class="c-date">${r.date.replace(/-/g, '/')}</td><td class="c-time">${esc(r.time)}</td>
@@ -218,21 +229,24 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 0 14px
         <td class="c-kind">${esc(r.kind)}</td>${pctCell(r)}</tr>`;
       if (open.has(r.id)) html += detail(r);
     });
-    $('tb').innerHTML = html || `<tr><td colspan="6" class="empty">${state.onlyNew ? '新着はありません' : 'この日の決算・修正はありません'}</td></tr>`;
+    $('tb').innerHTML = html || `<tr><td colspan="6" class="more">${state.onlyNew ? '新着はありません' : '該当する開示はありません'}</td></tr>`;
+
+    const nd = nextDate();
+    $('more').innerHTML = nd
+      ? `${loading ? '読み込み中…' : `スクロールで ${+nd.slice(5, 7)}/${+nd.slice(8, 10)} 以前を表示`}<br><button id="moreBtn">さらに表示</button>`
+      : (index.dates.length ? `${index.dates[index.dates.length - 1].replace(/-/g, '/')} 以降をすべて表示しています` : '');
   }
 
-  async function showDay(d, force) {
-    state.day = d;
-    if (!cache[d] || force) {
-      if (!index.dates.includes(d)) { cache[d] = { date: d, rows: [] }; }
-      else {
-        render();
-        try { cache[d] = await fetchJSON(`data/${d}.json`); } catch (e) { setStatus('err', '取得失敗'); return; }
-      }
-      if (d === index.dates[0]) markFresh(cache[d].rows);   // 新着は最新日に届いた分だけ
-    }
-    render();
+  async function loadMore(n = 1) {
+    if (loading) return;
+    loading = true; render();
+    try {
+      for (let i = 0; i < n; i++) { const d = nextDate(); if (!d) break; await loadDay(d); }
+    } catch (e) { setStatus('err', '取得失敗'); }
+    loading = false; render();
   }
+
+  async function loadAll() { while (nextDate()) { await loadMore(3); } }
 
   async function refresh(manual) {
     if (document.hidden && !manual) return;              // 非表示の間は休止
@@ -240,17 +254,19 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 0 14px
     try {
       const idx = await fetchJSON('data/index.json');
       const changed = idx.generated_at !== index.generated_at;
-      const followLatest = state.day === index.dates[0];
       index = idx;
-      if (index.dates.length) { $('day').min = index.dates[index.dates.length - 1]; $('day').max = index.dates[0]; }
-      if (followLatest && index.dates[0] !== state.day) { $('day').value = index.dates[0]; }
-      if (changed || manual) await showDay(followLatest ? index.dates[0] : state.day, true);
+      if (changed || manual) {
+        // 最新日だけ取り直す(過去の日は変わらない)
+        const latest = index.dates[0];
+        if (latest) { await loadDay(latest); markFresh(days[latest]); }
+      }
       setStatus('ok', '取得済み');
+      render();
     } catch (e) { setStatus('err', '取得失敗'); }
   }
 
   function csv() {
-    const rows = visible() || [];
+    const rows = visible();
     const head = ['日付', '時刻', 'コード', '企業名', '種別', '上昇確度(%)', '表題', 'PDF'];
     const q = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
     const lines = [head.map(q).join(',')].concat(rows.map(r =>
@@ -258,23 +274,29 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 0 14px
     const blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `tdnet_${state.day}.csv`;
+    const ds = loadedDates();
+    a.download = `tdnet_${ds[ds.length - 1] || ''}_${ds[0] || ''}.csv`;
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   }
 
-  $('day').addEventListener('change', e => { open.clear(); showDay(e.target.value); });
-  $('q').addEventListener('input', e => { state.q = e.target.value; render(); });
+  let qTimer = null;
+  $('q').addEventListener('input', e => {
+    state.q = e.target.value; render();
+    clearTimeout(qTimer);
+    if (state.q.trim()) qTimer = setTimeout(loadAll, 300);     // 検索は全期間を対象にする
+  });
   $('onlyNew').addEventListener('change', e => { state.onlyNew = e.target.checked; render(); });
   $('sort').addEventListener('change', e => { state.sort = e.target.value; save('tdnet-sort', state.sort); render(); });
   $('reload').addEventListener('click', () => refresh(true));
   $('csv').addEventListener('click', csv);
   $('auto').addEventListener('change', e => { $('note').style.display = e.target.checked ? '' : 'none'; });
+  $('more').addEventListener('click', e => { if (e.target.id === 'moreBtn') loadMore(); });
   document.querySelector('thead').addEventListener('click', e => {
     const th = e.target.closest('th'); if (!th || !th.querySelector('.ar')) return;
     const [k, dir] = state.sort.split(':');
     state.sort = `${th.dataset.k}:${k === th.dataset.k && dir === 'desc' ? 'asc' : 'desc'}`;
-    $('sort').value = [...$('sort').options].some(o => o.value === state.sort) ? state.sort : $('sort').value;
+    if ([...$('sort').options].some(o => o.value === state.sort)) $('sort').value = state.sort;
     save('tdnet-sort', state.sort); render();
   });
   $('tb').addEventListener('click', e => {
@@ -288,9 +310,19 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 0 14px
   document.addEventListener('visibilitychange', () => { if (!document.hidden && $('auto').checked) refresh(); });
   setInterval(() => { if ($('auto').checked) refresh(); }, 60000);
 
-  if (d0.date === index.dates[0]) markFresh(d0.rows);
+  // 一番下に近づいたら前の日を読み足す(無限スクロール)
+  const nearBottom = () => $('more').getBoundingClientRect().top < innerHeight + 600;
+  async function autoMore() {
+    while (!loading && nextDate() && nearBottom()) await loadMore();
+  }
+  let scrollTimer = null;
+  addEventListener('scroll', () => { clearTimeout(scrollTimer); scrollTimer = setTimeout(autoMore, 100); }, { passive: true });
+  addEventListener('resize', () => autoMore());
+
+  if (d0.date) markFresh(d0.rows);
   setStatus('ok', '取得済み');
   render();
+  loadMore(2).then(autoMore);                          // 最初は直近3日ぶんを用意
 })();
 </script>
 </body>

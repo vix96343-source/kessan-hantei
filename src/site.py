@@ -158,7 +158,10 @@ def render_all(cfg: dict, data_dir: Path = DATA_DIR, docs_dir: Path = DOCS_DIR) 
         if not p.exists() or p.read_text(encoding="utf-8") != body:     # 変わった日だけ書き換える
             p.write_text(body, encoding="utf-8")
             out.append(str(p))
-    index = {"generated_at": now, "dates": dates}
+    days = [{"date": d, "n": len(by_date[d]),
+             "earn": sum(r["group"] == "決算" for r in by_date[d]),
+             "rev": sum(r["group"] == "修正" for r in by_date[d])} for d in dates]
+    index = {"generated_at": now, "dates": dates, "days": days}
     (data_out / "index.json").write_text(dump(index), encoding="utf-8")
     old_feed = docs_dir / "feed.json"
     if old_feed.exists():
