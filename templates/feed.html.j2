@@ -18,7 +18,7 @@ header h1 { font-size: 15px; margin: 0; font-weight: 700; }
 header .links { margin-left: 8px; font-size: 12px; } header .links a { color: var(--muted); text-decoration: none; }
 header .status { margin-left: auto; color: var(--muted); font-size: 12px; white-space: nowrap; }
 .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--muted); margin-right: 6px; vertical-align: 1px; }
-.dot.ok { background: var(--teal); } .dot.busy { background: var(--warn); } .dot.err { background: var(--red); }
+.dot.live { background: var(--green); box-shadow: 0 0 6px var(--green); } .dot.err { background: var(--red); }
 .bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 10px 14px 6px; }
 input, select, button { font: inherit; color: var(--text); background: var(--panel); border: 1px solid var(--line);
   border-radius: 4px; padding: 5px 9px; }
@@ -79,7 +79,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
 <header>
   <h1>TDnet 決算速報</h1>
   <span class="links"><a href="calendar.html">決算予定 ›</a></span>
-  <span class="status"><span class="dot" id="dot"></span><span id="state">読み込み中</span>　最終取得 <span id="stamp">–</span></span>
+  <span class="status"><span class="dot" id="dot"></span><span id="stamp">–</span></span>
 </header>
 
 <div class="bar">
@@ -91,7 +91,6 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
   <span id="count">–</span>
   <span class="sp"></span>
   <label><input type="checkbox" id="onlyNew"> 新着のみ</label>
-  <label><input type="checkbox" id="auto" checked> 1分ごとに更新</label>
   <select id="sort" aria-label="並び順">
     <option value="time:desc">時刻：新しい順</option>
     <option value="time:asc">時刻：古い順</option>
@@ -100,7 +99,6 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
     <option value="pct:desc">上昇確度：高い順</option>
   </select>
 </div>
-<div class="note" id="note">1分ごとに最新の開示を確認します。画面が非表示の間は取得を休止します。下へスクロールすると過去の日付も表示されます。</div>
 
 <div class="wrap">
 <table>
@@ -117,7 +115,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
 <div class="more" id="more"></div>
 </div>
 <footer>
-  出典: TDnet(日本取引所グループ)。決算短信と業績・配当予想の修正を表示。行をクリック/タップすると数値(売上・営業益の伸び、進捗率、修正率など)が開きます。<br>
+  出典: TDnet(日本取引所グループ)。決算短信と業績・配当予想の修正を表示。平日8〜20時は1分ごとに自動更新。行をクリック/タップすると数値(売上・営業益の伸び、進捗率、修正率など)が開きます。<br>
   種別の ①②③ は該当した型(① リクルート型: 売上の伸びが加速+利益率改善 / ② キオクシア型: 単Q売上・営業益が前四半期から急改善 / ③ ローツェ型B: 好調なのに予想据え置きで残り期間の想定が慎重)。
   上昇確度 = 同じ型の数(決算)・同じ方向と幅(修正)の過去の開示で「開示前終値→開示後最初の終値」が上昇した割合。
 </footer>
@@ -146,11 +144,14 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
   let loading = false;
   $('sort').value = state.sort;
 
-  function setStatus(kind, text) {
-    $('dot').className = 'dot ' + kind;
-    $('state').textContent = text;
-    const t = index.generated_at;
-    if (t) $('stamp').textContent = `${t.slice(0, 4)}/${+t.slice(5, 7)}/${+t.slice(8, 10)} ${t.slice(11, 19)}`;
+  // TDnet の監視は平日 8〜20時(JST)。新しい開示が無ければデータは更新されないので、監視中かどうかは時間帯で示す
+  function setStatus(err) {
+    const jst = new Date(Date.now() + 9 * 3600e3), h = jst.getUTCHours(), d = jst.getUTCDay();
+    const live = d >= 1 && d <= 5 && h >= 8 && h < 20;
+    const t = index.generated_at || '';
+    const last = t ? `最終 ${+t.slice(5, 7)}/${+t.slice(8, 10)} ${t.slice(11, 16)}` : '';
+    $('dot').className = 'dot' + (err ? ' err' : live ? ' live' : '');
+    $('stamp').textContent = err ? `取得失敗 ・ ${last}` : `${live ? '監視中 ・ ' : ''}${last}`;
   }
 
   async function fetchJSON(path) {
@@ -242,7 +243,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
     loading = true; render();
     try {
       for (let i = 0; i < n; i++) { const d = nextDate(); if (!d) break; await loadDay(d); }
-    } catch (e) { setStatus('err', '取得失敗'); }
+    } catch (e) { setStatus(true); }
     loading = false; render();
   }
 
@@ -250,7 +251,6 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
 
   async function refresh(manual) {
     if (document.hidden && !manual) return;              // 非表示の間は休止
-    setStatus('busy', '取得中');
     try {
       const idx = await fetchJSON('data/index.json');
       const changed = idx.generated_at !== index.generated_at;
@@ -260,9 +260,9 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
         const latest = index.dates[0];
         if (latest) { await loadDay(latest); markFresh(days[latest]); }
       }
-      setStatus('ok', '取得済み');
+      setStatus(false);
       render();
-    } catch (e) { setStatus('err', '取得失敗'); }
+    } catch (e) { setStatus(true); }
   }
 
   function csv() {
@@ -290,7 +290,6 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
   $('sort').addEventListener('change', e => { state.sort = e.target.value; save('tdnet-sort', state.sort); render(); });
   $('reload').addEventListener('click', () => refresh(true));
   $('csv').addEventListener('click', csv);
-  $('auto').addEventListener('change', e => { $('note').style.display = e.target.checked ? '' : 'none'; });
   $('more').addEventListener('click', e => { if (e.target.id === 'moreBtn') loadMore(); });
   document.querySelector('thead').addEventListener('click', e => {
     const th = e.target.closest('th'); if (!th || !th.querySelector('.ar')) return;
@@ -307,8 +306,8 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
     fresh.delete(id);
     render();
   });
-  document.addEventListener('visibilitychange', () => { if (!document.hidden && $('auto').checked) refresh(); });
-  setInterval(() => { if ($('auto').checked) refresh(); }, 60000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
+  setInterval(refresh, 60000);                         // 1分ごとに確認(非表示の間は休止)
 
   // 一番下に近づいたら前の日を読み足す(無限スクロール)
   const nearBottom = () => $('more').getBoundingClientRect().top < innerHeight + 600;
@@ -320,7 +319,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
   addEventListener('resize', () => autoMore());
 
   if (d0.date) markFresh(d0.rows);
-  setStatus('ok', '取得済み');
+  setStatus(false);
   render();
   loadMore(2).then(autoMore);                          // 最初は直近3日ぶんを用意
 })();
