@@ -12,7 +12,7 @@ from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader
 
-from . import calendar_fetch, disclosures, earnings, history, irdocs, reaction, universe
+from . import calendar_fetch, disclosures, earnings, history, irdocs, reaction, revisions, universe
 from .config import DATA_DIR, ROOT, now_jst
 
 DOCS_DIR = ROOT / "docs"
@@ -217,7 +217,28 @@ def _f0(v):
 
 
 def _growth(cur, base):
-    return None if cur is None or base is None or base <= 0 else round((cur / base - 1) * 100, 1)
+    """前年比・前四半期比(%)。比べる相手が赤字・ゼロのときは「黒転/赤転/赤縮/赤拡」(短信では「－」の所)。"""
+    if cur is None or base is None:
+        return None
+    if base > 0:
+        return "赤転" if cur < 0 else round((cur / base - 1) * 100, 1)
+    if cur > 0:
+        return "黒転"
+    if base == 0:
+        return "赤転" if cur < 0 else None
+    return "赤縮" if cur > base else "赤拡"
+
+
+def revision_numbers(rv: dict | None) -> dict | None:
+    """修正の行: 値=修正後の予想、YoY=前期実績比、QoQ欄=前回予想からの修正率"""
+    if not rv or rv.get("period") in ("", "-"):
+        return None
+    out = {}
+    for m in ["sales", "op", "ordinary", "net", "eps"]:
+        cur, prev, prior = (_f0(rv.get(f"{w}_{m}")) for w in ("cur", "prev", "prior"))
+        v = None if cur is None else (round(cur, 2) if m == "eps" else _mil(cur))
+        out[m] = {"v": v, "yoy": _growth(cur, prior), "qoq": _growth(cur, prev)}
+    return out
 
 
 def quarter_numbers(arch: dict | None, hist: list[dict]) -> dict | None:
@@ -266,6 +287,7 @@ def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:
     latest_earn = disc[disc["kind"] == "earnings_report"].groupby("code")["disclosed_at"].max().to_dict()
     arch = {a["disclosure_id"]: a for a in earnings.load_archive(data_dir).to_dict("records")}
     hist = history.by_code(history.load(data_dir))
+    revs = revisions.by_disclosure(data_dir)
     rows = []
     for r in disc.sort_values(["disclosed_at", "code"], ascending=[False, True]).to_dict("records"):
         p = score_of(r, stats, cfg, feats)
@@ -279,8 +301,9 @@ def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:
                          manual={k: v for k, v in manual.items()
                                  if k[1] or latest_earn.get(r["code"]) == r["disclosed_at"]}),
                      "title": r["title"], "details": details(r, f),
-                     "nums": quarter_numbers(arch.get(r["disclosure_id"]) if r["kind"] == "earnings_report" else None,
-                                             [q for q in hist.get(r["code"], []) if q["announced"] < r["disclosed_at"][:10]]),
+                     "nums": quarter_numbers(arch.get(r["disclosure_id"]),
+                                             [q for q in hist.get(r["code"], []) if q["announced"] < r["disclosed_at"][:10]])
+                     if r["kind"] == "earnings_report" else revision_numbers(revs.get(r["disclosure_id"])),
                      "fin": fin_panel(r, arch.get(r["disclosure_id"]) if r["kind"] == "earnings_report" else None,
                                       [q for q in hist.get(r["code"], []) if q["announced"] <= r["disclosed_at"][:10]
                                        or r["kind"] != "earnings_report"]),

@@ -5,7 +5,7 @@ import logging
 import sys
 from datetime import date
 
-from . import calendar_fetch, disclosures, earnings, irdocs, reaction, site, universe
+from . import calendar_fetch, disclosures, earnings, irdocs, reaction, revisions, site, universe
 from .config import load_config, now_jst
 
 
@@ -13,9 +13,11 @@ def cmd_disclosures(args, cfg):
     """15分おき: TDnet取り込み → 新しい決算短信の型判定 → (変化があれば)サイト再生成"""
     stats = disclosures.ingest(cfg, days=args.days)
     stats["earnings"] = earnings.update(cfg)
+    stats["revisions"] = revisions.update(cfg)    # 修正の行に出す修正後の予想など
     # 変化が無い回はページも作り直さない(生成時刻だけ変わる無駄なコミットを防ぐ)
     # (IRサイトの説明資料探しは固まっても監視を止めないよう、watch.yml で別プロセスとして実行する)
-    if stats["new_rows"] or stats["xbrl_parsed"] or stats["earnings"]["evaluated"]             or not (site.DOCS_DIR / "index.html").exists() or manual_changed():
+    if stats["new_rows"] or stats["xbrl_parsed"] or stats["earnings"]["evaluated"] or stats["revisions"] \
+            or not (site.DOCS_DIR / "index.html").exists() or manual_changed():
         stats["pages"] = site.render_all(cfg)
     print(json.dumps(stats, ensure_ascii=False))
 

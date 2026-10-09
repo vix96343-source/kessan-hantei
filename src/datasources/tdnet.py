@@ -443,3 +443,41 @@ def parse_earnings_xbrl(zip_bytes: bytes) -> dict:
 def fetch_earnings(session: RateLimitedSession, xbrl_url: str) -> dict:
     r = session.get(xbrl_url)
     return parse_earnings_xbrl(r.content) if r is not None else {}
+
+
+def parse_revision_values(zip_bytes: bytes) -> dict:
+    """業績予想修正XBRLから、修正後の予想・前回予想・前期実績(売上・営利・経利・純利・EPS)を読む。
+    返り値: {period, cur{}, prev{}, prior{}}。金額は円、EPS は円。"""
+    try:
+        z = zipfile.ZipFile(io.BytesIO(zip_bytes))
+    except zipfile.BadZipFile:
+        return {}
+    htm = [n for n in z.namelist() if n.endswith("-ixbrl.htm") and "rvfc" in n]
+    if not htm:
+        return {}
+    facts = _scaled_facts(z.read(htm[0]).decode("utf-8", errors="replace"))
+    periods = {c.split("_")[0] for (_, c) in facts if "_CurrentMember_" in c and c.endswith("ForecastMember")}
+    period = next((p for p in ("CurrentYearDuration", "NextYearDuration", "CurrentAccumulatedQ2Duration")
+                   if p in periods), None)
+    if period is None:
+        return {}
+    scope = "ConsolidatedMember" if any(c.startswith(f"{period}_ConsolidatedMember_") for (_, c) in facts)         else "NonConsolidatedMember"
+    base = f"{period}_{scope}"
+    prior_ctx = f"{period.replace('Current', 'Prior', 1).replace('NextYear', 'CurrentYear')}_{scope}_CurrentMember_ResultMember"
+
+    def block(ctx_tail):
+        out = {}
+        for k in METRIC_PATTERNS:
+            v = _metric(facts, f"{base}_{ctx_tail}_ForecastMember", k)
+            if v is None:
+                lo = _metric(facts, f"{base}_{ctx_tail}_LowerMember", k)
+                up = _metric(facts, f"{base}_{ctx_tail}_UpperMember", k)
+                v = (lo + up) / 2 if lo is not None and up is not None else None
+            out[k] = v
+        e = _eps(facts, f"{base}_{ctx_tail}_ForecastMember")
+        out["eps"] = e
+        return out
+
+    prior = {k: _metric(facts, prior_ctx, k) for k in METRIC_PATTERNS}
+    prior["eps"] = _eps(facts, prior_ctx)
+    return {"period": period, "cur": block("CurrentMember"), "prev": block("PreviousMember"), "prior": prior}
