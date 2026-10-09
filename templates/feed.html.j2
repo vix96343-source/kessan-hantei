@@ -114,7 +114,6 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
   <span class="datebox"><input type="date" id="dayq" aria-label="日付で絞り込み" title="日付で絞り込み"><button id="dayclr" title="日付の絞り込みを解除" hidden>×</button></span>
   <input type="search" id="q" placeholder="コード・会社名・表題・日付(10/8)で検索" aria-label="検索">
   <button class="primary" id="reload">↻ 更新</button>
-  <button id="csv">CSV出力</button>
 </div>
 <div class="bar2">
   <span id="count">–</span>
@@ -333,21 +332,6 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
     } catch (e) { setStatus(true); }
   }
 
-  function csv() {
-    const rows = visible();
-    const head = ['日付', '時刻', 'コード', '企業名', '種別', '期', '上昇確度(%)', '表題', 'PDF', '説明資料PDF'];
-    const q = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
-    const lines = [head.map(q).join(',')].concat(rows.map(r =>
-      [r.date, r.time, r.code, r.name, r.kind, r.period, r.pct ?? '', r.title, r.url,
-       (r.pdfs || []).filter(p => p.label.startsWith('資料')).map(p => p.url).join(' ')].map(q).join(',')));
-    const blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    const ds = loadedDates();
-    a.download = `tdnet_${ds[ds.length - 1] || ''}_${ds[0] || ''}.csv`;
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-  }
 
   async function setDay(d) {
     state.day = d || '';
@@ -372,7 +356,6 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
   });
   $('onlyNew').addEventListener('change', e => { state.onlyNew = e.target.checked; render(); });
   $('reload').addEventListener('click', () => refresh(true));
-  $('csv').addEventListener('click', csv);
   $('more').addEventListener('click', e => { if (e.target.id === 'moreBtn') loadMore(); });
   $('tb').addEventListener('click', e => {
     if (e.target.closest('a')) return;
