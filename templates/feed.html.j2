@@ -57,6 +57,18 @@ tr.dayrow .dn { color: var(--muted); font-size: 12px; margin-left: 10px; }
   border-radius: 3px; padding: 0 4px; margin-left: 6px; vertical-align: 1px; }
 tr.detail td { white-space: normal; background: #141724 !important; padding: 8px 12px 12px; }
 .dtitle { color: var(--muted); margin-bottom: 8px; }
+.finbox { overflow-x: auto; margin: 4px 0 10px; }
+table.fin { width: auto; min-width: 520px; max-width: 760px; border-collapse: collapse; font-size: 12.5px;
+  font-family: "Consolas", "Menlo", "Meiryo UI", monospace; }
+table.fin th { position: static; background: #232a40; color: var(--teal); font-weight: 600; padding: 3px 10px;
+  text-align: right; cursor: default; border-bottom: 1px solid var(--line); }
+table.fin th:first-child, table.fin td:first-child { text-align: left; }
+table.fin td { padding: 2px 10px; text-align: right; border-bottom: 1px dotted #262c40; white-space: nowrap; }
+table.fin td.neg { color: var(--red); }
+table.fin tr.cur td { background: #21305a; color: #fff; }
+table.fin td.lab { color: var(--warn); }
+.fincap { color: var(--teal); font-size: 12px; margin: 10px 0 3px; }
+.fincap span { color: var(--muted); margin-left: 8px; }
 .dl { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 4px 18px; font-size: 13px; }
 .dl div { display: flex; justify-content: space-between; gap: 8px; border-bottom: 1px dotted var(--line); padding: 2px 0; }
 .dl span:first-child { color: var(--muted); } .dl span:last-child { white-space: nowrap; }
@@ -85,6 +97,8 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
   .wrap { padding: 0 8px 10px; }
   td.c-name { overflow: hidden; text-overflow: ellipsis; max-width: none; }
   .lg { display: none; } .sm { display: inline; }
+  table.fin { min-width: 0; font-size: 11px; }
+  table.fin th, table.fin td { padding: 2px 5px; }
   input[type=search] { max-width: none; }
 }
 </style>
@@ -131,7 +145,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
 <div class="more" id="more"></div>
 </div>
 <footer>
-  出典: TDnet(日本取引所グループ)。決算短信と業績・配当予想の修正を表示。種別のボタンを押すとPDFが開きます(短信=決算短信、資料=決算説明資料・補足資料(短信から14日以内)、修正=業績・配当予想の修正)。平日8〜20時は1分ごとに自動更新。行をクリック/タップすると数値(売上・営業益の伸び、進捗率、修正率など)が開きます。<br>
+  出典: TDnet(日本取引所グループ)・四半期業績の過去分は IRBANK。決算短信と業績・配当予想の修正を表示。種別のボタンを押すとPDFが開きます(短信=決算短信、資料=決算説明資料・補足資料(短信から14日以内)、修正=業績・配当予想の修正)。平日8〜20時は1分ごとに自動更新。行をクリック/タップすると数値(売上・営業益の伸び、進捗率、修正率など)が開きます。<br>
   期: 決算は 1Q/2Q/3Q/通期、修正は対象の期間(通期/中間)。<br>
   上昇確度 = 似た開示(決算は「上がりやすい決算内容」の3つの型 ①リクルート ②キオクシア ③ローツェB に当てはまった数、修正は方向と幅)が過去に「開示前終値→開示後最初の終値」で上昇した割合。当てはまった型は行を開くと表示されます。
 </footer>
@@ -233,10 +247,34 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
       `<a class="pdf${p.label === '短信' || p.label === '修正' ? '' : ' sub'}" href="${esc(p.url)}" target="_blank" rel="noopener" title="${esc(p.title || r.title)}">${esc(p.label)}</a>`).join('');
   }
 
+  const num = v => v == null ? '<td>–</td>' : `<td class="${v < 0 ? 'neg' : ''}">${v.toLocaleString('ja-JP')}</td>`;
+  const pct = v => v == null ? '<td>–</td>' : `<td class="${v < 0 ? 'neg' : ''}">${v.toFixed(1)}%</td>`;
+
+  function finTables(f) {
+    if (!f) return '';
+    let h = '';
+    if (f.quarters && f.quarters.length) {
+      h += `<div class="fincap">四半期業績(単独・百万円)</div><div class="finbox"><table class="fin">
+        <tr><th>決算期</th><th>売上高</th><th>営業益</th><th>経常益</th><th>最終益</th><th>営業率</th></tr>`
+        + f.quarters.map((q, i) => `<tr class="${i === f.quarters.length - 1 ? 'cur' : ''}"><td>${esc(q.label)}</td>`
+          + num(q.sales) + num(q.op) + num(q.ordinary) + num(q.net) + pct(q.margin) + '</tr>').join('')
+        + '</table></div>';
+    }
+    if (f.plan) {
+      const p = f.plan, heads = ['1Q', '2Q', '3Q', '通期'];
+      h += `<div class="fincap">【今期の累計と${esc(p.fc_label)}】(各Q累計・百万円)<span>今期=${esc(p.fy)}</span></div>
+        <div class="finbox"><table class="fin"><tr><th></th>${heads.map((x, i) => `<th>${i + 1 <= p.n_q ? '' : '('}${x}${i + 1 <= p.n_q ? '' : ')'}</th>`).join('')}
+        <th>${esc(p.fc_label)}</th><th>進捗率</th></tr>`
+        + p.rows.map(r => `<tr><td class="lab">${esc(r[0])}</td>` + r.slice(1, 6).map(num).join('') + pct(r[6]) + '</tr>').join('')
+        + '</table></div>';
+    }
+    return h;
+  }
+
   function detail(r) {
     const items = (r.details || []).map(([k, v, t]) => `<div><span>${esc(k)}</span><span class="${esc(t)}">${esc(v)}</span></div>`).join('');
     return `<tr class="detail"><td colspan="7">
-      <div class="dtitle">${esc(r.title)}</div>${items ? `<div class="dl">${items}</div>` : ''}
+      <div class="dtitle">${esc(r.title)}</div>${finTables(r.fin)}${items ? `<div class="dl">${items}</div>` : ''}
     </td></tr>`;
   }
 

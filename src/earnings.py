@@ -16,7 +16,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from . import disclosures, universe
+from . import disclosures, history
 from .config import DATA_DIR, now_jst
 from .datasources import tdnet
 from .datasources.http import RateLimitedSession
@@ -31,7 +31,8 @@ FEATURE_COLUMNS = [
     "recruit", "kioxia", "rorze_b", "types", "status", "computed_at",
 ]
 ARCHIVE_COLUMNS = ["disclosure_id", "code", "disclosed_at", "n_q", "period_end", "scope"] + \
-    [f"cum_{f}" for f in FIELDS] + [f"prior_{f}" for f in FIELDS]
+    [f"cum_{f}" for f in FIELDS] + [f"prior_{f}" for f in FIELDS] + \
+    [f"fc_{f}" for f in FIELDS] + ["fc_next_year"]          # 会社予想(通期。本決算の短信は来期)
 TYPE_MARKS = {"recruit": "①", "kioxia": "②", "rorze_b": "③"}
 
 
@@ -96,7 +97,8 @@ def _shift(ym: str, months: int) -> str:
 def archive_row(disclosure_id: str, code: str, disclosed_at: str, x: dict) -> dict:
     return {"disclosure_id": disclosure_id, "code": code, "disclosed_at": disclosed_at, "n_q": x["n_q"],
             "period_end": x["period_end"], "scope": x["scope"],
-            **{f"cum_{f}": x["cum"].get(f) for f in FIELDS}, **{f"prior_{f}": x["prior_cum"].get(f) for f in FIELDS}}
+            **{f"cum_{f}": x["cum"].get(f) for f in FIELDS}, **{f"prior_{f}": x["prior_cum"].get(f) for f in FIELDS},
+            **{f"fc_{f}": x["forecast"].get(f) for f in FIELDS}, "fc_next_year": bool(x.get("forecast_is_next_year"))}
 
 
 def archive_index(rows: list[dict]) -> dict[tuple[str, str], dict]:
@@ -206,17 +208,16 @@ def evaluate(code: str, disclosed_at: str, x: dict, idx: dict, tcfg: dict) -> di
 
 def update(cfg: dict, data_dir: Path = DATA_DIR, tdnet_session: RateLimitedSession | None = None,
            limit: int | None = None) -> dict:
-    """未評価の決算短信(universe内)を TDnet の XBRL で評価し、短信の数値を tdnet_earnings.csv に蓄積する。"""
+    """未評価の決算短信(全市場)を TDnet の XBRL で評価し、短信の数値を tdnet_earnings.csv に蓄積する。"""
     ecfg = cfg["earnings"]
     tdnet_session = tdnet_session or RateLimitedSession.from_config(cfg)
 
     disc = disclosures.load(data_dir)
-    uni = set(universe.load(data_dir)["code"])
     feats = load(data_dir)
     arch = load_archive(data_dir)
     done = set(feats.loc[feats["status"].isin(["ok", "no_xbrl", "no_data"]), "disclosure_id"])
     todo = disc[(disc["kind"] == "earnings_report") & (disc["is_correction"] != "True")
-                & disc["code"].isin(uni) & ~disc["disclosure_id"].isin(done)]
+                & ~disc["disclosure_id"].isin(done)]
     todo = todo.sort_values("disclosed_at").head(limit or ecfg["max_per_run"])   # 古い順: 前の短信を先に蓄積
 
     arch_rows = arch.to_dict("records")
@@ -241,6 +242,7 @@ def update(cfg: dict, data_dir: Path = DATA_DIR, tdnet_session: RateLimitedSessi
         feats.sort_values(["disclosed_at", "disclosure_id"], ascending=False).to_csv(
             features_path(data_dir), index=False, encoding="utf-8")
     if new_arch:
+        append_history(new_arch, data_dir)
         na = pd.DataFrame(new_arch).reindex(columns=ARCHIVE_COLUMNS)
         arch = pd.concat([arch[~arch["disclosure_id"].isin(na["disclosure_id"])], na])
         arch.sort_values(["code", "period_end", "disclosed_at"]).to_csv(archive_path(data_dir), index=False,
@@ -249,3 +251,31 @@ def update(cfg: dict, data_dir: Path = DATA_DIR, tdnet_session: RateLimitedSessi
              "status": pd.Series([r["status"] for r in rows]).value_counts().to_dict() if rows else {}}
     log.info("earnings: %s", stats)
     return stats
+
+
+def append_history(arch_rows: list[dict], data_dir: Path = DATA_DIR) -> int:
+    """短信の累計から当四半期の単独値を出し、quarterly_history.csv に継ぎ足す(source=tdnet)。
+    1Qは累計=単独。2Q以降は同じ期の前の四半期の単独値(履歴)を引く。"""
+    if not history.path(data_dir).exists():
+        return 0
+    hist_df = history.load(data_dir)
+    hist = history.by_code(hist_df)
+    rows = []
+    for a in sorted(arch_rows, key=lambda a: str(a["disclosed_at"])):
+        n_q, ym, code = int(a["n_q"]), _month(a["period_end"]), a["code"]
+        prev = [q for q in hist.get(code, []) if q["end"] in {_shift(ym, -3 * k) for k in range(1, n_q)}]
+        if len(prev) != n_q - 1:
+            continue
+        cur = {"end": ym, "announced": str(a["disclosed_at"])[:10]}
+        for f in FIELDS:
+            c = _num(a.get(f"cum_{f}"))
+            pv = [q.get(f) for q in prev]
+            cur[f] = None if c is None or any(v is None for v in pv) else c - sum(pv)
+        if cur["sales"] is None and cur["op"] is None:
+            continue
+        rows.append({"code": code, **cur, "source": "tdnet"})
+        hist.setdefault(code, [])
+        hist[code] = sorted([q for q in hist[code] if q["end"] != ym] + [cur], key=lambda q: q["end"])
+    if rows:
+        history.save(history.merge(hist_df, rows), data_dir)
+    return len(rows)

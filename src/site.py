@@ -12,7 +12,7 @@ from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader
 
-from . import calendar_fetch, disclosures, earnings, irdocs, reaction, universe
+from . import calendar_fetch, disclosures, earnings, history, irdocs, reaction, universe
 from .config import DATA_DIR, ROOT, now_jst
 
 DOCS_DIR = ROOT / "docs"
@@ -147,6 +147,66 @@ def pdf_links(r: dict, presentations: dict[str, list[dict]], ir_docs: dict[str, 
     return links
 
 
+FIN_FIELDS = ["sales", "op", "ordinary", "net"]
+FIN_LABELS = {"sales": "売上", "op": "営業益", "ordinary": "経常益", "net": "純利益"}
+
+
+def _ym_shift(ym: str, months: int) -> str:
+    y, m = int(ym[:4]), int(ym[5:7])
+    i = y * 12 + (m - 1) + months
+    return f"{i // 12}-{i % 12 + 1:02d}"
+
+
+def _period_name(end_ym: str) -> str:
+    """'2026-06' -> '26.04-06'(3ヵ月の決算期)"""
+    start = _ym_shift(end_ym, -2)
+    return f"{start[2:4]}.{start[5:7]}-{end_ym[5:7]}"
+
+
+def _mil(v) -> int | None:
+    return None if v is None or (isinstance(v, float) and v != v) or v == "" else round(float(v) / 1e6)
+
+
+def fin_panel(r: dict, arch: dict | None, hist: list[dict], n_quarters: int = 8) -> dict | None:
+    """行を開いたときの業績表。quarters: 直近の単独四半期、plan: 今期の累計実績と会社予想・進捗率(百万円)。"""
+    quarters = {q["end"]: dict(q) for q in hist}
+    plan = None
+    if arch:
+        n_q, end = int(float(arch["n_q"])), str(arch["period_end"])[:7]
+        prev = [quarters.get(_ym_shift(end, -3 * k)) for k in range(1, n_q)]
+        cum = {f: (None if arch.get(f"cum_{f}") in ("", None) else float(arch[f"cum_{f}"])) for f in FIN_FIELDS}
+        if all(p is not None for p in prev):            # 今回の四半期の単独値 = 累計 − 同じ期の前の四半期
+            quarters[end] = {"end": end, **{f: None if cum[f] is None or any(p.get(f) is None for p in prev)
+                                            else cum[f] - sum(p[f] for p in prev) for f in FIN_FIELDS}}
+        fy_end = _ym_shift(end, 3 * (4 - n_q))
+        ends = [_ym_shift(fy_end, -3 * (4 - k)) for k in range(1, 5)]   # 今期の1Q〜4Qの期末
+        cols = []
+        for k, e in enumerate(ends, 1):
+            if k == n_q:
+                cols.append(cum)
+            elif k < n_q:
+                qs = [quarters.get(x) for x in ends[:k]]
+                cols.append({f: None if any(q is None or q.get(f) is None for q in qs) else sum(q[f] for q in qs)
+                             for f in FIN_FIELDS})
+            else:
+                cols.append({f: None for f in FIN_FIELDS})
+        fc = {f: (None if arch.get(f"fc_{f}") in ("", None) else float(arch[f"fc_{f}"])) for f in FIN_FIELDS}
+        next_year = str(arch.get("fc_next_year")) == "True"
+        rows = []
+        for f in FIN_FIELDS:
+            prog = None if next_year or fc[f] in (None, 0) or cum[f] is None or fc[f] < 0                 else round(cum[f] / fc[f] * 100, 1)
+            rows.append([FIN_LABELS[f]] + [_mil(c[f]) for c in cols] + [_mil(fc[f]), prog])
+        plan = {"fy": f"{fy_end[:4]}年{int(fy_end[5:7])}月期", "n_q": n_q,
+                "fc_label": "来期予想" if next_year else "会社予想", "rows": rows}
+    qs = sorted(quarters.values(), key=lambda q: q["end"])[-n_quarters:]
+    table = [{"label": _period_name(q["end"]), **{f: _mil(q.get(f)) for f in FIN_FIELDS},
+              "margin": None if not q.get("sales") or q.get("op") is None else round(q["op"] / q["sales"] * 100, 1)}
+             for q in qs]
+    if not table and not plan:
+        return None
+    return {"quarters": table, "plan": plan}
+
+
 def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:
     """取り込み済みの全期間の決算・修正(新しい順)。"""
     all_disc = disclosures.load(data_dir)
@@ -157,6 +217,8 @@ def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:
     stats = reaction.load_stats(data_dir)
     feats = earnings.by_disclosure(data_dir)
     ir_docs = irdocs.found_by_disclosure(data_dir)
+    arch = {a["disclosure_id"]: a for a in earnings.load_archive(data_dir).to_dict("records")}
+    hist = history.by_code(history.load(data_dir))
     rows = []
     for r in disc.sort_values(["disclosed_at", "code"], ascending=[False, True]).to_dict("records"):
         p = score_of(r, stats, cfg, feats)
@@ -167,6 +229,9 @@ def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:
                      "period": period_label(r, f),
                      "url": r["pdf_url"], "pdfs": pdf_links(r, presentations, ir_docs),
                      "title": r["title"], "details": details(r, f),
+                     "fin": fin_panel(r, arch.get(r["disclosure_id"]) if r["kind"] == "earnings_report" else None,
+                                      [q for q in hist.get(r["code"], []) if q["announced"] <= r["disclosed_at"][:10]
+                                       or r["kind"] != "earnings_report"]),
                      "pct": None if p is None else round(p * 100),
                      "up": p is not None and round(p * 100) > 50})
     return rows

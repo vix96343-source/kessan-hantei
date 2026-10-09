@@ -127,3 +127,18 @@ def test_pdf_links_attach_presentations_within_a_week():
     assert [(l["label"], l["url"]) for l in links] == [("短信", "tanshin.pdf"), ("資料", "setsumei.pdf"), ("資料2", "hosoku.pdf")]
     rev = {**_row(), "pdf_url": "shusei.pdf"}
     assert site.pdf_links(rev, pres) == [{"label": "修正", "url": "shusei.pdf"}]
+
+
+def test_fin_panel_current_quarter_and_plan():
+    hist = [{"end": "2026-03", "sales": 100e6, "op": 10e6, "ordinary": 10e6, "net": 7e6, "announced": "2026-04-10"},
+            {"end": "2026-06", "sales": 120e6, "op": 12e6, "ordinary": 12e6, "net": 8e6, "announced": "2026-07-10"}]
+    arch = {"n_q": "2", "period_end": "2026-09-30", "cum_sales": 250e6, "cum_op": 30e6, "cum_ordinary": 30e6,
+            "cum_net": 20e6, "fc_sales": 500e6, "fc_op": 60e6, "fc_ordinary": 60e6, "fc_net": 40e6,
+            "fc_next_year": "False"}
+    f = site.fin_panel({"kind": "earnings_report"}, arch, hist)
+    assert [q["label"] for q in f["quarters"]] == ["26.01-03", "26.04-06", "26.07-09"]
+    cur = f["quarters"][-1]
+    assert (cur["sales"], cur["op"], cur["margin"]) == (130, 18, 13.8)        # 250 − 120
+    p = f["plan"]
+    assert p["fy"] == "2027年3月期" and p["fc_label"] == "会社予想"
+    assert p["rows"][0] == ["売上", 120, 250, None, None, 500, 50.0]           # 1Q累計, 2Q累計, 3Q, 通期, 予想, 進捗率
