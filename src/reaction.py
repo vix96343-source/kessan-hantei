@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from . import disclosures
+from . import disclosures, earnings
 from .config import DATA_DIR
 from .datasources import yf
 
@@ -30,15 +30,24 @@ def stats_path(data_dir: Path = DATA_DIR) -> Path:
 
 # ---------------------------------------------------------------- バケット
 
-def bucket(row: dict, large_pct: float) -> str | None:
-    """開示1件を上昇確度の集計単位に分類する。対象外は None。"""
+def earnings_bucket(feat: dict | None) -> str:
+    """決算短信: 3つの型に該当した数で分ける(複数該当を優先する方針)。"""
+    if not feat or feat.get("status") != "ok":
+        return "earnings_nodata"
+    n = len(feat.get("types") or "")
+    return f"earnings_t{min(n, 2)}"
+
+
+def bucket(row: dict, large_pct: float, feats: dict | None = None) -> str | None:
+    """開示1件を上昇確度の集計単位に分類する。対象外は None。
+    feats: disclosure_id -> earnings_features の行(決算短信の型判定)"""
     kind, d, title = row["kind"], row["direction"], row["title"]
     if row.get("is_correction") == "True":
         return None
     pct = abs(float(row["change_pct"])) if row.get("change_pct") else None
     size = "" if pct is None else ("_large" if pct >= large_pct else "_small")
     if kind == "earnings_report":
-        return "earnings"
+        return earnings_bucket((feats or {}).get(row.get("disclosure_id")))
     if kind in ("forecast_revision", "forecast_dividend_revision"):
         if d in ("up", "down"):
             return f"rev_{d}{size}"
@@ -87,9 +96,9 @@ def compute_reactions(disc: pd.DataFrame, closes: dict[str, pd.Series], close_ti
     return pd.DataFrame(rows, columns=REACTION_COLUMNS)
 
 
-def build_stats(disc: pd.DataFrame, reactions: pd.DataFrame, large_pct: float) -> dict:
+def build_stats(disc: pd.DataFrame, reactions: pd.DataFrame, large_pct: float, feats: dict | None = None) -> dict:
     df = disc.merge(reactions, on=["disclosure_id", "code"], how="inner")
-    df["bucket"] = [bucket(r, large_pct) for r in df.to_dict("records")]
+    df["bucket"] = [bucket(r, large_pct, feats) for r in df.to_dict("records")]
     df = df.dropna(subset=["bucket"])
     if df.empty:
         return {"base_rate": 0.5, "n": 0, "buckets": {}}
@@ -98,6 +107,15 @@ def build_stats(disc: pd.DataFrame, reactions: pd.DataFrame, large_pct: float) -
     for b, g in df.groupby("bucket"):
         out["buckets"][b] = {"n": int(len(g)), "wins": int((g["ret_pct"] > 0).sum()),
                              "mean_ret_pct": round(float(g["ret_pct"].mean()), 2)}
+    # 参考: 型ごとの成績(重複あり)。基準の検証用で、確度の計算には使わない
+    if feats:
+        out["types"] = {}
+        e = df[df["kind"] == "earnings_report"]
+        for key, mark in (("recruit", "①"), ("kioxia", "②"), ("rorze_b", "③")):
+            g = e[[mark in ((feats.get(i) or {}).get("types") or "") for i in e["disclosure_id"]]]
+            if len(g):
+                out["types"][mark] = {"n": int(len(g)), "wins": int((g["ret_pct"] > 0).sum()),
+                                      "mean_ret_pct": round(float(g["ret_pct"].mean()), 2)}
     return out
 
 
@@ -121,6 +139,7 @@ def update(cfg: dict, data_dir: Path = DATA_DIR) -> dict:
     rcfg = cfg["reaction"]
     disc = disclosures.load(data_dir)
     disc = disc[[bucket(r, rcfg["large_change_pct"]) is not None for r in disc.to_dict("records")]]
+    feats = earnings.by_disclosure(data_dir)
     closes = yf.daily_closes(sorted(disc["code"].unique()), period=rcfg["price_period"])
     reactions = compute_reactions(disc, closes, rcfg["close_time"], rcfg["max_abs_ret_pct"])
 
@@ -132,9 +151,22 @@ def update(cfg: dict, data_dir: Path = DATA_DIR) -> dict:
     reactions = reactions.sort_values(["out_date", "disclosure_id"]).reset_index(drop=True)
     reactions.to_csv(p, index=False, encoding="utf-8")
 
-    stats = build_stats(disclosures.load(data_dir), reactions, rcfg["large_change_pct"])
+    stats = build_stats(disclosures.load(data_dir), reactions, rcfg["large_change_pct"], feats)
     stats_path(data_dir).write_text(json.dumps(stats, ensure_ascii=False, indent=2, sort_keys=True),
                                     encoding="utf-8")
     log.info("reaction: n=%d base=%.3f buckets=%s", stats["n"], stats["base_rate"],
              {k: v["n"] for k, v in stats["buckets"].items()})
     return {"reactions": len(reactions), "n": stats["n"], "base_rate": stats["base_rate"]}
+
+
+def restat(cfg: dict, data_dir: Path = DATA_DIR) -> dict:
+    """株価を取り直さずに reaction_stats.json を再計算する(型判定を更新したとき用)。"""
+    p = reactions_path(data_dir)
+    if not p.exists():
+        return {}
+    reactions = pd.read_csv(p, dtype={"disclosure_id": str, "code": str})
+    stats = build_stats(disclosures.load(data_dir), reactions, cfg["reaction"]["large_change_pct"],
+                        earnings.by_disclosure(data_dir))
+    stats_path(data_dir).write_text(json.dumps(stats, ensure_ascii=False, indent=2, sort_keys=True),
+                                    encoding="utf-8")
+    return stats

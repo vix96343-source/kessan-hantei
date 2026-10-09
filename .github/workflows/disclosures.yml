@@ -24,7 +24,7 @@ concurrency:
 jobs:
   ingest:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
 
@@ -35,6 +35,13 @@ jobs:
 
       - run: pip install -r requirements.txt
 
+      # 株探の四半期履歴は再配布しないためコミットせず、Actionsのキャッシュで実行間に引き継ぐ
+      - uses: actions/cache@v4
+        with:
+          path: data/cache
+          key: kabutan-${{ github.run_id }}
+          restore-keys: kabutan-
+
       - name: Ingest disclosures
         run: python -m src.cli disclosures --days "${{ github.event.inputs.days || '1' }}"
 
@@ -42,7 +49,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/disclosures.csv data/disclosures_meta.json docs/
+          git add data/ docs/
           if git diff --cached --quiet; then
             echo "no changes"; exit 0
           fi

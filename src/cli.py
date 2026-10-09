@@ -5,16 +5,34 @@ import logging
 import sys
 from datetime import date
 
-from . import calendar_fetch, disclosures, reaction, site, universe
+from . import calendar_fetch, disclosures, earnings, reaction, site, universe
+from .bizdays import add_business_days
 from .config import load_config, now_jst
 
 
 def cmd_disclosures(args, cfg):
+    """15分おき: TDnet取り込み → 新しい決算短信の型判定 → (変化があれば)サイト再生成"""
     stats = disclosures.ingest(cfg, days=args.days)
+    stats["earnings"] = earnings.update(cfg)
     # 変化が無い回はページも作り直さない(生成時刻だけ変わる無駄なコミットを防ぐ)
-    if stats["new_rows"] or stats["xbrl_parsed"] or not (site.DOCS_DIR / "index.html").exists():
+    if stats["new_rows"] or stats["xbrl_parsed"] or stats["earnings"]["evaluated"]             or not (site.DOCS_DIR / "index.html").exists():
         stats["pages"] = site.render_all(cfg)
     print(json.dumps(stats, ensure_ascii=False))
+
+
+def cmd_earnings(args, cfg):
+    """未評価の決算短信を型判定し、上昇確度の集計とサイトを更新(手動・バックフィル用)"""
+    print(json.dumps(earnings.update(cfg, limit=args.limit), ensure_ascii=False))
+    reaction.restat(cfg)
+    print(site.render_all(cfg))
+
+
+def prefetch_codes(cfg) -> list[str]:
+    """翌営業日〜prefetch_business_days 先に発表予定で、一次フィルタ(売買代金)を通る銘柄"""
+    cal, uni = calendar_fetch.load(), universe.load()
+    until = add_business_days(now_jst().date(), cfg["earnings"]["prefetch_business_days"]).isoformat()
+    liquid = set(uni.loc[uni["avg_turnover_20d"] >= cfg["judge"]["min_avg_turnover"], "code"])
+    return sorted(set(cal.loc[cal["announce_date"] <= until, "code"]) & liquid)
 
 
 def cmd_universe(args, cfg):
@@ -26,11 +44,13 @@ def cmd_calendar(args, cfg):
 
 
 def cmd_run(args, cfg):
-    """dailyワークフロー: (週1) universe → calendar → 開示後の株価反応 → サイト再生成"""
+    """dailyワークフロー: (週1) universe → calendar → 発表予定銘柄の履歴を先取り → 株価反応 → サイト再生成"""
     today = now_jst().date()
     if args.force_universe or not universe.path().exists() or today.weekday() == cfg["universe"]["update_weekday"]:
         cmd_universe(args, cfg)
     cmd_calendar(args, cfg)
+    codes = prefetch_codes(cfg)
+    print(json.dumps({"prefetched": earnings.prefetch_history(cfg, codes), "targets": len(codes)}))
     print(json.dumps(reaction.update(cfg), ensure_ascii=False))
     cmd_site(args, cfg)
 
@@ -70,7 +90,11 @@ def main(argv=None):
     s = sub.add_parser("calendar", help="M2: 翌営業日〜N営業日先の決算発表予定を更新")
     s.set_defaults(func=cmd_calendar)
 
-    s = sub.add_parser("run", help="universe(週1) → calendar → サイト再生成")
+    s = sub.add_parser("earnings", help="決算短信の型判定(①リクルート ②キオクシア ③ローツェB)")
+    s.add_argument("--limit", type=int, help="評価する短信の上限")
+    s.set_defaults(func=cmd_earnings)
+
+    s = sub.add_parser("run", help="universe(週1) → calendar → 履歴先取り → 株価反応 → サイト再生成")
     s.add_argument("--force-universe", action="store_true")
     s.set_defaults(func=cmd_run)
 

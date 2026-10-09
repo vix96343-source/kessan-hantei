@@ -262,3 +262,109 @@ def fetch_forecast_revision(session: RateLimitedSession, xbrl_url: str) -> dict:
 
 def changes_json(changes: dict) -> str:
     return json.dumps(changes, ensure_ascii=False, sort_keys=True) if changes else ""
+
+
+# ---------------------------------------------------------------- 決算短信サマリーXBRL
+
+_IX_NUMERIC = re.compile(r"<ix:nonNumeric\b([^>]*?)(?:/>|>(.*?)</ix:nonNumeric>)", re.S)
+_CONTEXT = re.compile(r'<xbrli:context id="([^"]+)">(.*?)</xbrli:context>', re.S)
+
+METRIC_PATTERNS = {
+    "sales": re.compile(r"^(NetSales|Sales|Revenue|Revenues|OperatingRevenues?|GrossOperatingRevenues|"
+                        r"OrdinaryRevenues|NetRevenues?)(IFRS|US|JMIS|BK|IN|SE)?$"),
+    "op": re.compile(r"^Operating(Income|Profit)(IFRS|US|JMIS)?$"),
+    "ordinary": re.compile(r"^(OrdinaryIncome|OrdinaryProfit|ProfitBeforeTax|IncomeBeforeIncomeTaxes)(IFRS|US|JMIS|BK|IN|SE)?$"),
+    "net": re.compile(r"^(ProfitAttributableToOwnersOfParent|NetIncome|Profit)(IFRS|US|JMIS|BK|IN|SE)?$"),
+}
+_PERIOD_NQ = {"CurrentAccumulatedQ1Duration": 1, "CurrentAccumulatedQ2Duration": 2,
+              "CurrentAccumulatedQ3Duration": 3, "CurrentYearDuration": 4}
+
+
+def _scaled_facts(ixbrl: str) -> dict[tuple[str, str], float]:
+    """(名前, contextRef) -> 値(円)。scale を反映する。"""
+    facts = {}
+    for m in _IX_TAG.finditer(ixbrl):
+        attrs = dict(_ATTR.findall(m.group(1)))
+        v = _to_number(m.group(2) or "", attrs)
+        if v is None:
+            continue
+        facts[(attrs.get("name", "").split(":")[-1], attrs.get("contextRef", ""))] = v * 10 ** int(attrs.get("scale", "0"))
+    return facts
+
+
+def _text_facts(ixbrl: str) -> dict[str, str]:
+    out = {}
+    for m in _IX_NUMERIC.finditer(ixbrl):
+        attrs = dict(_ATTR.findall(m.group(1)))
+        out.setdefault(attrs.get("name", "").split(":")[-1], re.sub(r"<[^>]+>", "", m.group(2) or "").strip())
+    return out
+
+
+def _metric(facts: dict, ctx: str, key: str) -> float | None:
+    pat = METRIC_PATTERNS[key]
+    hits = [(n, v) for (n, c), v in facts.items() if c == ctx and pat.match(n)]
+    if not hits:
+        return None
+    # 同じ指標が複数タグで出る場合(Profit と ProfitAttributable... など)は優先度の高い方
+    hits.sort(key=lambda nv: (0 if "Attributable" in nv[0] or key != "net" else 1))
+    return hits[0][1]
+
+
+def parse_earnings_xbrl(zip_bytes: bytes) -> dict:
+    """決算短信サマリーから累計実績・前年同期・会社予想・修正有無を返す。読めなければ空dict。
+
+    返り値: {n_q, period_end, scope, cum{}, prior_cum{}, forecast{}, forecast_q2{}, forecast_is_next_year, revised}
+    金額はすべて円。
+    """
+    try:
+        z = zipfile.ZipFile(io.BytesIO(zip_bytes))
+    except zipfile.BadZipFile:
+        return {}
+    names = [n for n in z.namelist() if "/Summary/" in n and n.endswith("-ixbrl.htm")]
+    if not names:
+        return {}
+    s = z.read(names[0]).decode("utf-8", errors="replace")
+    facts = _scaled_facts(s)
+    texts = _text_facts(s)
+    ends = {cid: (re.findall(r"<xbrli:(?:endDate|instant)>([^<]+)<", body) or [""])[0]
+            for cid, body in _CONTEXT.findall(s)}
+
+    result_ctx = [c for (_, c) in facts if c.endswith("_ResultMember") and c.split("_")[0] in _PERIOD_NQ
+                  and c.count("_") == 2]
+    if not result_ctx:
+        return {}
+    scope = "ConsolidatedMember" if any("_ConsolidatedMember_" in c for c in result_ctx) else "NonConsolidatedMember"
+    period = min((c.split("_")[0] for c in result_ctx if f"_{scope}_" in c), key=lambda p: _PERIOD_NQ[p])
+    n_q = _PERIOD_NQ[period]
+    cur = f"{period}_{scope}_ResultMember"
+    prior = cur.replace("Current", "Prior", 1)
+
+    def block(ctx_prefix):
+        out = {}
+        for k in METRIC_PATTERNS:
+            v = _metric(facts, f"{ctx_prefix}_ForecastMember", k)
+            if v is None:
+                lo, up = _metric(facts, f"{ctx_prefix}_LowerMember", k), _metric(facts, f"{ctx_prefix}_UpperMember", k)
+                v = (lo + up) / 2 if lo is not None and up is not None else None
+            out[k] = v
+        return out
+
+    fy_ctx = f"{'NextYearDuration' if n_q == 4 else 'CurrentYearDuration'}_{scope}"
+    revised_txt = texts.get("CorrectionOfConsolidatedFinancialForecastInThisQuarter",
+                            texts.get("CorrectionOfFinancialForecastInThisQuarter", ""))
+    return {
+        "n_q": n_q,
+        "period_end": ends.get(cur, ""),
+        "scope": scope,
+        "cum": {k: _metric(facts, cur, k) for k in METRIC_PATTERNS},
+        "prior_cum": {k: _metric(facts, prior, k) for k in METRIC_PATTERNS},
+        "forecast": block(fy_ctx),
+        "forecast_is_next_year": n_q == 4,
+        "forecast_q2": block(f"CurrentAccumulatedQ2Duration_{scope}") if n_q == 1 else {},
+        "revised": {"有": True, "true": True, "無": False, "false": False}.get(revised_txt) if revised_txt else None,
+    }
+
+
+def fetch_earnings(session: RateLimitedSession, xbrl_url: str) -> dict:
+    r = session.get(xbrl_url)
+    return parse_earnings_xbrl(r.content) if r is not None else {}

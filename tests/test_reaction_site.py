@@ -29,7 +29,7 @@ def _row(**kw):
 
 
 @pytest.mark.parametrize("row,b", [
-    (_row(kind="earnings_report"), "earnings"),
+    (_row(kind="earnings_report"), "earnings_nodata"),
     (_row(direction="up", change_pct="18.1"), "rev_up_large"),
     (_row(direction="down", change_pct="-3.0"), "rev_down_small"),
     (_row(direction="up"), "rev_up"),
@@ -40,6 +40,13 @@ def _row(**kw):
 ])
 def test_bucket(row, b):
     assert reaction.bucket(row, 10) == b
+
+
+def test_earnings_bucket_by_type_count():
+    feats = {"a": {"status": "ok", "types": ""}, "b": {"status": "ok", "types": "③"},
+             "c": {"status": "ok", "types": "①②③"}, "d": {"status": "no_history", "types": ""}}
+    got = [reaction.bucket({**_row(kind="earnings_report"), "disclosure_id": i}, 10, feats) for i in "abcd"]
+    assert got == ["earnings_t0", "earnings_t1", "earnings_t2", "earnings_nodata"]
 
 
 def test_probability_shrinks_to_base_rate():
@@ -64,6 +71,7 @@ def test_build_stats():
 
 @pytest.mark.parametrize("row,label", [
     (_row(kind="earnings_report"), "決算"),
+    ({**_row(kind="earnings_report"), "_feat": {"types": "①③"}}, "決算①③"),
     (_row(direction="up"), "修正↑"),
     (_row(direction="down"), "修正↓"),
     (_row(), "修正"),
@@ -71,4 +79,4 @@ def test_build_stats():
     (_row(kind="dividend_revision", title="配当予想の修正（減配）"), "減配"),
 ])
 def test_kind_label(row, label):
-    assert site.kind_label(row) == label
+    assert site.kind_label(row, row.get("_feat")) == label

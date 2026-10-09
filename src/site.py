@@ -2,14 +2,13 @@
 
 - index.html: 適時開示フィード(時刻 / コード / 企業名 / 種別 / 上昇確度)
 - calendar.html: 翌営業日〜N営業日先の決算予定
-上昇確度は score_of() に集約。ユーザー提供の「上がりやすい決算内容」基準が来たら差し替える。
-現状は暫定で過去の同種開示の反応率(reaction.py)を使う。
+上昇確度は score_of() に集約。決算短信は3つの型(earnings.py)への該当数ごとの過去の上昇率。
 """
 from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader
 
-from . import calendar_fetch, disclosures, reaction, universe
+from . import calendar_fetch, disclosures, earnings, reaction, universe
 from .config import DATA_DIR, ROOT, now_jst
 
 DOCS_DIR = ROOT / "docs"
@@ -17,11 +16,11 @@ FEED_KINDS = {"earnings_report", "forecast_revision", "forecast_dividend_revisio
               "dividend_revision", "forecast_initial"}
 
 
-def kind_label(r: dict) -> str:
+def kind_label(r: dict, feat: dict | None = None) -> str:
     k, d, t = r["kind"], r["direction"], r["title"]
     arrow = {"up": "↑", "down": "↓"}.get(d, "")
     if k == "earnings_report":
-        return "決算"
+        return "決算" + ((feat or {}).get("types") or "")
     if k == "forecast_revision":
         return f"修正{arrow}"
     if k == "forecast_dividend_revision":
@@ -33,24 +32,42 @@ def kind_label(r: dict) -> str:
     return k
 
 
-def score_of(r: dict, stats: dict, cfg: dict) -> float | None:
-    """上昇確度(0〜1)。暫定: 同種開示の過去反応率。"""
+def score_of(r: dict, stats: dict, cfg: dict, feats: dict) -> float | None:
+    """上昇確度(0〜1)。決算短信は該当した型の数、修正・配当は方向と幅ごとの、過去の上昇率(縮小推定)。"""
     rc = cfg["reaction"]
-    return reaction.probability(reaction.bucket(r, rc["large_change_pct"]), stats, rc["prior_n"])
+    return reaction.probability(reaction.bucket(r, rc["large_change_pct"], feats), stats, rc["prior_n"])
+
+
+def detail(feat: dict | None) -> str:
+    """行のツールチップ用: 型判定の根拠"""
+    if not feat or feat.get("status") != "ok":
+        return {"no_history": "過去の四半期データ不足で型判定なし", "no_xbrl": "XBRLなしで型判定なし"}.get(
+            (feat or {}).get("status"), "")
+    def p(v, unit="%"):
+        return "–" if v in ("", None) else f"{float(v):+.1f}{unit}"
+    parts = [f"①加速{p(feat['accel'], 'pt')} 利益率{p(feat['margin_delta'], 'pt')}",
+             f"②売上QoQ{p(feat['sales_qoq'])} 営業益QoQ{p(feat['op_qoq'])}",
+             f"③慎重度{'–' if feat['conservatism'] in ('', None) else format(float(feat['conservatism']), '.2f')}"
+             f" 修正{'なし' if feat['revised'] == 'False' else 'あり' if feat['revised'] == 'True' else '–'}"]
+    return " / ".join(parts)
 
 
 def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:
     disc = disclosures.load(data_dir)
     disc = disc[disc["kind"].isin(FEED_KINDS) & (disc["is_correction"] != "True")]
     stats = reaction.load_stats(data_dir)
+    feats = earnings.by_disclosure(data_dir)
     days = sorted(disc["disclosed_at"].str[:10].unique(), reverse=True)[:cfg["site"]["feed_days"]]
     disc = disc[disc["disclosed_at"].str[:10].isin(days)]
     rows = []
     for r in disc.sort_values(["disclosed_at", "code"], ascending=[False, True]).to_dict("records"):
-        p = score_of(r, stats, cfg)
+        p = score_of(r, stats, cfg, feats)
+        f = feats.get(r["disclosure_id"])
         rows.append({"date": r["disclosed_at"][:10], "time": r["disclosed_at"][11:16], "code": r["code"],
-                     "name": r["name"], "kind": kind_label(r), "title": r["title"], "url": r["pdf_url"],
-                     "pct": None if p is None else round(p * 100), "up": p is not None and p >= 0.5})
+                     "name": r["name"], "kind": kind_label(r, f), "url": r["pdf_url"],
+                     "title": r["title"] + (f"\n{detail(f)}" if detail(f) else ""),
+                     "pct": None if p is None else round(p * 100),
+                     "up": p is not None and round(p * 100) > 50})
     return rows
 
 

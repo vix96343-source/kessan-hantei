@@ -60,3 +60,19 @@ reaction:
 
 site:
   feed_days: 5               # 適時開示フィードに出す日数
+
+earnings:
+  # 決算短信の「上がりやすい決算内容」への親和性(src/earnings.py)
+  max_per_run: 150           # 1回の実行で評価する短信の上限(株探は3秒/件)
+  history_max_age_days: 7    # 株探の四半期履歴キャッシュの有効日数
+  prefetch_business_days: 2  # dailyで何営業日先までの発表予定銘柄の履歴を先取りするか
+  types:
+    recruit:                 # ① リクルート型(q-accel と同じ)
+      min_accel: 3.0         # 単Q売上YoY − 直近1年売上YoY (pt)
+      min_margin_delta: 0.0  # 営業利益率の前年同期差 (pt)
+    kioxia:                  # ② キオクシア型(目安: 主力売上QoQ+20%、営業利益+50%)
+      min_sales_qoq: 20.0
+      min_op_qoq: 50.0
+      min_qoq_excess: 10.0   # 前年の同じQoQより何pt強いか(季節性の除外)
+    rorze_b:                 # ③ ローツェ型B(好調・予想据え置き)
+      max_conservatism: 0.85 # 残り期間の想定営業益 ÷ 前年同期間×今期の伸び
