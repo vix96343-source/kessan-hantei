@@ -1,4 +1,5 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120260925540450,2026-10-09T15:40,7427,エコーＴＤ,2027年2月期 第2四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120260925540450.pdf,https://www.release.tdnet.info/inbs/081220260925540450.zip,東,2026-10-09T15:43
 140120261009548844,2026-10-09T15:30,8185,チヨダ,特別損失（減損損失）の計上、第２四半期（中間期）業績予想（連結・個別）と実績値との差異及び通期業績予想（連結・個別）の修正に関するお知らせ,forecast_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261009548844.pdf,,東,2026-10-09T15:30
 140120261009548813,2026-10-09T15:30,8185,チヨダ,2027年２月期　第２四半期（中間期）決算短信[日本基準]（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261009548813.pdf,https://www.release.tdnet.info/inbs/081220261009548813.zip,東,2026-10-09T15:30
 140120261009548763,2026-10-09T15:30,2687,ＣＶＳベイ,2027年２月期 第２四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261009548763.pdf,https://www.release.tdnet.info/inbs/081220261009548763.zip,東,2026-10-09T15:30
