@@ -62,8 +62,8 @@ table#list a.pdf { background: none; border: 0; padding: 0; margin: 0 3px; font-
   color: inherit; text-decoration: none; }
 table#list a.pdf:hover { text-decoration: underline; }
 table#list tr.row:hover td { background: #232a40 !important; }
-/* 修正の行: 文字をオレンジに(背景は普通の行と同じ) */
-table#list tr.row.rev td, table#list tr.row.rev td.c-pct { color: #e2551c; }
+/* 修正の行: 種別の「修正」の文字だけ紫(ほかは決算の行と同じ色) */
+table#list tr.row.rev td.c-kind, table#list tr.row.rev td.c-kind a { color: #b07cff; }
 table#list td.c-date { text-align: center; }
 td.c-per { color: var(--text); }
 td.c-name { max-width: 260px; overflow: hidden; text-overflow: ellipsis; }
