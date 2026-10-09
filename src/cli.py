@@ -11,7 +11,9 @@ from .config import load_config, now_jst
 
 def cmd_disclosures(args, cfg):
     stats = disclosures.ingest(cfg, days=args.days)
-    stats["pages"] = site.render_all(cfg)
+    # 変化が無い回はページも作り直さない(生成時刻だけ変わる無駄なコミットを防ぐ)
+    if stats["new_rows"] or stats["xbrl_parsed"] or not (site.DOCS_DIR / "index.html").exists():
+        stats["pages"] = site.render_all(cfg)
     print(json.dumps(stats, ensure_ascii=False))
 
 
