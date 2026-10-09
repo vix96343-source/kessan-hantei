@@ -1,4 +1,5 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261009549004,2026-10-09T19:30,9556,Ｇ－ＩＮＴＬＯＯＰ,（訂正・数値データ訂正）「2026年７月期 決算短信〔日本基準〕(連結)」の一部訂正について,earnings_report,True,,,,,,https://www.release.tdnet.info/inbs/140120261009549004.pdf,https://www.release.tdnet.info/inbs/081220261009549004.zip,東,2026-10-09T19:30
 140120261009548704,2026-10-09T17:00,7603,ジーイエット,2027年２月期　第２四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261009548704.pdf,https://www.release.tdnet.info/inbs/081220261009548704.zip,東,2026-10-09T17:00
 140120261009548540,2026-10-09T17:00,3454,ファーストブラザーズ,2026年11月期 第３四半期 決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261009548540.pdf,,東,2026-10-09T17:00
 140120261008547944,2026-10-09T17:00,3454,ファーストブラザーズ,2026年11月期 第３四半期 決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261008547944.pdf,https://www.release.tdnet.info/inbs/081220261008547944.zip,東,2026-10-09T17:00
