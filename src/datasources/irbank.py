@@ -19,6 +19,13 @@ URL = "https://irbank.net/{code}/quarter"
 MIN_INTERVAL_SEC = 2.0
 FIELDS = ["sales", "op", "ordinary", "net"]
 _Q = {"1Q": 1, "2Q": 2, "3Q": 3, "4Q": 4, "通期": 4}
+# 見出し → 項目(上から順に判定。IFRS: 売上収益/営業収益・当期利益、銀行: 経常収益・経常利益 など)
+HEAD_PATTERNS = [
+    ("sales", re.compile(r"売上|営業収益|経常収益|営業収入|収益合計|^収益|保険料")),
+    ("op", re.compile(r"^営業利益|^営業損益")),
+    ("ordinary", re.compile(r"経常利益|経常損益|税引前|税金等調整前")),
+    ("net", re.compile(r"純利益|当期利益|当期損益|親会社")),
+]
 
 
 def session_from_config(cfg: dict) -> RateLimitedSession:
@@ -46,6 +53,14 @@ def parse_quarterly(html: str) -> list[dict]:
     table = soup.select_one("table#graph")
     if table is None:
         return []
+    # 列は会社(会計基準・業種)ごとに違うので見出しの名前で対応づける
+    heads = [th.get_text(strip=True) for th in table.select("thead th")][2:]
+    col = {}
+    for i, h in enumerate(heads):
+        for field, pat in HEAD_PATTERNS:
+            if field not in col and pat.search(h) and "包括" not in h:
+                col[field] = i
+                break
     out, fy = [], None
     # IRBANK の表は <tr> が閉じられていない行を含むため、セル単位で走査する
     for td in table.select("td.lf"):
@@ -65,14 +80,16 @@ def parse_quarterly(html: str) -> list[dict]:
             if "lf" in (sib.get("class") or []):
                 break
             cells.append(sib)
-        vals = [_num(c.select_one(".shihanki").get_text()) if c.select_one(".shihanki") else None for c in cells[:4]]
-        if len(vals) < 4:
-            continue
+        def val(field):
+            i = col.get(field)
+            if i is None or i >= len(cells) or cells[i].select_one(".shihanki") is None:
+                return None
+            return _num(cells[i].select_one(".shihanki").get_text())
         ann = re.search(r"(\d{4})年(\d{1,2})月(\d{1,2})日", a.get("title", ""))
         out.append({
             "period": f"{fy[0]}/{fy[1]:02d}-{q}Q",
             "end": _shift_month(fy[0], fy[1], -(4 - q) * 3),
-            **dict(zip(FIELDS, vals)),
+            **{f: val(f) for f in FIELDS},
             "announced": f"{ann.group(1)}-{int(ann.group(2)):02d}-{int(ann.group(3)):02d}" if ann else "",
         })
     out.sort(key=lambda r: r["end"])

@@ -5,17 +5,16 @@
 ③ ローツェ型 B: 予想を修正せず、好調なのに残り期間の想定利益が直近の実力より不自然に低い
 ③ ローツェ型 A(受注急増)・KPI・製品価格は短信の数値に無いため、文章を読むレイヤー(Phase 2)で扱う
 
-データ: 当四半期 = 決算短信サマリーXBRL(開示と同時) / 過去の単独四半期 = IRBANK 四半期毎履歴(開示前に取得済みのもの)
+データ: 当四半期 = 決算短信サマリーXBRL(開示と同時) / 過去の単独四半期 = quarterly_history.csv(history.py)
 """
 import logging
-from datetime import date
 from pathlib import Path
 
 import pandas as pd
 
-from . import disclosures, universe
+from . import disclosures, history, universe
 from .config import DATA_DIR, now_jst
-from .datasources import irbank, tdnet
+from .datasources import tdnet
 from .datasources.http import RateLimitedSession
 
 log = logging.getLogger(__name__)
@@ -50,7 +49,7 @@ def _month_index(ym: str) -> int:
 
 
 def quarter_series(history: list[dict], x: dict, disclosed_date: str) -> list[dict] | None:
-    """IRBANKの履歴(開示日より前に提出された分)+ 当四半期(XBRL累計から差し引き)を古い順に返す。
+    """履歴(開示日より前に発表された分)+ 当四半期(XBRL累計から差し引き)を古い順に返す。
 
     履歴の最後が当四半期のちょうど3ヶ月前に終わっていなければ None(期ずれ・決算期変更)。
     """
@@ -149,75 +148,81 @@ def _conservatism(series: list[dict], x: dict) -> float | None:
     return _ratio(implied, sum(ly_rest) * growth)
 
 
-def evaluate(code: str, disclosed_at: str, x: dict, history: list[dict], tcfg: dict) -> dict:
+def current_quarter(x: dict, series: list[dict] | None) -> dict | None:
+    """履歴に追記する当四半期の単独値。1Qは累計=単独なので履歴が無くても作れる。"""
+    if series is not None:
+        return series[-1]
+    if x and x.get("n_q") == 1 and x.get("period_end"):
+        return {"end": x["period_end"][:7], **{f: x["cum"].get(f) for f in FIELDS}}
+    return None
+
+
+def evaluate(code: str, disclosed_at: str, x: dict, history: list[dict], tcfg: dict) -> tuple[dict, dict | None]:
+    """(特徴量の行, 履歴に追記する当四半期 or None)"""
     row = {"code": code, "disclosed_at": disclosed_at, "n_q": x.get("n_q", ""), "period_end": x.get("period_end", ""),
            "revised": "" if x.get("revised") is None else str(x["revised"])}
     if not x:
-        return {**row, "status": "no_xbrl"}
+        return {**row, "status": "no_xbrl"}, None
     series = quarter_series(history, x, disclosed_at[:10])
+    cur = current_quarter(x, series)
     if series is None:
-        return {**row, "status": "no_history"}
+        return {**row, "status": "no_history"}, cur
     f = compute(series, x, tcfg)
-    return {**row, **{k: (round(v, 2) if isinstance(v, float) else v) for k, v in f.items()}, "status": "ok"}
+    return {**row, **{k: (round(v, 2) if isinstance(v, float) else v) for k, v in f.items()}, "status": "ok"}, cur
 
 
 # ---------------------------------------------------------------- 取り込み
 
 def update(cfg: dict, data_dir: Path = DATA_DIR, tdnet_session: RateLimitedSession | None = None,
-           history_session: RateLimitedSession | None = None, limit: int | None = None,
-           today: date | None = None) -> dict:
-    """未評価の決算短信(universe内・XBRLあり)を評価して earnings_features.csv に追記する。"""
+           limit: int | None = None) -> dict:
+    """未評価の決算短信(universe内・XBRLあり)を評価して earnings_features.csv に追記し、
+    当四半期の単独値を quarterly_history.csv に継ぎ足す(ネットワークは TDnet のみ)。"""
     ecfg = cfg["earnings"]
-    today = today or now_jst().date()
+    if not history.path(data_dir).exists():
+        log.info("quarterly_history.csv が無いため型判定をスキップ(手元で history コマンドを実行)")
+        return {"evaluated": 0, "history_appended": 0, "status": {}}
     tdnet_session = tdnet_session or RateLimitedSession.from_config(cfg)
-    history_session = history_session or irbank.session_from_config(cfg)
-    cache_dir = data_dir / "cache" / "irbank"
 
     disc = disclosures.load(data_dir)
     uni = set(universe.load(data_dir)["code"])
     feats = load(data_dir)
-    done = set(feats.loc[feats["status"].isin(["ok", "no_xbrl"]), "disclosure_id"])
+    hist_df = history.load(data_dir)
+    hist = history.by_code(hist_df)
+    # no_history は履歴が増えたら評価し直すが、TDnet への負荷を抑えるため1日1回まで
+    today = now_jst().strftime("%Y-%m-%d")
+    retried_today = (feats["status"] == "no_history") & (feats["computed_at"].astype(str).str[:10] == today)
+    done = set(feats.loc[feats["status"].isin(["ok", "no_xbrl"]) | retried_today, "disclosure_id"])
     todo = disc[(disc["kind"] == "earnings_report") & (disc["is_correction"] != "True")
                 & disc["code"].isin(uni) & ~disc["disclosure_id"].isin(done)]
-    todo = todo.sort_values("disclosed_at", ascending=False).head(limit or ecfg["max_per_run"])
+    todo = todo.sort_values("disclosed_at").head(limit or ecfg["max_per_run"])   # 古い順: 履歴を順に積む
 
-    rows = []
+    rows, appended = [], []
     for r in todo.itertuples():
         try:
             x = tdnet.fetch_earnings(tdnet_session, r.xbrl_url) if r.xbrl_url else {}
-            hist = irbank.get_quarterly(history_session, r.code, cache_dir, ecfg["history_max_age_days"], today)
         except Exception as e:                       # 1件の失敗で止めない。次回再試行
             log.warning("決算評価失敗 %s %s: %s", r.code, r.disclosure_id, e)
             continue
-        rows.append({"disclosure_id": r.disclosure_id,
-                     **evaluate(r.code, r.disclosed_at, x, hist, ecfg["types"]),
-                     "computed_at": now_jst().strftime("%Y-%m-%dT%H:%M")})
+        feat, cur = evaluate(r.code, r.disclosed_at, x, hist.get(r.code, []), ecfg["types"])
+        rows.append({"disclosure_id": r.disclosure_id, **feat, "computed_at": now_jst().strftime("%Y-%m-%dT%H:%M")})
+        if cur and all(cur.get(f) is not None for f in ("sales", "op")):
+            h = {"code": r.code, **cur, "announced": r.disclosed_at[:10], "source": "tdnet"}
+            appended.append(h)
+            hist.setdefault(r.code, [])
+            hist[r.code] = [q for q in hist[r.code] if q["end"] != cur["end"]] + [h]
+            hist[r.code].sort(key=lambda q: q["end"])
 
     if rows:
         new = pd.DataFrame(rows).reindex(columns=FEATURE_COLUMNS, fill_value="")
         feats = pd.concat([feats[~feats["disclosure_id"].isin(new["disclosure_id"])], new])
         feats = feats.sort_values(["disclosed_at", "disclosure_id"], ascending=False)
         feats.to_csv(features_path(data_dir), index=False, encoding="utf-8")
-    stats = {"evaluated": len(rows), "remaining": max(0, len(todo) - len(rows)),
+    if appended:
+        history.save(history.merge(hist_df, appended), data_dir)
+    stats = {"evaluated": len(rows), "history_appended": len(appended),
              "status": pd.Series([r["status"] for r in rows]).value_counts().to_dict() if rows else {}}
     log.info("earnings: %s", stats)
     return stats
-
-
-def prefetch_history(cfg: dict, codes: list[str], data_dir: Path = DATA_DIR,
-                     session: RateLimitedSession | None = None, today: date | None = None) -> int:
-    """発表予定の銘柄の履歴を前日のうちにIRBANKから取得しておく(当日は短信XBRLだけで計算できる)。"""
-    session = session or irbank.session_from_config(cfg)
-    today = today or now_jst().date()
-    n = 0
-    for c in codes:
-        try:
-            irbank.get_quarterly(session, c, data_dir / "cache" / "irbank",
-                                 cfg["earnings"]["history_max_age_days"], today)
-            n += 1
-        except Exception as e:
-            log.warning("IRBANK取得失敗 %s: %s", c, e)
-    return n
 
 
 def by_disclosure(data_dir: Path = DATA_DIR) -> dict[str, dict]:

@@ -24,7 +24,7 @@ concurrency:
 jobs:
   ingest:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
 
@@ -35,12 +35,6 @@ jobs:
 
       - run: pip install -r requirements.txt
 
-      # 株探の四半期履歴は再配布しないためコミットせず、Actionsのキャッシュで実行間に引き継ぐ
-      - uses: actions/cache@v4
-        with:
-          path: data/cache
-          key: kabutan-${{ github.run_id }}
-          restore-keys: kabutan-
 
       - name: Ingest disclosures
         run: python -m src.cli disclosures --days "${{ github.event.inputs.days || '1' }}"

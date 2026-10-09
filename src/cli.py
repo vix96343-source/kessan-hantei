@@ -5,8 +5,7 @@ import logging
 import sys
 from datetime import date
 
-from . import calendar_fetch, disclosures, earnings, reaction, site, universe
-from .bizdays import add_business_days
+from . import calendar_fetch, disclosures, earnings, history, reaction, site, universe
 from .config import load_config, now_jst
 
 
@@ -27,12 +26,12 @@ def cmd_earnings(args, cfg):
     print(site.render_all(cfg))
 
 
-def prefetch_codes(cfg) -> list[str]:
-    """翌営業日〜prefetch_business_days 先に発表予定で、一次フィルタ(売買代金)を通る銘柄"""
-    cal, uni = calendar_fetch.load(), universe.load()
-    until = add_business_days(now_jst().date(), cfg["earnings"]["prefetch_business_days"]).isoformat()
-    liquid = set(uni.loc[uni["avg_turnover_20d"] >= cfg["judge"]["min_avg_turnover"], "code"])
-    return sorted(set(cal.loc[cal["announce_date"] <= until, "code"]) & liquid)
+def cmd_history(args, cfg):
+    """初回だけ手元のPCで実行: IRBANK から過去の単独四半期を取得(Actions のIPは拒否される)"""
+    uni = universe.load()
+    # 売買代金の大きい順に取る(途中で止めても重要な銘柄から揃う)
+    codes = uni.sort_values("avg_turnover_20d", ascending=False)["code"].tolist()[: args.limit]
+    print(json.dumps(history.bootstrap(cfg, codes, years=args.years), ensure_ascii=False))
 
 
 def cmd_universe(args, cfg):
@@ -44,13 +43,11 @@ def cmd_calendar(args, cfg):
 
 
 def cmd_run(args, cfg):
-    """dailyワークフロー: (週1) universe → calendar → 発表予定銘柄の履歴を先取り → 株価反応 → サイト再生成"""
+    """dailyワークフロー: (週1) universe → calendar → 株価反応 → サイト再生成"""
     today = now_jst().date()
     if args.force_universe or not universe.path().exists() or today.weekday() == cfg["universe"]["update_weekday"]:
         cmd_universe(args, cfg)
     cmd_calendar(args, cfg)
-    codes = prefetch_codes(cfg)
-    print(json.dumps({"prefetched": earnings.prefetch_history(cfg, codes), "targets": len(codes)}))
     print(json.dumps(reaction.update(cfg), ensure_ascii=False))
     cmd_site(args, cfg)
 
@@ -94,7 +91,12 @@ def main(argv=None):
     s.add_argument("--limit", type=int, help="評価する短信の上限")
     s.set_defaults(func=cmd_earnings)
 
-    s = sub.add_parser("run", help="universe(週1) → calendar → 履歴先取り → 株価反応 → サイト再生成")
+    s = sub.add_parser("history", help="初回のみ手元で: IRBANKから過去の単独四半期を取得")
+    s.add_argument("--years", type=int, default=3)
+    s.add_argument("--limit", type=int, help="取得する銘柄数の上限(売買代金の大きい順)")
+    s.set_defaults(func=cmd_history)
+
+    s = sub.add_parser("run", help="universe(週1) → calendar → 株価反応 → サイト再生成")
     s.add_argument("--force-universe", action="store_true")
     s.set_defaults(func=cmd_run)
 

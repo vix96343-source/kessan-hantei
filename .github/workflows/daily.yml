@@ -22,7 +22,7 @@ concurrency:
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
 
@@ -33,12 +33,6 @@ jobs:
 
       - run: pip install -r requirements.txt
 
-      # 株探の四半期履歴は再配布しないためコミットせず、Actionsのキャッシュで実行間に引き継ぐ
-      - uses: actions/cache@v4
-        with:
-          path: data/cache
-          key: kabutan-${{ github.run_id }}
-          restore-keys: kabutan-
 
       - name: Run
         run: python -m src.cli run ${{ github.event.inputs.force_universe == 'true' && '--force-universe' || '' }}

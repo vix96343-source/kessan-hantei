@@ -63,9 +63,7 @@ site:
 
 earnings:
   # 決算短信の「上がりやすい決算内容」への親和性(src/earnings.py)
-  max_per_run: 150           # 1回の実行で評価する短信の上限(IRBANKは2秒/件)
-  history_max_age_days: 7    # IRBANKの四半期履歴キャッシュの有効日数
-  prefetch_business_days: 2  # dailyで何営業日先までの発表予定銘柄の履歴を先取りするか
+  max_per_run: 300           # 1回の実行で評価する短信の上限(TDnet XBRL 1秒/件)
   types:
     recruit:                 # ① リクルート型(q-accel と同じ)
       min_accel: 3.0         # 単Q売上YoY − 直近1年売上YoY (pt)

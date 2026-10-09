@@ -75,6 +75,9 @@ M5 review(実績取込・答え合わせ) → predictions.csv 更新 + stats.jso
 │   ├── predictions.csv    # ★ コア資産
 │   ├── stats.json         # GAP判定クラス別の実測成績
 │   ├── disclosures.csv    # 適時開示(修正・短信・説明資料)。disclosure_idキーで追記
+│   ├── quarterly_history.csv  # 単独四半期の業績履歴(初回IRBANK、以降は短信XBRLから追記)
+│   ├── earnings_features.csv  # 決算短信ごとの型判定(①②③)
+│   ├── reactions.csv / reaction_stats.json  # 開示後の株価反応と上昇確度の集計
 │   └── disclosures_meta.json  # coverage_start(欠損なし期間の開始日)/ last_date
 ├── docs/                  # GitHub Pages出力先(生成物)
 ├── templates/             # Jinja2テンプレート
@@ -171,8 +174,10 @@ python -m src.cli revisions --code 4617 [--date YYYY-MM-DD]  # 直近修正と r
 | ③ ローツェ型B | 予想修正なし かつ 単Q営業益YoY > 0 かつ 慎重度 ≤ 0.85(残り期間の想定営業益 ÷ 前年同期間×今期累計の伸び。1Qで上期予想があれば上期予想−1Q) | 経営陣の強気コメント |
 | ③ ローツェ型A | ―(受注高はXBRLに無い) | 受注QoQ +20% |
 
-- データ: 当四半期 = TDnet 決算短信サマリーXBRL(開示と同時)。過去の単独四半期 = IRBANK 四半期進捗ページ irbank.net/{code}/quarter の「四半期毎履歴(百万円)」実績行(過去5〜6期。dailyで翌々営業日までの発表予定銘柄を先取り。2秒間隔)。株探は GitHub Actions のIPから 405 で拒否されるため不採用。IRBANKのデータは出典明示で再配信可だが、キャッシュ(data/cache/)はコミットせず actions/cache で保持し、コミットするのは計算結果のみ。
-- 単独四半期 = 短信の累計 − 同じ期の過去四半期(IRBANK)。履歴の最終四半期が当四半期の3ヶ月前でなければ判定しない(status=no_history)。
+- データ: 当四半期 = TDnet 決算短信サマリーXBRL(開示と同時)。過去の単独四半期 = data/quarterly_history.csv(history.py)。
+  - 初回のみ手元のPCで `python -m src.cli history --years 3` を実行し、IRBANK 四半期進捗ページ(irbank.net/{code}/quarter の「四半期毎履歴(百万円)」実績行)から過去3年分を取得(source=irbank)。株探・IRBANK とも GitHub Actions のIPを拒否する(405/403)ため、Actions からは取りに行かない。IRBANK のデータは出典明示で再配信可(サイトのフッターに出典を表示)。
+  - 以降は決算短信を評価するたびに、短信XBRLから復元した当四半期を追記(source=tdnet)。Actions だけで履歴が伸びる。1Qは累計=単独なので、履歴が無い銘柄も1年で揃う。
+- 単独四半期 = 短信の累計 − 同じ期の過去四半期(履歴)。履歴の最終四半期が当四半期の3ヶ月前に終わっていなければ判定しない(status=no_history。履歴が増えたら次回以降に再評価)。
 - 上昇確度 = 同じバケット(決算は型の該当数 0/1/2以上、修正・配当は方向×幅)の過去開示で「開示前終値→開示後最初の終値」が上昇した割合を、全体の上昇率に prior_n 件ぶん寄せて縮小推定(reaction_stats.json)。型ごとの成績は reaction_stats.json の types に参考として出す(基準の検証用)。
 - 結果は data/earnings_features.csv(disclosure_id キー)。
 
