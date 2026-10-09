@@ -40,7 +40,15 @@ td { padding: 6px 10px; white-space: nowrap; border-bottom: 1px solid #1f2333; }
 tbody tr.row td { background: var(--row); }
 tbody tr.row.alt td { background: var(--row2); }
 tr.row { cursor: pointer; } tr.row:hover td { background: #262b42 !important; }
-td.c-date, td.c-time, td.c-code, td.c-kind { color: var(--teal); }
+/* お手本(小さめの太字、▲の行は行全体を緑、それ以外は白) */
+table#list { width: auto; min-width: 520px; max-width: 760px; font-size: 13px; }
+table#list th { font-size: 12.5px; font-weight: 700; padding: 5px 10px; text-align: center; color: #cfd6e4; }
+table#list td { padding: 3px 10px; font-weight: 700; color: #eef1f6; border-bottom: 1px solid #262c40; }
+table#list tr.row.up td { color: var(--green); }
+table#list td.c-time, table#list td.c-code, table#list td.c-per { text-align: center; }
+table#list td.c-pct { text-align: right; }
+table#list td.c-pct.down { color: #eef1f6; font-weight: 700; }
+th.c-date, td.c-date { display: none; }       /* 日付は区切り行で出す */
 td.c-per { color: var(--text); }
 td.c-name { max-width: 260px; overflow: hidden; text-overflow: ellipsis; }
 td.c-pct, th.c-pct { text-align: right; }
@@ -74,7 +82,7 @@ table.fin td.lab { color: var(--warn); }
 .dl span:first-child { color: var(--muted); } .dl span:last-child { white-space: nowrap; }
 .dl .up { color: var(--green); } .dl .down { color: var(--red); }
 td.c-kind { white-space: nowrap; }
-a.pdf { display: inline-block; font-size: 12px; line-height: 1.5; padding: 0 6px; margin-right: 4px; border-radius: 3px;
+a.pdf { display: inline-block; font-size: 11px; line-height: 1.4; padding: 0 5px; margin-right: 4px; border-radius: 3px;
   color: #dff7f4; background: var(--teal-bg); border: 1px solid var(--teal-line); text-decoration: none; }
 a.pdf:hover { filter: brightness(1.25); }
 a.pdf.sub { background: transparent; color: var(--teal); }
@@ -86,7 +94,8 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
   body { font-size: 13px; }
   header { flex-wrap: wrap; gap: 4px 10px; } header .status { margin-left: 0; width: 100%; }
   /* スマホは日付列を幅0にして(列数は保つ)、代わりに日付の区切り行を出す */
-  th.c-date, td.c-date { width: 0; padding: 0 !important; font-size: 0; border: 0; overflow: hidden; }
+  table#list { min-width: 0; width: 100%; font-size: 12px; }
+  table#list td, table#list th { padding: 3px 4px; }
   table { table-layout: fixed; }
   th.c-time { width: 44px; } th.c-code { width: 40px; } th.c-kind { width: 70px; } th.c-per { width: 34px; }
   th.c-pct { width: 42px; }
@@ -130,7 +139,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
 </div>
 
 <div class="wrap">
-<table>
+<table id="list">
   <thead><tr>
     <th class="c-date" data-k="time">日付</th>
     <th class="c-time" data-k="time">時刻<span class="ar"></span></th>
@@ -273,7 +282,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
 
   function detail(r) {
     const items = (r.details || []).map(([k, v, t]) => `<div><span>${esc(k)}</span><span class="${esc(t)}">${esc(v)}</span></div>`).join('');
-    return `<tr class="detail"><td colspan="7">
+    return `<tr class="detail"><td colspan="6">
       <div class="dtitle">${esc(r.title)}</div>${finTables(r.fin)}${items ? `<div class="dl">${items}</div>` : ''}
     </td></tr>`;
   }
@@ -291,19 +300,19 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
     rows.forEach((r, i) => {
       if (byTime && r.date !== day) {
         const c = (index.days || []).find(x => x.date === r.date);
-        html += `<tr class="dayrow"><td colspan="7"><span class="dd">${r.date.replace(/-/g, '/')}(${wd(r.date)})</span>`
+        html += `<tr class="dayrow"><td colspan="6"><span class="dd">${r.date.replace(/-/g, '/')}(${wd(r.date)})</span>`
               + (c ? `<span class="dn">決算 ${c.earn}件 ・ 修正 ${c.rev}件</span>` : '') + '</td></tr>';
         day = r.date;
       }
       const isNew = fresh.has(r.id);
       html += `<tr class="row${i % 2 ? ' alt' : ''}${isNew ? ' new' : ''}" data-id="${esc(r.id)}">
-        <td class="c-date">${r.date.replace(/-/g, '/')}</td><td class="c-time">${esc(r.time)}</td>
+        <td class="c-date">${r.date.replace(/-/g, '/')}</td><td class="c-time">T${esc(r.time)}</td>
         <td class="c-code">${esc(r.code)}</td>
         <td class="c-name" title="${esc(r.title)}">${esc(r.name)}${isNew ? '<span class="badge-new">NEW</span>' : ''}</td>
         <td class="c-kind">${pdfLinks(r)}</td><td class="c-per">${esc(r.period)}</td>${pctCell(r)}</tr>`;
       if (open.has(r.id)) html += detail(r);
     });
-    $('tb').innerHTML = html || `<tr><td colspan="7" class="more">${state.onlyNew ? '新着はありません' : '該当する開示はありません'}</td></tr>`;
+    $('tb').innerHTML = html || `<tr><td colspan="6" class="more">${state.onlyNew ? '新着はありません' : '該当する開示はありません'}</td></tr>`;
 
     const nd = state.day ? null : nextDate();
     $('more').innerHTML = state.day ? '' : nd
