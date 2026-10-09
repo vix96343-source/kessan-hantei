@@ -126,7 +126,8 @@ def _is_presentation(t: str) -> bool:
         return False
     if re.search(r"開催|日程|延期|日の変更|日の決定|書き起こし|質疑|訂正|追加", t):
         return False
-    if t.endswith("お知らせ") and not re.search(r"説明資料|説明会資料|プレゼンテーション資料|参考資料|補足資料", t):
+    if t.endswith("お知らせ") and not re.search(
+            r"説明資料|説明会資料|プレゼンテーション資料|参考資料|補足資料|決算.{0,6}概要|ハイライト", t):
         return False
     return True
 

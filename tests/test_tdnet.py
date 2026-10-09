@@ -80,6 +80,7 @@ def test_parse_list_page():
     ("ユーロ円CB発行および自己株式取得に関する補足説明資料", "other", False, ""),
     ("株主優待制度（分配型）に関する補足説明のお知らせ", "other", False, ""),
     ("2026年８月期　決算説明資料に関するお知らせ", "earnings_presentation", False, ""),
+    ("「2027年5月期 第1四半期決算概要」のお知らせ", "earnings_presentation", False, ""),
     ("2027年１月期 第２四半期決算説明会 書き起こし公開のお知らせ", "other", False, ""),
 ])
 def test_classify_title(title, kind, corr, direction):

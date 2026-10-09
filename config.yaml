@@ -20,8 +20,8 @@ disclosures:
     - actual_vs_forecast
     - earnings_report
     - earnings_presentation
-  # universe.csv があればその銘柄だけ残す(無ければ全銘柄を保存)
-  filter_by_universe: true
+  # 速報には TDnet に出たものを全部出す(グロースも含む)。持ち越し判定の市場フィルタは judge 側で行う
+  filter_by_universe: false
   # XBRLを取得して修正率を読む種別
   parse_xbrl_kinds:
     - forecast_revision
