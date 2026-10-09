@@ -74,6 +74,7 @@ tr.dayrow .dn { color: var(--muted); font-size: 12px; margin-left: 10px; }
   border-radius: 3px; padding: 0 4px; margin-left: 6px; vertical-align: 1px; }
 tr.detail td { white-space: normal; background: #141724 !important; padding: 8px 12px 12px; }
 .dtitle { color: var(--muted); margin-bottom: 8px; }
+.dlinks { margin: 2px 0 6px; } .dlinks a { color: var(--teal); margin-right: 16px; }
 .finbox { overflow-x: auto; margin: 4px 0 10px; }
 table.fin { width: auto; min-width: 520px; max-width: 760px; border-collapse: collapse; font-size: 12.5px;
   font-family: "Consolas", "Menlo", "Meiryo UI", monospace; }
@@ -99,23 +100,7 @@ a.pdf.sub { background: transparent; color: var(--teal); }
 .more button { margin-top: 4px; }
 footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14px 30px; max-width: 900px; }
 .sm { display: none; }
-@media (max-width: 600px) {
-  body { font-size: 13px; }
-  header { flex-wrap: wrap; gap: 4px 10px; } header .status { margin-left: 0; width: 100%; }
-  /* スマホ: 列幅を固定して1画面に収める */
-  table#list { min-width: 0; width: 100%; font-size: 11.5px; table-layout: fixed; }
-  table#list td, table#list th { padding: 4px 2px; overflow: hidden; }
-  table#list th { font-size: 11px; }
-  th.c-date { width: 40px; } th.c-time { width: 50px; } th.c-code { width: 38px; } th.c-kind { width: 56px; }
-  th.c-per { width: 30px; } th.c-pct { width: 42px; }
-  table#list td.c-kind { white-space: normal; }            /* 短信+資料は縦に並べてはみ出さない */
-  .wrap { padding: 0 8px 10px; }
-  td.c-name { overflow: hidden; text-overflow: ellipsis; max-width: none; }
-  .lg { display: none; } .sm { display: inline; }
-  table.fin { min-width: 0; font-size: 11px; }
-  table.fin th, table.fin td { padding: 2px 5px; }
-  input[type=search] { max-width: none; }
-}
+
 </style>
 </head>
 <body>
@@ -289,7 +274,9 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
   function detail(r) {
     const items = (r.details || []).map(([k, v, t]) => `<div><span>${esc(k)}</span><span class="${esc(t)}">${esc(v)}</span></div>`).join('');
     return `<tr class="detail"><td colspan="7">
-      <div class="dtitle">${esc(r.title)}</div>${finTables(r.fin)}${items ? `<div class="dl">${items}</div>` : ''}
+      <div class="dtitle">${esc(r.title)}</div>
+      <div class="dlinks">${(r.pdfs || []).map(p => `<a href="${esc(p.url)}" target="_blank" rel="noopener" title="${esc(p.title || '')}">${esc(p.label === '資料' || p.label === '資料2' ? '説明資料' : p.label === '短信' ? '決算短信' : '修正の開示')}(PDF)</a>`).join('')}</div>
+      ${finTables(r.fin)}${items ? `<div class="dl">${items}</div>` : ''}
     </td></tr>`;
   }
 
@@ -315,7 +302,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
         <td class="c-date">${r.date.slice(5).replace('-', '/')}</td><td class="c-time">T${esc(r.time)}</td>
         <td class="c-code">${esc(r.code)}</td>
         <td class="c-name" title="${esc(r.title)}">${esc(r.name)}${isNew ? '<span class="badge-new">NEW</span>' : ''}</td>
-        <td class="c-kind">${pdfLinks(r)}</td><td class="c-per">${esc(r.period)}</td>${pctCell(r)}</tr>`;
+        <td class="c-kind"><a class="pdf" href="${esc(r.url)}" target="_blank" rel="noopener" title="${esc(r.title)}">${esc(r.group)}</a></td><td class="c-per">${esc(r.period)}</td>${pctCell(r)}</tr>`;
       if (open.has(r.id)) html += detail(r);
     });
     $('tb').innerHTML = html || `<tr><td colspan="7" class="more">${state.onlyNew ? '新着はありません' : '該当する開示はありません'}</td></tr>`;
