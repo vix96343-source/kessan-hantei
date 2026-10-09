@@ -217,16 +217,10 @@ def _f0(v):
 
 
 def _growth(cur, base):
-    """前年比・前四半期比(%)。比べる相手が赤字・ゼロのときは「黒転/赤転/赤縮/赤拡」(短信では「－」の所)。"""
-    if cur is None or base is None:
+    """前年比・前四半期比(%)。比べる相手が赤字のときも (今回 − 前回) ÷ |前回| で数値にする。前回がゼロなら出さない。"""
+    if cur is None or base is None or base == 0:
         return None
-    if base > 0:
-        return "赤転" if cur < 0 else round((cur / base - 1) * 100, 1)
-    if cur > 0:
-        return "黒転"
-    if base == 0:
-        return "赤転" if cur < 0 else None
-    return "赤縮" if cur > base else "赤拡"
+    return round((cur - base) / abs(base) * 100, 1)
 
 
 def revision_numbers(rv: dict | None) -> dict | None:
