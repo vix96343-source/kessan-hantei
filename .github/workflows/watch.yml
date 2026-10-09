@@ -31,6 +31,9 @@ jobs:
 
       - run: pip install -r requirements.txt
 
+      # IRサイトの説明資料探し(JavaScriptで一覧を作るサイト用)に使うブラウザ
+      - run: python -m playwright install --with-deps chromium
+
       - name: Watch TDnet every minute
         run: |
           git config user.name "github-actions[bot]"
@@ -42,6 +45,8 @@ jobs:
           while [ "$(date +%s)" -lt "$end_ts" ]; do
             t0=$(date +%s)
             python -m src.cli disclosures --days 0 || echo "::warning::tick failed"
+            # TDnet に無い説明資料を各社IRサイトで探す(固まっても監視を止めないよう90秒で打ち切る)
+            timeout 90 python -m src.cli irdocs --budget 25 || echo "::warning::irdocs timeout or failed"
             git add data/ docs/
             if ! git diff --cached --quiet; then
               git commit -q -m "data: watch $(TZ=Asia/Tokyo date '+%Y-%m-%d %H:%M')"

@@ -178,6 +178,14 @@ python -m src.cli revisions --code 4617 [--date YYYY-MM-DD]  # 直近修正と r
 - 上昇確度 = 同じバケット(決算は型の該当数 0/1/2以上、修正・配当は方向×幅)の過去開示で「開示前終値→開示後最初の終値」が上昇した割合を、全体の上昇率に prior_n 件ぶん寄せて縮小推定(reaction_stats.json)。型ごとの成績は types に参考として出す。
 - 結果は data/earnings_features.csv(disclosure_id キー)。
 
+### 決算説明資料(tdnet.py / irdocs.py / irsite.py)
+- まず TDnet の「決算説明資料・補足資料・決算の概要・参考資料・ハイライト」等を短信にひも付ける(短信から14日以内)。決算と無関係な補足説明(資金調達・買収等)や説明会の開催案内・書き起こし・訂正は除外。
+- TDnet に無い場合: 短信XBRLの「決算補足説明資料作成の有無」(SupplementalMaterialOf(Annual)Results)が「有」の会社だけ、短信XBRLに載っている会社URLから各社IRサイトをたどって説明資料PDFを探す(「無」は探さない)。
+  - IR → 説明会・IR資料・ライブラリ → … と優先度つきで最大10ページ。PDFは「資料らしさ」「期(1Q〜通期)」「決算期(2027年2月期等)」「URLの日付」で点数づけ。短信そのもの・英語版・別の期は減点。
+  - 普通に読んで見つからなければ Playwright(ヘッドレスChromium)で表示して探し直す(JavaScriptで一覧を作るサイト、iframe の外部IRサービス)。
+  - robots.txt を守り1秒に1回まで。ボット拒否(Akamai 等)のサイトは突破しない。見つからなければ60分ごとに最大6回探し直す(説明資料は短信の数日後に載る会社が多い)。
+  - 結果は data/ir_docs.csv、会社URLは data/company_urls.csv。watch の1分ごとの確認の合間に25秒ずつ進める。
+
 ### リアルタイム表示(watch.yml / feed.html.j2)
 - watch.yml が平日 8:00〜20:00 JST に1分おきに TDnet を確認し、新しい開示があれば型判定・サイト再生成・push(ジョブ6時間制限のため 8:00〜14:00 と 14:00〜20:00 の2本)。daily.yml は watch の後(20:05)。
 - トップページは docs/feed.json を1分ごとに読み直して自動更新。新着は NEW で強調、行タップで数値(売上・営業益YoY、加速、利益率、進捗率、QoQ、慎重度、修正率)を表示。

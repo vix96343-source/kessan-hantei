@@ -7,3 +7,4 @@ PyYAML>=6.0
 jpholiday>=0.1
 yfinance>=1.0
 pytest>=8.0
+playwright>=1.44

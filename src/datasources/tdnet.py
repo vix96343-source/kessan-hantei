@@ -120,6 +120,9 @@ _PRESENTATION = re.compile(
 _RESULTS_CONTEXT = re.compile(r"決算|業績|四半期|上期|下期|中間期|通期|results|earnings|FY\d|\dQ", re.I)
 
 
+_FUND = re.compile(r"上場投信|上場投資信託|連動型|ＥＴＦ|ETF|ＥＴＮ|ETN|指数連動")
+
+
 def _is_presentation(t: str) -> bool:
     """決算の説明資料・補足資料か。説明会の開催案内・書き起こし・訂正や、CB発行等の補足説明は除く。"""
     if not (_PRESENTATION.search(t) and _RESULTS_CONTEXT.search(t)):
@@ -136,6 +139,8 @@ def classify_title(title: str) -> dict:
     """表題から開示種別・訂正フラグ・方向(表題ベース)を判定する。"""
     t = title.strip()
     is_correction = bool(_CORRECTION.search(t))
+    if _FUND.search(t):                             # ETF・ETN(上場投信)の決算短信などは株式の決算ではない
+        return {"kind": "other", "is_correction": is_correction, "title_direction": ""}
 
     if _EARNINGS.search(t) and not re.search(r"補足|説明|参考資料|概要", t):
         kind = "earnings_report"                    # 「決算短信」だけの表題は短信(資料と取り違えない)
@@ -347,6 +352,14 @@ def _change(facts: dict, ctx: str, key: str) -> float | None:
     return None if v is None else round(v * 100, 4)      # scale=-2 で比率になっているので % に戻す
 
 
+def _yes_no(texts: dict, *names: str) -> bool | None:
+    for n in names:
+        v = texts.get(n, "").strip()
+        if v[:1] in ("有", "無"):
+            return v[:1] == "有"
+    return None
+
+
 def parse_earnings_xbrl(zip_bytes: bytes) -> dict:
     """決算短信サマリーから累計実績・前年同期・会社予想・修正有無を返す。読めなければ空dict。
 
@@ -406,6 +419,11 @@ def parse_earnings_xbrl(zip_bytes: bytes) -> dict:
         "forecast_q2": block(q2_ctx) if n_q == 1 else {},
         "forecast_q2_change": block(q2_ctx, _change) if n_q == 1 else {},
         "revised": {"有": True, "true": True, "無": False, "false": False}.get(revised_txt) if revised_txt else None,
+        "company_url": texts.get("URL", ""),
+        # 短信1ページ目の「決算補足説明資料作成の有無」「決算説明会開催の有無」
+        # (本決算の短信は項目名に Annual が付く)
+        "has_material": _yes_no(texts, "SupplementalMaterialOfResults", "SupplementalMaterialOfAnnualResults"),
+        "has_briefing": _yes_no(texts, "ConveningBriefingOfResults", "ConveningBriefingOfAnnualResults"),
     }
 
 

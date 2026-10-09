@@ -12,7 +12,7 @@ from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader
 
-from . import calendar_fetch, disclosures, earnings, reaction, universe
+from . import calendar_fetch, disclosures, earnings, irdocs, reaction, universe
 from .config import DATA_DIR, ROOT, now_jst
 
 DOCS_DIR = ROOT / "docs"
@@ -129,8 +129,10 @@ def details(r: dict, feat: dict | None) -> list[list]:
     return []
 
 
-def pdf_links(r: dict, presentations: dict[str, list[dict]], within_days: int = 14) -> list[dict]:
-    """行に並べるPDF。決算: 短信 + 決算説明資料(短信と同日〜within_days日以内、最大2件)。修正: 修正。"""
+def pdf_links(r: dict, presentations: dict[str, list[dict]], ir_docs: dict[str, dict] | None = None,
+              within_days: int = 14) -> list[dict]:
+    """行に並べるPDF。決算: 短信 + 決算説明資料(TDnet で短信と同日〜within_days日以内、最大2件。
+    TDnet に無ければ各社IRサイトで見つけたもの)。修正: 修正。"""
     if r["kind"] != "earnings_report":
         return [{"label": "修正", "url": r["pdf_url"]}]
     links = [{"label": "短信", "url": r["pdf_url"]}]
@@ -139,6 +141,9 @@ def pdf_links(r: dict, presentations: dict[str, list[dict]], within_days: int = 
             if 0 <= (date.fromisoformat(p["disclosed_at"][:10]) - d0).days <= within_days]
     for i, p in enumerate(sorted(near, key=lambda p: p["disclosed_at"])[:2]):
         links.append({"label": "資料" if i == 0 else "資料2", "url": p["pdf_url"], "title": p["title"]})
+    ir = (ir_docs or {}).get(r.get("disclosure_id", ""))
+    if not near and ir and ir.get("url"):
+        links.append({"label": "資料", "url": ir["url"], "title": f"{ir.get('title', '')}(会社のIRサイト)"})
     return links
 
 
@@ -151,6 +156,7 @@ def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:
     disc = all_disc[all_disc["kind"].isin(FEED_KINDS) & (all_disc["is_correction"] != "True")]
     stats = reaction.load_stats(data_dir)
     feats = earnings.by_disclosure(data_dir)
+    ir_docs = irdocs.found_by_disclosure(data_dir)
     rows = []
     for r in disc.sort_values(["disclosed_at", "code"], ascending=[False, True]).to_dict("records"):
         p = score_of(r, stats, cfg, feats)
@@ -159,7 +165,7 @@ def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:
                      "code": r["code"], "name": r["name"], "kind": kind_label(r, f),
                      "group": "決算" if r["kind"] == "earnings_report" else "修正",
                      "period": period_label(r, f),
-                     "url": r["pdf_url"], "pdfs": pdf_links(r, presentations),
+                     "url": r["pdf_url"], "pdfs": pdf_links(r, presentations, ir_docs),
                      "title": r["title"], "details": details(r, f),
                      "pct": None if p is None else round(p * 100),
                      "up": p is not None and round(p * 100) > 50})

@@ -5,7 +5,7 @@ import logging
 import sys
 from datetime import date
 
-from . import calendar_fetch, disclosures, earnings, reaction, site, universe
+from . import calendar_fetch, disclosures, earnings, irdocs, reaction, site, universe
 from .config import load_config, now_jst
 
 
@@ -14,6 +14,7 @@ def cmd_disclosures(args, cfg):
     stats = disclosures.ingest(cfg, days=args.days)
     stats["earnings"] = earnings.update(cfg)
     # 変化が無い回はページも作り直さない(生成時刻だけ変わる無駄なコミットを防ぐ)
+    # (IRサイトの説明資料探しは固まっても監視を止めないよう、watch.yml で別プロセスとして実行する)
     if stats["new_rows"] or stats["xbrl_parsed"] or stats["earnings"]["evaluated"]             or not (site.DOCS_DIR / "index.html").exists():
         stats["pages"] = site.render_all(cfg)
     print(json.dumps(stats, ensure_ascii=False))
@@ -24,6 +25,14 @@ def cmd_earnings(args, cfg):
     print(json.dumps(earnings.update(cfg, limit=args.limit), ensure_ascii=False))
     reaction.restat(cfg)
     print(site.render_all(cfg))
+
+
+def cmd_irdocs(args, cfg):
+    """TDnet に無い説明資料を各社IRサイトで探し、見つかればサイトを作り直す"""
+    stats = irdocs.update(cfg, time_budget_sec=args.budget)
+    if stats["found"]:
+        stats["pages"] = site.render_all(cfg)
+    print(json.dumps(stats, ensure_ascii=False))
 
 
 def cmd_universe(args, cfg):
@@ -82,6 +91,10 @@ def main(argv=None):
     s = sub.add_parser("earnings", help="決算短信の型判定(①リクルート ②キオクシア ③ローツェB)")
     s.add_argument("--limit", type=int, help="評価する短信の上限")
     s.set_defaults(func=cmd_earnings)
+
+    s = sub.add_parser("irdocs", help="TDnet に無い決算説明資料を各社IRサイトで探す")
+    s.add_argument("--budget", type=float, default=600, help="使う時間の上限(秒)")
+    s.set_defaults(func=cmd_irdocs)
 
     s = sub.add_parser("run", help="universe(週1) → calendar → 株価反応 → サイト再生成")
     s.add_argument("--force-universe", action="store_true")
