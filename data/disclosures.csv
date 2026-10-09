@@ -1,4 +1,8 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261009548704,2026-10-09T17:00,7603,ジーイエット,2027年２月期　第２四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261009548704.pdf,https://www.release.tdnet.info/inbs/081220261009548704.zip,東,2026-10-09T17:00
+140120261009548540,2026-10-09T17:00,3454,ファーストブラザーズ,2026年11月期 第３四半期 決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261009548540.pdf,,東,2026-10-09T17:00
+140120261008548222,2026-10-09T17:00,3907,シリコンスタジオ,（訂正）「2026年11月期 第３四半期決算補足説明資料」の一部訂正について,earnings_presentation,True,,,,,,https://www.release.tdnet.info/inbs/140120261008548222.pdf,,東,2026-10-09T17:00
+140120261008547944,2026-10-09T17:00,3454,ファーストブラザーズ,2026年11月期 第３四半期 決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261008547944.pdf,https://www.release.tdnet.info/inbs/081220261008547944.zip,東,2026-10-09T17:00
 140120261009548879,2026-10-09T16:45,7463,アドヴァングループ,為替予約評価益の減少並びに2027年3月期第2四半期（中間期）連結業績予想と実績との差異に関するお知らせ,actual_vs_forecast,False,,,,,,https://www.release.tdnet.info/inbs/140120261009548879.pdf,,東,2026-10-09T16:45
 140120261009548877,2026-10-09T16:45,7463,アドヴァングループ,2027年3月期第2四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261009548877.pdf,https://www.release.tdnet.info/inbs/081220261009548877.zip,東,2026-10-09T16:45
 140120261009548339,2026-10-09T16:30,2735,ワッツ,個別業績の前期実績値との差異に関するお知らせ,actual_vs_forecast,False,,,,,,https://www.release.tdnet.info/inbs/140120261009548339.pdf,,東,2026-10-09T16:30
