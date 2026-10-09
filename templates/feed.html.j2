@@ -46,8 +46,13 @@ td.c-name { max-width: 260px; overflow: hidden; text-overflow: ellipsis; }
 td.c-pct, th.c-pct { text-align: right; }
 td.c-pct.up { color: var(--green); font-weight: 700; } td.c-pct.down { color: var(--muted); }
 tr.new td { background: var(--new) !important; }
-tr.dayrow { display: none; }
-tr.dayrow td { color: var(--muted); font-size: 12px; padding: 10px 6px 4px; background: var(--bg); border-bottom: 1px solid var(--line); }
+tr.dayrow td { padding: 22px 6px 6px; background: var(--bg); border-bottom: 1px solid var(--line); white-space: nowrap; }
+tr.dayrow:first-child td { padding-top: 8px; }
+tr.dayrow .dd { color: var(--text); font-weight: 700; font-size: 14px; }
+tr.dayrow .dn { color: var(--muted); font-size: 12px; margin-left: 10px; }
+.datebox { display: inline-flex; align-items: center; gap: 4px; }
+.datebox input[type=date] { color-scheme: dark; }
+.datebox button { padding: 5px 8px; }
 .badge-new { display: inline-block; font-size: 10px; font-weight: 700; color: #1b1500; background: var(--warn);
   border-radius: 3px; padding: 0 4px; margin-left: 6px; vertical-align: 1px; }
 tr.detail td { white-space: normal; background: #141724 !important; padding: 8px 12px 12px; }
@@ -70,7 +75,6 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
   header { flex-wrap: wrap; gap: 4px 10px; } header .status { margin-left: 0; width: 100%; }
   /* スマホは日付列を幅0にして(列数は保つ)、代わりに日付の区切り行を出す */
   th.c-date, td.c-date { width: 0; padding: 0 !important; font-size: 0; border: 0; overflow: hidden; }
-  tr.dayrow { display: table-row; }
   table { table-layout: fixed; }
   th.c-time { width: 42px; } th.c-code { width: 38px; } th.c-kind { width: 56px; } th.c-per { width: 32px; }
   th.c-pct { width: 40px; } th.c-pdf { width: 66px; }
@@ -93,7 +97,8 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
 </header>
 
 <div class="bar">
-  <input type="search" id="q" placeholder="銘柄コード・会社名・表題を検索" aria-label="検索">
+  <span class="datebox"><input type="date" id="dayq" aria-label="日付で絞り込み" title="日付で絞り込み"><button id="dayclr" title="日付の絞り込みを解除" hidden>×</button></span>
+  <input type="search" id="q" placeholder="コード・会社名・表題・日付(10/8)で検索" aria-label="検索">
   <button class="primary" id="reload">↻ 更新</button>
   <button id="csv">CSV出力</button>
 </div>
@@ -147,7 +152,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
   const d0 = JSON.parse($('day0').textContent);
   if (d0.date) days[d0.date] = d0.rows;
 
-  const state = { q: '', onlyNew: false, sort: load('tdnet-sort', 'time:desc') };
+  const state = { q: '', day: '', onlyNew: false, sort: load('tdnet-sort', 'time:desc') };
   const open = new Set();
   const stored = load('tdnet-seen', null);            // 既読の開示ID(新着判定)
   let firstVisit = stored === null;                   // 初回訪問は全部既読扱い(NEWだらけにしない)
@@ -155,6 +160,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
   const fresh = new Set();
   let loading = false;
   $('sort').value = state.sort;
+  if (index.dates.length) { $('dayq').min = index.dates[index.dates.length - 1]; $('dayq').max = index.dates[0]; }
 
   // TDnet の監視は平日 8〜20時(JST)。新しい開示が無ければデータは更新されないので、監視中かどうかは時間帯で示す
   function setStatus(err) {
@@ -200,11 +206,21 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
     });
   }
 
+  // 「10/8」「2026/10/08」「2026-10-08」「10月8日」を日付として解釈する
+  function parseDateQuery(q) {
+    const m = q.trim().match(/^(?:(\d{4})[\/\-年])?(\d{1,2})[\/\-月](\d{1,2})日?$/);
+    if (!m) return null;
+    return { y: m[1] || null, md: `${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}` };
+  }
+
   function visible() {
     const q = state.q.trim().toLowerCase();
+    const dq = parseDateQuery(q);
     return sorted(allRows().filter(r =>
+      (!state.day || r.date === state.day) &&
       (!state.onlyNew || fresh.has(r.id)) &&
-      (!q || `${r.code} ${r.name} ${r.title}`.toLowerCase().includes(q))));
+      (!q || (dq ? r.date.slice(5) === dq.md && (!dq.y || r.date.startsWith(dq.y))
+                 : `${r.code} ${r.name} ${r.title}`.toLowerCase().includes(q)))));
   }
 
   function pctCell(r) {
@@ -237,7 +253,9 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
     let html = '', day = null;
     rows.forEach((r, i) => {
       if (byTime && r.date !== day) {
-        html += `<tr class="dayrow"><td colspan="8">${+r.date.slice(5, 7)}/${+r.date.slice(8, 10)}(${wd(r.date)})</td></tr>`;
+        const c = (index.days || []).find(x => x.date === r.date);
+        html += `<tr class="dayrow"><td colspan="8"><span class="dd">${r.date.replace(/-/g, '/')}(${wd(r.date)})</span>`
+              + (c ? `<span class="dn">決算 ${c.earn}件 ・ 修正 ${c.rev}件</span>` : '') + '</td></tr>';
         day = r.date;
       }
       const isNew = fresh.has(r.id);
@@ -251,8 +269,8 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
     });
     $('tb').innerHTML = html || `<tr><td colspan="8" class="more">${state.onlyNew ? '新着はありません' : '該当する開示はありません'}</td></tr>`;
 
-    const nd = nextDate();
-    $('more').innerHTML = nd
+    const nd = state.day ? null : nextDate();
+    $('more').innerHTML = state.day ? '' : nd
       ? `${loading ? '読み込み中…' : `スクロールで ${+nd.slice(5, 7)}/${+nd.slice(8, 10)} 以前を表示`}<br><button id="moreBtn">さらに表示</button>`
       : (index.dates.length ? `${index.dates[index.dates.length - 1].replace(/-/g, '/')} 以降をすべて表示しています` : '');
   }
@@ -300,6 +318,21 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   }
 
+  async function setDay(d) {
+    state.day = d || '';
+    $('dayq').value = state.day;
+    $('dayclr').hidden = !state.day;
+    open.clear();
+    if (state.day && index.dates.includes(state.day) && !days[state.day]) {
+      render();
+      try { await loadDay(state.day); } catch (e) { setStatus(true); }
+    }
+    render();
+    if (!state.day) autoMore();
+  }
+  $('dayq').addEventListener('change', e => setDay(e.target.value));
+  $('dayclr').addEventListener('click', () => setDay(''));
+
   let qTimer = null;
   $('q').addEventListener('input', e => {
     state.q = e.target.value; render();
@@ -332,7 +365,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
   // 一番下に近づいたら前の日を読み足す(無限スクロール)
   const nearBottom = () => $('more').getBoundingClientRect().top < innerHeight + 600;
   async function autoMore() {
-    while (!loading && nextDate() && nearBottom()) await loadMore();
+    while (!loading && !state.day && nextDate() && nearBottom()) await loadMore();
   }
   let scrollTimer = null;
   addEventListener('scroll', () => { clearTimeout(scrollTimer); scrollTimer = setTimeout(autoMore, 100); }, { passive: true });
