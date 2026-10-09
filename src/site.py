@@ -12,7 +12,7 @@ from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader
 
-from . import calendar_fetch, disclosures, earnings, history, irdocs, reaction, revisions, universe
+from . import calendar_fetch, disclosures, earnings, history, irdocs, orders, reaction, revisions, universe
 from .config import DATA_DIR, ROOT, now_jst
 
 DOCS_DIR = ROOT / "docs"
@@ -266,6 +266,56 @@ def quarter_numbers(arch: dict | None, hist: list[dict]) -> dict | None:
     return out
 
 
+def order_numbers(rec: dict | None, past: list[dict]) -> dict | None:
+    """受注高・受注残高(百万円)と YoY・QoQ。受注高は累計で YoY は短信の前年同期比。
+    QoQ は前の四半期の短信と比べる: 受注高は単独四半期(累計 − 前の四半期までの累計)どうし、受注残高は期末残高どうし。
+    past はこの短信より前の同じ会社の受注の記録。"""
+    if not rec:
+        return None
+    by_end = {str(p["period_end"])[:7]: p for p in past if p.get("period_end")}
+    n_q = int(float(rec["n_q"])) if rec.get("n_q") else None
+    end = str(rec.get("period_end") or "")[:7]
+
+    def seg_of(r, name):
+        d = r["data"]
+        if name is None:
+            return d["total"]
+        return next((s for s in d["segments"] if re.sub(r"\s", "", s["name"]) == name), None)
+
+    def cum_at(ym, name):
+        r = by_end.get(ym)
+        s = seg_of(r, name) if r else None
+        return None if s is None else s.get("orders")
+
+    def single(ym, nq, cum, name):
+        if cum is None or nq is None:
+            return None
+        if nq == 1:
+            return cum
+        before = cum_at(_ym_shift(ym, -3), name)
+        return None if before is None else cum - before
+
+    def nums(s, name):
+        o, b = {"v": _mil(s.get("orders")), "yoy": s.get("orders_yoy"), "qoq": None}, \
+            {"v": _mil(s.get("backlog")), "yoy": s.get("backlog_yoy"), "qoq": None}
+        if n_q and end:
+            pe = _ym_shift(end, -3)
+            prev = by_end.get(pe)
+            ps = seg_of(prev, name) if prev else None
+            # 受注残高: 前の四半期末と比べる(1Qは短信の表にある前期末の残高でもよい)
+            pb = ps.get("backlog") if ps else (s.get("backlog_fy") if n_q == 1 else None)
+            b["qoq"] = _growth(s.get("backlog"), pb)
+            if prev:
+                pn = int(float(prev["n_q"])) if prev.get("n_q") else None
+                o["qoq"] = _growth(single(end, n_q, s.get("orders"), name),
+                                   single(pe, pn, ps.get("orders") if ps else None, name))
+        return {"orders": o, "backlog": b}
+
+    d = rec["data"]
+    return {"total": nums(d["total"], None),
+            "segments": [{"name": s["name"], **nums(s, re.sub(r"\s", "", s["name"]))} for s in d["segments"]]}
+
+
 def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:
     """取り込み済みの全期間の決算・修正(新しい順)。"""
     all_disc = disclosures.load(data_dir)
@@ -282,6 +332,13 @@ def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:
     arch = {a["disclosure_id"]: a for a in earnings.load_archive(data_dir).to_dict("records")}
     hist = history.by_code(history.load(data_dir))
     revs = revisions.by_disclosure(data_dir)
+    ords = orders.by_code(data_dir)
+    for recs in ords.values():                     # 受注を読んだ時点で期がまだ分からなかった短信は、ここで補う
+        for o in recs:
+            a = arch.get(o["disclosure_id"])
+            if a and not o["period_end"]:
+                o["n_q"], o["period_end"] = a["n_q"], a["period_end"]
+    ord_by_id = {o["disclosure_id"]: o for recs in ords.values() for o in recs}
     rows = []
     for r in disc.sort_values(["disclosed_at", "code"], ascending=[False, True]).to_dict("records"):
         p = score_of(r, stats, cfg, feats)
@@ -298,6 +355,8 @@ def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:
                      "nums": quarter_numbers(arch.get(r["disclosure_id"]),
                                              [q for q in hist.get(r["code"], []) if q["announced"] < r["disclosed_at"][:10]])
                      if r["kind"] == "earnings_report" else revision_numbers(revs.get(r["disclosure_id"])),
+                     "ord": order_numbers(ord_by_id.get(r["disclosure_id"]),
+                                          [o for o in ords.get(r["code"], []) if o["disclosed_at"] < r["disclosed_at"]]),
                      "fin": fin_panel(r, arch.get(r["disclosure_id"]) if r["kind"] == "earnings_report" else None,
                                       [q for q in hist.get(r["code"], []) if q["announced"] <= r["disclosed_at"][:10]
                                        or r["kind"] != "earnings_report"]),

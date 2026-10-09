@@ -142,13 +142,15 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
     <th class="n">経利</th><th class="g">YoY</th><th class="g">QoQ</th>
     <th class="n">純利</th><th class="g">YoY</th><th class="g">QoQ</th>
     <th class="n">EPS</th><th class="g">YoY</th><th class="g">QoQ</th>
+    <th class="n">受注高</th><th class="g">YoY</th><th class="g">QoQ</th>
+    <th class="n">受注残</th><th class="g">YoY</th><th class="g">QoQ</th>
   </tr></thead>
   <tbody id="tb"></tbody>
 </table>
 <div class="more" id="more"></div>
 </div>
 <footer>
-  出典: TDnet(日本取引所グループ)・四半期業績の過去分は IRBANK。決算の行: 値とYoYは短信1ページ目の累計(前年同期比)、QoQは単独四半期の前四半期比。修正の行: 値は修正後の予想、YoYは前期実績比、QoQ欄は前回予想からの修正率。前回が赤字のときの増減率は (今回−前回)÷|前回|。決算短信と業績・配当予想の修正を表示。種別のボタンを押すとPDFが開きます(短信=決算短信、資料=決算説明資料・補足資料(短信から14日以内)、修正=業績・配当予想の修正)。平日8〜20時は1分ごとに自動更新。行をクリック/タップすると数値(売上・営業益の伸び、進捗率、修正率など)が開きます。<br>
+  出典: TDnet(日本取引所グループ)・四半期業績の過去分は IRBANK。決算の行: 値とYoYは短信1ページ目の累計(前年同期比)、QoQは単独四半期の前四半期比。修正の行: 値は修正後の予想、YoYは前期実績比、QoQ欄は前回予想からの修正率。受注高・受注残: 短信に受注の表がある会社のみ(合計。セグメント別は行を開くと表示)。受注高は累計、QoQは前の四半期の短信と比較。前回が赤字のときの増減率は (今回−前回)÷|前回|。決算短信と業績・配当予想の修正を表示。種別のボタンを押すとPDFが開きます(短信=決算短信、資料=決算説明資料・補足資料(短信から14日以内)、修正=業績・配当予想の修正)。平日8〜20時は1分ごとに自動更新。行をクリック/タップすると数値(売上・営業益の伸び、進捗率、修正率など)が開きます。<br>
   期: 決算は 1Q/2Q/3Q/通期、修正は対象の期間(通期/中間)。<br>
 </footer>
 
@@ -247,14 +249,15 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
     const step = Math.min(Math.floor((g - 30) / 10), 7);
     return ` style="color: hsl(145, 75%, ${30 + step * 7}%); opacity: 1; font-weight: 700"`;
   }
+  const neg = v => (typeof v === 'number' && v < 0) || (typeof v === 'string' && v.startsWith('赤')) ? ' neg' : '';
+  const blank3 = '<td class="n"></td><td class="g"></td><td class="g"></td>';
+  const cells3 = (x, eps) => `<td class="n${neg(x.v)}">${fmtN(x.v, eps)}</td><td class="g${neg(x.yoy)}"${green(x.yoy)}>${fmtG(x.yoy)}</td><td class="g${neg(x.qoq)}"${green(x.qoq)}>${fmtG(x.qoq)}</td>`;
   function numCells(r) {
     const keys = ['sales', 'op', 'ordinary', 'net', 'eps'];
-    if (!r.nums) return keys.map(() => '<td class="n"></td><td class="g"></td><td class="g"></td>').join('');
-    return keys.map(k => {
-      const x = r.nums[k] || {};
-      const neg = v => (typeof v === 'number' && v < 0) || (typeof v === 'string' && v.startsWith('赤')) ? ' neg' : '';
-      return `<td class="n${neg(x.v)}">${fmtN(x.v, k === 'eps')}</td><td class="g${neg(x.yoy)}"${green(x.yoy)}>${fmtG(x.yoy)}</td><td class="g${neg(x.qoq)}"${green(x.qoq)}>${fmtG(x.qoq)}</td>`;
-    }).join('');
+    const main = r.nums ? keys.map(k => cells3(r.nums[k] || {}, k === 'eps')).join('') : keys.map(() => blank3).join('');
+    // 受注高・受注残高(短信に表がある会社だけ)
+    const o = r.ord && r.ord.total;
+    return main + (o ? cells3(o.orders) + cells3(o.backlog) : blank3 + blank3);
   }
 
   function pctCell(r) {
@@ -270,6 +273,17 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
 
   const num = v => v == null ? '<td>–</td>' : `<td class="${v < 0 ? 'neg' : ''}">${v.toLocaleString('ja-JP')}</td>`;
   const pct = v => v == null ? '<td>–</td>' : `<td class="${v < 0 ? 'neg' : ''}">${v.toFixed(1)}%</td>`;
+
+  const gcell = v => v == null ? '<td>–</td>' : `<td class="${v < 0 ? 'neg' : ''}">${fmtG(v)}</td>`;
+  function orderTable(o) {
+    if (!o) return '';
+    const segs = o.segments.length ? o.segments : [];
+    const line = (name, x, cls) => `<tr class="${cls}"><td>${esc(name)}</td>` + num(x.orders.v) + gcell(x.orders.yoy) + gcell(x.orders.qoq)
+      + num(x.backlog.v) + gcell(x.backlog.yoy) + gcell(x.backlog.qoq) + '</tr>';
+    return `<div class="fincap">受注(百万円)<span>受注高は期首からの累計・YoYは前年同期比、QoQは前四半期比(受注高は3か月単独)</span></div>
+      <div class="finbox"><table class="fin"><tr><th>セグメント</th><th>受注高</th><th>YoY</th><th>QoQ</th><th>受注残</th><th>YoY</th><th>QoQ</th></tr>`
+      + segs.map(s => line(s.name, s, '')).join('') + line('合計', o.total, 'cur') + '</table></div>';
+  }
 
   function finTables(f) {
     if (!f) return '';
@@ -294,10 +308,10 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
 
   function detail(r) {
     const items = (r.details || []).map(([k, v, t]) => `<div><span>${esc(k)}</span><span class="${esc(t)}">${esc(v)}</span></div>`).join('');
-    return `<tr class="detail"><td colspan="21">
+    return `<tr class="detail"><td colspan="27">
       <div class="dtitle">${esc(r.title)}</div>
       <div class="dlinks">${(r.pdfs || []).map(p => `<a href="${esc(p.url)}" target="_blank" rel="noopener" title="${esc(p.title || '')}">${esc(p.label === '資料' || p.label === '資料2' ? '説明資料' : p.label === '短信' ? '決算短信' : '修正の開示')}(PDF)</a>`).join('')}</div>
-      ${finTables(r.fin)}${items ? `<div class="dl">${items}</div>` : ''}
+      ${finTables(r.fin)}${orderTable(r.ord)}${items ? `<div class="dl">${items}</div>` : ''}
     </td></tr>`;
   }
 
@@ -310,7 +324,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
     rows.forEach((r, i) => {
       if (byTime && r.date !== day) {
         const c = (index.days || []).find(x => x.date === r.date);
-        html += `<tr class="dayrow"><td colspan="21"><span class="dd">${r.date.replace(/-/g, '/')}(${wd(r.date)})</span>`
+        html += `<tr class="dayrow"><td colspan="27"><span class="dd">${r.date.replace(/-/g, '/')}(${wd(r.date)})</span>`
               + (c ? `<span class="dn">決算 ${c.earn}件 ・ 修正 ${c.rev}件</span>` : '') + '</td></tr>';
         day = r.date;
       }
@@ -322,7 +336,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
         <td class="c-kind"><a class="pdf" href="${esc(r.url)}" target="_blank" rel="noopener" title="${esc(r.title)}">${esc(r.group)}</a></td><td class="c-per">${esc(r.period)}</td>${numCells(r)}</tr>`;
       if (open.has(r.id)) html += detail(r);
     });
-    $('tb').innerHTML = html || `<tr><td colspan="21" class="more">${state.onlyNew ? '新着はありません' : '該当する開示はありません'}</td></tr>`;
+    $('tb').innerHTML = html || `<tr><td colspan="27" class="more">${state.onlyNew ? '新着はありません' : '該当する開示はありません'}</td></tr>`;
 
     const nd = state.day ? null : nextDate();
     $('more').innerHTML = state.day ? '' : nd

@@ -5,7 +5,7 @@ import logging
 import sys
 from datetime import date
 
-from . import calendar_fetch, disclosures, earnings, irdocs, reaction, revisions, site, universe
+from . import calendar_fetch, disclosures, earnings, irdocs, orders, reaction, revisions, site, universe
 from .config import load_config, now_jst
 
 
@@ -14,9 +14,10 @@ def cmd_disclosures(args, cfg):
     stats = disclosures.ingest(cfg, days=args.days)
     stats["earnings"] = earnings.update(cfg)
     stats["revisions"] = revisions.update(cfg)    # 修正の行に出す修正後の予想など
+    stats["orders"] = orders.update(cfg)          # 短信の受注高・受注残高の表
     # 変化が無い回はページも作り直さない(生成時刻だけ変わる無駄なコミットを防ぐ)
     # (IRサイトの説明資料探しは固まっても監視を止めないよう、watch.yml で別プロセスとして実行する)
-    if stats["new_rows"] or stats["xbrl_parsed"] or stats["earnings"]["evaluated"] or stats["revisions"] \
+    if stats["new_rows"] or stats["xbrl_parsed"] or stats["earnings"]["evaluated"] or stats["revisions"] or stats["orders"] \
             or not (site.DOCS_DIR / "index.html").exists() or manual_changed():
         stats["pages"] = site.render_all(cfg)
     print(json.dumps(stats, ensure_ascii=False))
@@ -43,6 +44,12 @@ def cmd_irdocs(args, cfg):
     if stats["found"]:
         stats["pages"] = site.render_all(cfg)
     print(json.dumps(stats, ensure_ascii=False))
+
+
+def cmd_orders(args, cfg):
+    """決算短信の受注高・受注残高の表を読み、サイトを作り直す(手動・やり直し用)"""
+    n = orders.update(cfg, limit=args.limit)
+    print(json.dumps({"orders": n, "pages": site.render_all(cfg) if n else []}, ensure_ascii=False))
 
 
 def cmd_universe(args, cfg):
@@ -105,6 +112,10 @@ def main(argv=None):
     s = sub.add_parser("irdocs", help="TDnet に無い決算説明資料を各社IRサイトで探す")
     s.add_argument("--budget", type=float, default=600, help="使う時間の上限(秒)")
     s.set_defaults(func=cmd_irdocs)
+
+    s = sub.add_parser("orders", help="決算短信の受注高・受注残高の表を読む")
+    s.add_argument("--limit", type=int, default=1000)
+    s.set_defaults(func=cmd_orders)
 
     s = sub.add_parser("run", help="universe(週1) → calendar → 株価反応 → サイト再生成")
     s.add_argument("--force-universe", action="store_true")
