@@ -71,7 +71,7 @@ def test_build_stats():
 
 @pytest.mark.parametrize("row,label", [
     (_row(kind="earnings_report"), "決算"),
-    ({**_row(kind="earnings_report"), "_feat": {"types": "①③"}}, "決算①③"),
+    ({**_row(kind="earnings_report"), "_feat": {"types": "①③"}}, "決算"),        # 型の印は種別に出さない
     (_row(direction="up"), "修正↑"),
     (_row(direction="down"), "修正↓"),
     (_row(), "修正"),
@@ -98,3 +98,18 @@ def test_details_for_earnings_and_revision():
     d = {k: v for k, v, _ in site.details(rev, None)}
     assert d == {"通期売上(修正率)": "+2.0%", "通期営業益(修正率)": "+18.1%", "通期経常益(修正率)": "+15.0%",
                  "通期純利益(修正率)": "+30.2%"}
+
+
+@pytest.mark.parametrize("row,feat,label", [
+    (_row(kind="earnings_report", title="2027年２月期 第２四半期（中間期）決算短信〔日本基準〕（連結）"), None, "2Q"),
+    (_row(kind="earnings_report", title="2027年５月期  第１四半期決算短信〔日本基準〕（連結）"), None, "1Q"),
+    (_row(kind="earnings_report", title="2026年11月期 第3四半期決算短信〔日本基準〕(連結)"), None, "3Q"),
+    (_row(kind="earnings_report", title="2026年８月期 決算短信〔ＩＦＲＳ会計基準〕（連結）"), None, "通期"),
+    (_row(kind="earnings_report", title="決算短信"), {"n_q": "2"}, "2Q"),                      # XBRL を優先
+    (_row(title="業績予想の修正に関するお知らせ", period="CurrentAccumulatedQ2Duration"), None, "中間"),
+    (_row(title="通期業績予想の修正に関するお知らせ"), None, "通期"),
+    (_row(kind="dividend_revision", title="剰余金の配当（中間配当の増配）に関するお知らせ"), None, "中間"),
+    (_row(kind="dividend_revision", title="配当予想の修正に関するお知らせ"), None, ""),
+])
+def test_period_label(row, feat, label):
+    assert site.period_label(row, feat) == label

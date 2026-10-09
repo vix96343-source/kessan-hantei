@@ -22,7 +22,7 @@ def kind_label(r: dict, feat: dict | None = None) -> str:
     k, d, t = r["kind"], r["direction"], r["title"]
     arrow = {"up": "↑", "down": "↓"}.get(d, "")
     if k == "earnings_report":
-        return "決算" + ((feat or {}).get("types") or "")
+        return "決算"
     if k == "forecast_revision":
         return f"修正{arrow}"
     if k == "forecast_dividend_revision":
@@ -32,6 +32,37 @@ def kind_label(r: dict, feat: dict | None = None) -> str:
     if k == "forecast_initial":
         return "予想"
     return k
+
+
+_Q_IN_TITLE = [(re.compile(r"第\s*[1１一]\s*四半期"), "1Q"), (re.compile(r"第\s*[2２二]\s*四半期|中間期"), "2Q"),
+               (re.compile(r"第\s*[3３三]\s*四半期"), "3Q")]
+
+
+def period_label(r: dict, feat: dict | None = None) -> str:
+    """決算: 1Q/2Q/3Q/通期。修正: 通期/中間。配当: 中間/期末(表題で分かる場合)。"""
+    k, t = r["kind"], r["title"]
+    if k == "earnings_report":
+        n_q = (feat or {}).get("n_q")
+        if n_q not in ("", None):
+            return {1: "1Q", 2: "2Q", 3: "3Q", 4: "通期"}[int(float(n_q))]
+        for pat, q in _Q_IN_TITLE:
+            if pat.search(t):
+                return q
+        return "通期"
+    if k in ("forecast_revision", "forecast_dividend_revision"):
+        period = str(r.get("period") or "")
+        if period.startswith("CurrentYear") or period.startswith("NextYear"):
+            return "通期"
+        if period.startswith("CurrentAccumulatedQ2"):
+            return "中間"
+        if "通期" in t:
+            return "通期"
+        if "中間" in t or re.search(r"第\s*[2２二]\s*四半期", t):
+            return "中間"
+        return "通期" if "業績予想" in t else ""
+    if k == "dividend_revision":
+        return "中間" if "中間配当" in t else "期末" if "期末配当" in t else ""
+    return ""
 
 
 def score_of(r: dict, stats: dict, cfg: dict, feats: dict) -> float | None:
@@ -79,6 +110,9 @@ def details(r: dict, feat: dict | None) -> list[list]:
             c = _f(feat["conservatism"])
             items.append(["予想の慎重度", f"{c:.2f}(1未満=慎重)", "up" if c <= 0.85 else ""])
         items.append(["今回の予想修正", {"True": "あり", "False": "なし"}.get(feat["revised"], "–"), ""])
+        names = {"①": "①リクルート", "②": "②キオクシア", "③": "③ローツェB"}
+        types = feat.get("types") or ""
+        items.append(["該当した型", " ".join(names[m] for m in types if m in names) or "なし", "up" if types else ""])
         return items
     if r["kind"] in ("forecast_revision", "forecast_dividend_revision") and r.get("xbrl_changes"):
         ch = json.loads(r["xbrl_changes"])
@@ -106,6 +140,7 @@ def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:
         rows.append({"id": r["disclosure_id"], "date": r["disclosed_at"][:10], "time": r["disclosed_at"][11:16],
                      "code": r["code"], "name": r["name"], "kind": kind_label(r, f),
                      "group": "決算" if r["kind"] == "earnings_report" else "修正",
+                     "period": period_label(r, f),
                      "url": r["pdf_url"], "title": r["title"], "details": details(r, f),
                      "pct": None if p is None else round(p * 100),
                      "up": p is not None and round(p * 100) > 50})
