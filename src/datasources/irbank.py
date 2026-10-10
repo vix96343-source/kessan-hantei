@@ -34,12 +34,24 @@ def session_from_config(cfg: dict) -> RateLimitedSession:
                               h["retries"], h["timeout_sec"])
 
 
-def _num(text: str) -> float | None:
+def _num(text: str, unit: float = 1e6) -> float | None:
+    """表の数字 → 円。unit は表の単位(百万円=1e6、大企業は億円=1e8 で表示される)"""
     t = text.replace(",", "").replace("+", "").replace("△", "-").replace("▲", "-").strip()
     try:
-        return float(t) * 1e6          # 百万円 → 円
+        return float(t) * unit
     except ValueError:
         return None
+
+
+def table_unit(table) -> float:
+    """「四半期毎履歴（億円）」のような表の見出しから単位を読む(会社によって百万円と億円がある)"""
+    cap = table.find("caption")
+    text = cap.get_text(" ", strip=True) if cap else ""
+    if "億円" in text:
+        return 1e8
+    if "千円" in text:
+        return 1e3
+    return 1e6
 
 
 def _shift_month(y: int, m: int, delta: int) -> str:
@@ -54,6 +66,7 @@ def parse_quarterly(html: str) -> list[dict]:
     if table is None:
         return []
     # 列は会社(会計基準・業種)ごとに違うので見出しの名前で対応づける
+    unit = table_unit(table)
     heads = [th.get_text(strip=True) for th in table.select("thead th")][2:]
     col = {}
     for i, h in enumerate(heads):
@@ -84,7 +97,7 @@ def parse_quarterly(html: str) -> list[dict]:
             i = col.get(field)
             if i is None or i >= len(cells) or cells[i].select_one(".shihanki") is None:
                 return None
-            return _num(cells[i].select_one(".shihanki").get_text())
+            return _num(cells[i].select_one(".shihanki").get_text(), unit)
         ann = re.search(r"(\d{4})年(\d{1,2})月(\d{1,2})日", a.get("title", ""))
         out.append({
             "period": f"{fy[0]}/{fy[1]:02d}-{q}Q",
