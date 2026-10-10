@@ -3,9 +3,9 @@ import argparse
 import json
 import logging
 import sys
-from datetime import date
+from datetime import date, timedelta
 
-from . import calendar_fetch, disclosures, earnings, irdocs, orders, reaction, revisions, segments, site, universe
+from . import calendar_fetch, consensus, disclosures, earnings, irdocs, orders, reaction, revisions, segments, site, universe
 from .config import load_config, now_jst
 
 
@@ -56,6 +56,17 @@ def cmd_orders(args, cfg):
                      ensure_ascii=False))
 
 
+def cmd_consensus(args, cfg):
+    """アナリスト予想を取る(既定: 決算予定の銘柄。--recent-days で最近決算を出した銘柄も)"""
+    codes = None
+    if args.recent_days:
+        d = disclosures.load()
+        since = (now_jst() - timedelta(days=args.recent_days)).strftime("%Y-%m-%d")
+        codes = sorted(set(d.loc[(d["kind"] == "earnings_report") & (d["disclosed_at"] >= since), "code"]))
+    n = consensus.update(cfg, codes=codes)
+    print(json.dumps({"consensus": n, "pages": site.render_all(cfg) if n else []}, ensure_ascii=False))
+
+
 def cmd_universe(args, cfg):
     print(json.dumps(universe.update(cfg), ensure_ascii=False))
 
@@ -70,6 +81,8 @@ def cmd_run(args, cfg):
     if args.force_universe or not universe.path().exists() or today.weekday() == cfg["universe"]["update_weekday"]:
         cmd_universe(args, cfg)
     cmd_calendar(args, cfg)
+    # 決算予定の銘柄のアナリスト予想(発表前の値を残す)
+    print(json.dumps({"consensus": consensus.update(cfg)}, ensure_ascii=False))
     print(json.dumps(reaction.update(cfg), ensure_ascii=False))
     cmd_site(args, cfg)
 
@@ -116,6 +129,10 @@ def main(argv=None):
     s = sub.add_parser("irdocs", help="TDnet に無い決算説明資料を各社IRサイトで探す")
     s.add_argument("--budget", type=float, default=600, help="使う時間の上限(秒)")
     s.set_defaults(func=cmd_irdocs)
+
+    s = sub.add_parser("consensus", help="アナリスト予想の平均(yfinance)を取る")
+    s.add_argument("--recent-days", type=int, help="この日数以内に決算を出した銘柄も取る")
+    s.set_defaults(func=cmd_consensus)
 
     s = sub.add_parser("orders", help="決算短信の受注高・受注残高の表を読む")
     s.add_argument("--limit", type=int, default=1000)

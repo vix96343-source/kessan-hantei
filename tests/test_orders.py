@@ -130,3 +130,19 @@ def test_previous_quarter_pdf_text_with_current_table_shape():
     x = orders.parse_pdf_text(pdf, tpl, 1e6)
     assert x["total"]["orders"] == 46529e6 and x["total"]["backlog"] == 68736e6
     assert x["total"]["orders_yoy"] == 92.1 and x["segments"][0]["orders"] == 42030e6
+
+
+def test_orders_are_three_month_values_like_the_presentation():
+    # ローツェ: 1Q累計 42,030(前年同期比188.4) → 2Q累計 120,540(256.4)。説明資料の2Q単独は 78,509、前年2Q単独は 24,699
+    def rec(n_q, end, cum, ratio, backlog, at):
+        return {"disclosure_id": at, "disclosed_at": at, "n_q": str(n_q), "period_end": end,
+                "data": {"total": {"name": "合計", "orders": cum * 1e6, "orders_yoy": round(ratio - 100, 1),
+                                   "backlog": backlog * 1e6, "backlog_yoy": None, "backlog_fy": None}, "segments": []}}
+    q1 = rec(1, "2026-05-31", 42030, 188.4, 62253, "2026-07-08")
+    q2 = rec(2, "2026-08-31", 120540, 256.4, 103863, "2026-10-08")
+    o = order_numbers(q2, [q1])["total"]
+    assert o["orders"]["v"] == 78510 and "cum" not in o["orders"]
+    assert o["orders"]["qoq"] == 86.8 and o["backlog"]["qoq"] == 66.8
+    assert abs(o["orders"]["yoy"] - (78509 / 24699 - 1) * 100) < 0.5
+    # 前の四半期の記録が無いときは短信どおりの累計
+    assert order_numbers(q2, [])["total"]["orders"] == {"v": 120540, "yoy": 156.4, "qoq": None, "cum": True}

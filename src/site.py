@@ -12,7 +12,7 @@ from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader
 
-from . import calendar_fetch, disclosures, earnings, history, irdocs, orders, reaction, revisions, segments, universe
+from . import calendar_fetch, consensus, disclosures, earnings, history, irdocs, orders, reaction, revisions, segments, universe
 from .config import DATA_DIR, ROOT, now_jst
 
 DOCS_DIR = ROOT / "docs"
@@ -267,48 +267,67 @@ def quarter_numbers(arch: dict | None, hist: list[dict]) -> dict | None:
 
 
 def order_numbers(rec: dict | None, past: list[dict]) -> dict | None:
-    """受注高・受注残高(百万円)と YoY・QoQ。受注高は累計で YoY は短信の前年同期比。
-    QoQ は前の四半期の短信と比べる: 受注高は単独四半期(累計 − 前の四半期までの累計)どうし、受注残高は期末残高どうし。
-    past はこの短信より前の同じ会社の受注の記録。"""
+    """受注高・受注残高(百万円)と YoY・QoQ。
+    受注高は説明資料と同じ3か月(四半期単独)の値 = 累計 − 前の四半期までの累計。
+    YoY は前年の同じ四半期(短信の前年同期の累計からも同じ引き算)、QoQ は前の四半期の3か月の値と比べる。
+    前の四半期の短信の記録が無いときだけ、短信どおりの累計(cum=True)を出す。
+    受注残高は期末の残高どうしで比べる。past はこの短信より前の同じ会社の受注の記録。"""
     if not rec:
         return None
     by_end = {str(p["period_end"])[:7]: p for p in past if p.get("period_end")}
     n_q = int(float(rec["n_q"])) if rec.get("n_q") else None
     end = str(rec.get("period_end") or "")[:7]
+    if end:
+        by_end[end] = rec
 
     def seg_of(r, name):
+        if not r:
+            return None
         d = r["data"]
         if name is None:
             return d["total"]
         return next((s for s in d["segments"] if re.sub(r"\s", "", s["name"]) == name), None)
 
-    def cum_at(ym, name):
-        r = by_end.get(ym)
-        s = seg_of(r, name) if r else None
-        return None if s is None else s.get("orders")
+    def cum(ym, name, which):
+        """その四半期末の累計受注高。which=prior は前年同期の累計(短信の前年同期比から戻す)"""
+        s = seg_of(by_end.get(ym), name)
+        if s is None or s.get("orders") is None:
+            return None
+        if which == "cur":
+            return s["orders"]
+        if s.get("orders_prior") is not None:
+            return s["orders_prior"]
+        y = s.get("orders_yoy")
+        return None if y is None or y <= -100 else s["orders"] / (1 + y / 100)
 
-    def single(ym, nq, cum, name):
-        if cum is None or nq is None:
+    def nq_at(ym):
+        r = by_end.get(ym)
+        return int(float(r["n_q"])) if r and r.get("n_q") else None
+
+    def single(ym, name, which):
+        nq, c = nq_at(ym), cum(ym, name, which)
+        if nq is None or c is None:
             return None
         if nq == 1:
-            return cum
-        before = cum_at(_ym_shift(ym, -3), name)
-        return None if before is None else cum - before
+            return c
+        if nq_at(_ym_shift(ym, -3)) != nq - 1:
+            return None
+        before = cum(_ym_shift(ym, -3), name, which)
+        return None if before is None else c - before
 
     def nums(s, name):
-        o, b = {"v": _mil(s.get("orders")), "yoy": s.get("orders_yoy"), "qoq": None}, \
-            {"v": _mil(s.get("backlog")), "yoy": s.get("backlog_yoy"), "qoq": None}
-        if n_q and end:
+        b = {"v": _mil(s.get("backlog")), "yoy": s.get("backlog_yoy"), "qoq": None}
+        q = single(end, name, "cur") if n_q and end else None
+        if q is None:
+            o = {"v": _mil(s.get("orders")), "yoy": s.get("orders_yoy"), "qoq": None, "cum": True}
+        else:
             pe = _ym_shift(end, -3)
-            prev = by_end.get(pe)
-            ps = seg_of(prev, name) if prev else None
+            o = {"v": _mil(q), "yoy": _growth(q, single(end, name, "prior")), "qoq": _growth(q, single(pe, name, "cur"))}
+        if n_q and end:
+            ps = seg_of(by_end.get(_ym_shift(end, -3)), name)
             # 受注残高: 前の四半期末と比べる(1Qは短信の表にある前期末の残高でもよい)
             pb = ps.get("backlog") if ps else (s.get("backlog_fy") if n_q == 1 else None)
             b["qoq"] = _growth(s.get("backlog"), pb)
-            if prev:
-                pn = int(float(prev["n_q"])) if prev.get("n_q") else None
-                o["qoq"] = _growth(single(end, n_q, s.get("orders"), name),
-                                   single(pe, pn, ps.get("orders") if ps else None, name))
         return {"orders": o, "backlog": b}
 
     d = rec["data"]
@@ -356,6 +375,40 @@ def segment_numbers(rec: dict | None, past: list[dict], main: dict | None) -> di
     return {"segments": [{"name": s["name"], **nums(s)} for s in rec["data"]["segments"]], "total": total}
 
 
+def consensus_panel(snap: dict | None, arch: dict | None) -> dict | None:
+    """アナリスト予想の平均(通期)と、会社予想(通期の決算なら実績)との差。売上は百万円、EPS は円。
+    通期決算のあとに取った値は「今期」が来期にずれているので、来期として扱う。"""
+    if not snap:
+        return None
+    n_q = int(float(arch["n_q"])) if arch and arch.get("n_q") else None
+    annual = n_q == 4
+    shifted = annual and not snap["before"]
+    cons = {"this": None if shifted else ("0y", snap.get("n_0y")),
+            "next": ("0y", snap.get("n_0y")) if shifted else ("1y", snap.get("n_1y"))}
+
+    def company(term, m):
+        if not arch:
+            return None
+        if term == "this":
+            if annual:
+                return _f0(arch.get("cum_eps")) if m == "eps" else _f0(arch.get("cum_sales"))
+            return None if m == "eps" or str(arch.get("fc_next_year")) == "True" else _f0(arch.get("fc_sales"))
+        return _f0(arch.get("fc_sales")) if annual and m == "rev" else None
+
+    rows = []
+    for m, label in (("rev", "売上"), ("eps", "EPS")):
+        row = {"label": label}
+        for term in ("this", "next"):
+            c = cons[term]
+            cv = _f0(snap.get(f"{m}_{c[0]}")) if c else None
+            co = company(term, m)
+            fmt = (lambda v: None if v is None else round(v, 1)) if m == "eps" else _mil
+            row[term] = {"cons": fmt(cv), "co": fmt(co), "diff": _growth(co, cv)}
+        rows.append(row)
+    return {"date": str(snap["fetched_at"])[:10], "before": bool(snap["before"]), "annual": annual,
+            "n": _f0(snap.get("n_0y")), "rows": rows}
+
+
 def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:
     """取り込み済みの全期間の決算・修正(新しい順)。"""
     all_disc = disclosures.load(data_dir)
@@ -386,6 +439,7 @@ def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:
             if a and not o["period_end"]:
                 o["n_q"], o["period_end"] = a["n_q"], a["period_end"]
     seg_by_id = {o["disclosure_id"]: o for recs in segs.values() for o in recs}
+    cons = consensus.by_code(data_dir)
     rows = []
     for r in disc.sort_values(["disclosed_at", "code"], ascending=[False, True]).to_dict("records"):
         p = score_of(r, stats, cfg, feats)
@@ -412,6 +466,8 @@ def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:
         rows[-1]["seg"] = segment_numbers(seg_by_id.get(r["disclosure_id"]),
                                           [o for o in segs.get(r["code"], []) if o["disclosed_at"] < r["disclosed_at"]],
                                           rows[-1]["nums"]) if r["kind"] == "earnings_report" else None
+        rows[-1]["cons"] = consensus_panel(consensus.snapshot(cons.get(r["code"], []), r["disclosed_at"]),
+                                           arch.get(r["disclosure_id"])) if r["kind"] == "earnings_report" else None
     return rows
 
 
