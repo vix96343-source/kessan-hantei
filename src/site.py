@@ -351,7 +351,7 @@ def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:
                          r, presentations, ir_docs,
                          manual={k: v for k, v in manual.items()
                                  if k[1] or latest_earn.get(r["code"]) == r["disclosed_at"]}),
-                     "title": r["title"], "details": details(r, f),
+                     "title": r["title"],
                      "nums": quarter_numbers(arch.get(r["disclosure_id"]),
                                              [q for q in hist.get(r["code"], []) if q["announced"] < r["disclosed_at"][:10]])
                      if r["kind"] == "earnings_report" else revision_numbers(revs.get(r["disclosure_id"])),

@@ -295,23 +295,14 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
           + num(q.sales) + num(q.op) + num(q.ordinary) + num(q.net) + pct(q.margin) + '</tr>').join('')
         + '</table></div>';
     }
-    if (f.plan) {
-      const p = f.plan, heads = ['1Q', '2Q', '3Q', '通期'];
-      h += `<div class="fincap">【今期の累計と${esc(p.fc_label)}】(各Q累計・百万円)<span>今期=${esc(p.fy)}</span></div>
-        <div class="finbox"><table class="fin"><tr><th></th>${heads.map((x, i) => `<th>${i + 1 <= p.n_q ? '' : '('}${x}${i + 1 <= p.n_q ? '' : ')'}</th>`).join('')}
-        <th>${esc(p.fc_label)}</th><th>進捗率</th></tr>`
-        + p.rows.map(r => `<tr><td class="lab">${esc(r[0])}</td>` + r.slice(1, 6).map(num).join('') + pct(r[6]) + '</tr>').join('')
-        + '</table></div>';
-    }
     return h;
   }
 
   function detail(r) {
-    const items = (r.details || []).map(([k, v, t]) => `<div><span>${esc(k)}</span><span class="${esc(t)}">${esc(v)}</span></div>`).join('');
     return `<tr class="detail"><td colspan="27">
       <div class="dtitle">${esc(r.title)}</div>
       <div class="dlinks">${(r.pdfs || []).map(p => `<a href="${esc(p.url)}" target="_blank" rel="noopener" title="${esc(p.title || '')}">${esc(p.label === '資料' || p.label === '資料2' ? '説明資料' : p.label === '短信' ? '決算短信' : '修正の開示')}(PDF)</a>`).join('')}</div>
-      ${finTables(r.fin)}${orderTable(r.ord)}${items ? `<div class="dl">${items}</div>` : ''}
+      ${finTables(r.fin)}${orderTable(r.ord)}
     </td></tr>`;
   }
 
