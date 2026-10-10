@@ -51,7 +51,7 @@ table#list tr.row:hover td { background: #1f2635 !important; }
 table#list td.c-date, table#list td.c-time, table#list td.c-code, table#list td.c-per, table#list td.c-name { color: #b4bbc6; }
 table#list td.c-kind { color: #7dffa8; }                       /* 種別(決算・業績・配当)は淡い緑 */
 table#list td.c-time, table#list td.c-code, table#list td.c-per { text-align: center; }
-table#list td.c-kind, table#list th.c-kind { text-align: left; padding-left: 2px; }   /* 種別は企業名のすぐ右に左寄せ */
+table#list td.c-kind, table#list th.c-kind { text-align: left; padding-left: 4px; }   /* 種別は企業名のすぐ右に左寄せ */
 table#list th.n, table#list th.g { padding-left: 5px; padding-right: 5px; }
 table#list td.n, table#list td.g { text-align: right; padding-left: 5px; padding-right: 5px; font-variant-numeric: tabular-nums; }
 table#list td.n { color: #b4bbc6; }
@@ -67,6 +67,7 @@ table#list a.pdf { background: none; border: 0; padding: 0; margin: 0 3px; font-
 table#list a.pdf:hover { text-decoration: underline; }
 table#list td.c-date { text-align: center; }
 td.c-name { max-width: 260px; overflow: hidden; text-overflow: ellipsis; }
+table#list td.c-name, table#list th.c-name { padding-right: 0; }   /* 種別を企業名に詰める */
 td.c-pct, th.c-pct { text-align: right; }
 td.c-pct.up { color: var(--green); font-weight: 700; } td.c-pct.down { color: var(--muted); }
 tr.new td { background: var(--new) !important; }
