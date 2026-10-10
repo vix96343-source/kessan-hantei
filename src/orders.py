@@ -152,18 +152,30 @@ def _unit(table, header_text: str) -> float | None:
     return _UNITS[m.group(1)] if m else None
 
 
-def parse_table(table) -> tuple[list[dict], float | None]:
-    """1つの表から事実のリスト [{seg, metric, period, kind, value, raw}] と単位(円/単位)を返す。"""
+def parse_table(table) -> tuple[list[dict], float | None, dict | None]:
+    """1つの表から事実のリスト [{seg, metric, period, ...}]・単位(円/単位)・表の形(前の期の PDF を読むのに使う)を返す。"""
     grid = _grid(table)
     if not grid:
-        return [], None
+        return [], None, None
     is_data = [any(_num(c) is not None for c in row) for row in grid]
     if not any(is_data):
-        return [], None
+        return [], None, None
     first = is_data.index(True)
-    header = grid[:first]
     width = len(grid[0])
-    numeric_cols = {j for i, row in enumerate(grid) if is_data[i] for j, c in enumerate(row) if _num(c) is not None}
+    numeric_cols = sorted({j for i, row in enumerate(grid) if is_data[i] for j, c in enumerate(row)
+                           if _num(c) is not None})
+    facts, header_text = _grid_facts(grid[:first], [row for i, row in enumerate(grid) if is_data[i]], numeric_cols)
+    unit = _unit(table, header_text)
+    label_cols = [j for j in range(width) if j not in numeric_cols]
+    tpl = {"header": grid[:first], "width": width, "numeric_cols": numeric_cols, "unit": unit,
+           "rows": [[row[j] for j in label_cols] for i, row in enumerate(grid) if is_data[i]]}
+    return facts, unit, tpl
+
+
+def _grid_facts(header: list[list[str]], data: list[list[str]], numeric_cols: list[int]) -> tuple[list[dict], str]:
+    """見出し行とデータ行から事実のリストを作る。返り値の2つ目は見出しの文字(単位探し用)。"""
+    width = len(header[0]) if header else len(data[0])
+    numeric_cols = set(numeric_cols)
     label_cols = [j for j in range(width) if j not in numeric_cols]
 
     def col_label(j):
@@ -193,9 +205,7 @@ def parse_table(table) -> tuple[list[dict], float | None]:
                    "growth_label": "増減率" in re.sub(r"\s", "", labels[j])}
 
     facts = []
-    for i, row in enumerate(grid):
-        if not is_data[i]:
-            continue
+    for row in data:
         names = []
         for j in label_cols:
             if row[j] and (not names or names[-1] != row[j]):
@@ -215,7 +225,7 @@ def parse_table(table) -> tuple[list[dict], float | None]:
                 continue
             facts.append({"seg": seg, "metric": metric, "period": c["period"], "kind": c["kind"],
                           "value": v, "signed": _signed(row[j]), "growth_label": c["growth_label"]})
-    return facts, _unit(table, all_header)
+    return facts, all_header
 
 
 def _seg_key(name: str) -> str:
@@ -315,19 +325,192 @@ def _yoy(s: dict, m: str, style: str) -> float | None:
 def parse_qualitative(html: str, cum_sales: float | None = None) -> dict | None:
     """qualitative.htm 全体から受注の表を探して読む。無ければ None。"""
     soup = BeautifulSoup(html, "html.parser")
-    facts, unit = [], None
+    facts, unit, tpls = [], None, []
     for t in soup.find_all("table"):
         text = t.get_text(" ", strip=True)
         if "……" in text or len(text) > 6000 or not _TABLE_HINT.search(re.sub(r"\s", "", text)):
             continue
-        f, u = parse_table(t)
+        f, u, tpl = parse_table(t)
         if f:
             facts += f
             unit = unit or u
+            tpls.append(tpl)
     if not facts:
         return None
     unit = unit or _guess_unit(facts, cum_sales)
-    return _assemble(facts, unit)
+    x = _assemble(facts, unit)
+    if x:
+        x["unit"] = unit
+        x["tpl"] = tpls                                # 前の期の短信(PDF)を同じ形で読むための表の形
+    return x
+
+
+# ---------------------------------------------------------------- 前の期の短信(PDF)
+
+_PDF_TOKEN = re.compile(r"^([△▲\-－−+＋]?[\d,，]+(\.\d+)?[%％]?([（(][^)）]*[)）])?|[－―\-—–‐]|[（(][^)）]*[)）])$")
+
+
+def _pdf_row(line: str, label: str, n_values: int) -> list[str] | None:
+    """PDF の1行が「行見出し 数値 数値 …」で、見出しが label・数値の個数が n_values なら数値の文字を返す。"""
+    toks = line.split()
+    k = len(toks)
+    while k > 0 and _PDF_TOKEN.match(toks[k - 1]):
+        k -= 1
+    if re.sub(r"\s", "", "".join(toks[:k])) != label:
+        return None
+    vals = [t for t in toks[k:] if not re.match(r"^[（(]", t)]     # 括弧書き(内数)は捨てる
+    if len(vals) != n_values:
+        return None
+    return ["" if re.fullmatch(r"[－―\-—–‐]", v) else v for v in vals]
+
+
+def parse_pdf_text(text: str, tpls: list[dict], unit: float | None = None) -> dict | None:
+    """前の期の短信 PDF の文字から、今回の短信と同じ形の受注の表を読む(会社の表の形は毎期ほぼ同じ)。"""
+    lines = [l for l in text.splitlines() if l.strip()]
+    facts = []
+    unit = None
+    done = 0                                           # 前の表の最後の行(表は今回と同じ順に並ぶ)
+    for tpl in tpls:
+        width, ncols = tpl["width"], tpl["numeric_cols"]
+        label_cols = [j for j in range(width) if j not in ncols]
+
+        def match_from(start):
+            data, pos = [], start
+            for labels in tpl["rows"]:
+                names = [n for n in labels if n]
+                label = re.sub(r"\s", "", names[-1]) if names else ""
+                if not label:
+                    continue
+                for i in range(pos, min(pos + 40, len(lines))):
+                    vals = _pdf_row(lines[i], label, len(ncols))
+                    if vals is not None:
+                        row = [""] * width
+                        for j, n in zip(label_cols, labels):
+                            row[j] = n
+                        for j, v in zip(ncols, vals):
+                            row[j] = v
+                        data.append(row)
+                        pos = i + 1
+                        break
+            return data, pos
+
+        # 「受注」が出てくる行それぞれから探し、一番多く行が合ったものを採る
+        # (目次・本文・生産実績の表に同じ行見出しがあっても、受注の表の見出しの後ろが一番よく合う)
+        best, best_end = [], done
+        for s in (i for i in range(done, len(lines))
+                  if "受注" in lines[i].replace("受注損失", "") or "繰越工事" in lines[i]):
+            data, end = match_from(s)
+            if len(data) > len(best):
+                best, best_end = data, end
+        if not best:
+            continue
+        done = best_end
+        f, _ = _grid_facts(tpl["header"], best, ncols)
+        facts += f
+        unit = unit or tpl["unit"]
+    if not facts:
+        return None
+    return _assemble(facts, unit or 1e6)
+
+
+IRBANK_IR = "https://irbank.net/{code}/ir"
+IRBANK_PDF = "https://api.irbank.net/api/market-files/v1/tdnet/{doc}.pdf"
+
+
+def _ym_shift(ym: str, months: int) -> str:
+    y, m = int(ym[:4]), int(ym[5:7]) + months
+    y, m = y + (m - 1) // 12, (m - 1) % 12 + 1
+    return f"{y:04d}-{m:02d}"
+
+
+def _quarter_of_title(title: str) -> int:
+    t = title.translate(str.maketrans("１２３４", "1234"))
+    m = re.search(r"第([1-3])四半期", t)
+    if m:
+        return int(m.group(1))
+    return 2 if "中間" in t else 4
+
+
+def _irbank_earnings_ids(session: RateLimitedSession, code: str) -> list[tuple[str, int]]:
+    """IRBANK の会社別適時開示一覧から、決算短信(訂正を除く)の (開示ID, 四半期) 新しい順"""
+    from .datasources import tdnet
+    r = session.get(IRBANK_IR.format(code=code))
+    if r is None:
+        return []
+    soup = BeautifulSoup(r.text, "html.parser")
+    ids = []
+    for a in soup.find_all("a", href=re.compile(rf"^/{re.escape(code)}/1401\d{{14}}$")):
+        did = a["href"].rsplit("/", 1)[-1]
+        c = tdnet.classify_title(re.sub(r"[（(]\d{1,2}:\d{2}[)）]$", "", a.get_text(strip=True)))
+        if c["kind"] == "earnings_report" and not c["is_correction"] and did not in dict(ids):
+            ids.append((did, _quarter_of_title(a.get_text(strip=True))))
+    return sorted(ids, reverse=True)
+
+
+def backfill(cfg: dict, data_dir: Path = DATA_DIR, session: RateLimitedSession | None = None) -> dict:
+    """受注の表がある会社で、前の四半期(QoQ に要る分)の記録が無ければ、IRBANK が保管している
+    前の期の決算短信 PDF を今回と同じ表の形で読んで補う。TDnet は約1か月で消えるため。
+    IRBANK は GitHub Actions からは使えないので手元で実行する。"""
+    from pypdf import PdfReader
+    from .datasources import irbank
+
+    session = session or irbank.session_from_config(cfg)
+    df = load(data_dir)
+    arch = {a["disclosure_id"]: a for a in earnings.load_archive(data_dir).to_dict("records")}
+    have = {(r["code"], str(r["period_end"])[:7]) for r in df.to_dict("records") if r["period_end"]}
+    latest: dict[str, dict] = {}
+    for r in df[df["status"] == "ok"].sort_values("disclosed_at").to_dict("records"):
+        a = arch.get(r["disclosure_id"])
+        if a and not r["period_end"]:
+            r["n_q"], r["period_end"] = a["n_q"], a["period_end"]
+        d = json.loads(r["data"])
+        if d.get("tpl") and r["period_end"] and r["n_q"]:
+            latest[r["code"]] = {**r, "data": d}
+
+    rows, stats = [], {"codes": 0, "pdfs": 0, "ok": 0}
+    for code, cur in latest.items():
+        n_q, end = int(float(cur["n_q"])), str(cur["period_end"])[:7]
+        # 受注残の QoQ は1つ前、受注高(3か月単独)の QoQ は2Q以外は2つ前まで要る
+        back = 1 if n_q == 2 else 2
+        need = [(k, _ym_shift(end, -3 * k), (n_q - k - 1) % 4 + 1) for k in range(1, back + 1)]
+        need = [x for x in need if (code, x[1]) not in have]
+        if not need:
+            continue
+        stats["codes"] += 1
+        try:
+            # 今回より前の1年以内の短信
+            floor = f"1401{int(cur['disclosure_id'][4:8]) - 1}{cur['disclosure_id'][8:]}"
+            ids = [x for x in _irbank_earnings_ids(session, code) if floor < x[0] < cur["disclosure_id"]]
+        except Exception as e:
+            log.warning("受注の補完: IRBANK 一覧の取得失敗 %s: %s", code, e)
+            continue
+        for k, ym, nq in need:
+            did = next((i for i, q in ids if q == nq), None)      # その四半期の一番新しい短信
+            if did is None:
+                continue
+            x = None
+            try:
+                resp = session.get(IRBANK_PDF.format(doc=did[4:]))
+                stats["pdfs"] += 1
+                if resp is not None:
+                    text = "\n".join(p.extract_text() or "" for p in PdfReader(io.BytesIO(resp.content)).pages)
+                    x = parse_pdf_text(text, cur["data"]["tpl"], cur["data"].get("unit"))
+            except Exception as e:
+                log.warning("受注の補完: PDF の読み取り失敗 %s %s: %s", code, did, e)
+            if x:
+                x["src"] = "irbank_pdf"
+                stats["ok"] += 1
+            rows.append({"disclosure_id": did, "code": code,
+                         "disclosed_at": f"{did[4:8]}-{did[8:10]}-{did[10:12]}T00:00",
+                         "n_q": str(nq), "period_end": ym, "status": "ok" if x else "none",
+                         "data": json.dumps(x, ensure_ascii=False) if x else ""})
+    if rows:
+        new = pd.DataFrame(rows).reindex(columns=COLUMNS)
+        out = pd.concat([df[~df["disclosure_id"].isin(new["disclosure_id"])], new])
+        out.sort_values(["disclosed_at", "disclosure_id"], ascending=False).to_csv(path(data_dir), index=False,
+                                                                                 encoding="utf-8")
+    log.info("orders backfill: %s", stats)
+    return stats
 
 
 def _guess_unit(facts: list[dict], cum_sales: float | None) -> float:

@@ -100,3 +100,33 @@ def test_qoq_from_previous_report():
     assert o["orders"]["qoq"] == 50.0 and o["backlog"]["qoq"] == 10.0
     q3 = rec(3, "2026-11-30", 400e6, 360e6, "2027-01-10")      # 3Q単独 = 150 → 前四半期比 0%
     assert order_numbers(q3, [q1, q2])["total"]["orders"]["qoq"] == 0.0
+
+
+def test_previous_quarter_pdf_text_with_current_table_shape():
+    # 今回の短信(HTML)の表の形を使い、前の期の短信 PDF の文字(行ごと)を読む。本文や生産実績の同じ行見出しは拾わない
+    tpl = orders.parse_qualitative(RORZE)["tpl"]
+    pdf = "\n".join([
+        "（３）補足情報 生産、受注及び販売の状況 ……… 10",
+        "当第１四半期の受注高は46,529百万円となりました。",
+        "(1) 生産実績",
+        "半導体関連装置 19,000 120.0",
+        "(2) 受注実績",
+        "セグメントの名称 受注高",
+        "(百万円)",
+        "前年同期比",
+        "(％)",
+        "受注残高",
+        "(百万円)",
+        "前年同期比",
+        "(％)品目",
+        "半導体・ＦＰＤ関連装置事業",
+        "半導体関連装置 42,030 188.4 62,253 132.7",
+        "分析装置 2,366 396.3 4,672 134.1",
+        "ＦＰＤ関連装置 1,390 119.2 1,037 37.6",
+        "計 45,788 190.2 67,963 127.9",
+        "ライフサイエンス事業 741 502.8 772 539.1",
+        "合計 46,529 192.1 68,736 129.0",
+    ])
+    x = orders.parse_pdf_text(pdf, tpl, 1e6)
+    assert x["total"]["orders"] == 46529e6 and x["total"]["backlog"] == 68736e6
+    assert x["total"]["orders_yoy"] == 92.1 and x["segments"][0]["orders"] == 42030e6

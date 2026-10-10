@@ -49,7 +49,10 @@ def cmd_irdocs(args, cfg):
 def cmd_orders(args, cfg):
     """決算短信の受注高・受注残高の表を読み、サイトを作り直す(手動・やり直し用)"""
     n = orders.update(cfg, limit=args.limit)
-    print(json.dumps({"orders": n, "pages": site.render_all(cfg) if n else []}, ensure_ascii=False))
+    # 前の四半期の記録が無い会社は、IRBANK が保管している前の期の短信(PDF)で補う(手元でのみ。Actions からは IRBANK が使えない)
+    b = orders.backfill(cfg) if args.backfill else {}
+    print(json.dumps({"orders": n, "backfill": b, "pages": site.render_all(cfg) if n or b.get("ok") else []},
+                     ensure_ascii=False))
 
 
 def cmd_universe(args, cfg):
@@ -115,6 +118,7 @@ def main(argv=None):
 
     s = sub.add_parser("orders", help="決算短信の受注高・受注残高の表を読む")
     s.add_argument("--limit", type=int, default=1000)
+    s.add_argument("--backfill", action="store_true", help="前の四半期の短信を IRBANK の PDF で補う(QoQ 用・手元で実行)")
     s.set_defaults(func=cmd_orders)
 
     s = sub.add_parser("run", help="universe(週1) → calendar → 株価反応 → サイト再生成")
