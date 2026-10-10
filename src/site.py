@@ -5,6 +5,7 @@
 上昇確度は score_of() に集約。決算短信は3つの型(earnings.py)への該当数ごとの過去の上昇率。
 """
 import hashlib
+import unicodedata
 import json
 import re
 from datetime import date
@@ -482,7 +483,8 @@ def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:
         p = score_of(r, stats, cfg, feats)
         f = feats.get(r["disclosure_id"])
         rows.append({"id": r["disclosure_id"], "date": r["disclosed_at"][:10], "time": r["disclosed_at"][11:16],
-                     "code": r["code"], "name": r["name"], "kind": kind_label(r, f),
+                     "code": r["code"], "name": unicodedata.normalize("NFKC", r["name"]),   # 全角英数を半角に(幅を詰める)
+                     "kind": kind_label(r, f),
                      "group": "決算" if r["kind"] == "earnings_report" else "修正",
                      # 種別に出す文字: 決算 / 業績(業績予想の修正) / 配当(配当予想の修正) / 業績 配当(両方を横に並べる)
                      "label": KIND_LABEL.get(r["kind"], "修正"),
