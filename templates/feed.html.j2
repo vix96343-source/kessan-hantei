@@ -348,7 +348,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
         <td class="c-date">${r.date.slice(5).replace('-', '/')}</td><td class="c-time">T${esc(r.time)}</td>
         <td class="c-code">${esc(r.code)}</td>
         <td class="c-name" title="${esc(r.title)}">${esc(r.name)}${isNew ? '<span class="badge-new">NEW</span>' : ''}</td>
-        <td class="c-kind"><a class="pdf" href="${esc(r.url)}" target="_blank" rel="noopener" title="${esc(r.title)}">${esc(r.group)}</a></td><td class="c-per">${esc(r.period)}</td>${numCells(r)}</tr>`;
+        <td class="c-kind"><a class="pdf" href="${esc(r.url)}" target="_blank" rel="noopener" title="${esc(r.title)}">${esc(r.label || r.group)}</a></td><td class="c-per">${esc(r.period)}</td>${numCells(r)}</tr>`;
       if (open.has(r.id)) html += detail(r);
     });
     $('tb').innerHTML = html || `<tr><td colspan="27" class="more">${state.onlyNew ? '新着はありません' : '該当する開示はありません'}</td></tr>`;
