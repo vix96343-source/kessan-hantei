@@ -324,7 +324,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
   function detail(r) {
     return `<tr class="detail"><td colspan="27">
       <div class="dtitle">${esc(r.title)}</div>
-      <div class="dlinks">${(r.pdfs || []).map(p => `<a href="${esc(p.url)}" target="_blank" rel="noopener" title="${esc(p.title || '')}">${esc(p.label === '資料' || p.label === '資料2' ? '説明資料' : p.label === '短信' ? '決算短信' : '修正の開示')}(PDF)</a>`).join('')}</div>
+      <div class="dlinks">${(r.pdfs || []).map(p => `<a href="${esc(p.url)}" target="_blank" rel="noopener" title="${esc(p.title || '')}">${esc(p.label === '資料' || p.label === '資料2' ? '説明資料' : p.label === '短信' ? '決算短信' : '修正の開示')}(PDF)</a>`).join('')}<a href="https://kabuyoho.jp/report?bcode=${encodeURIComponent(r.code)}" target="_blank" rel="noopener">株予報(コンセンサス)</a></div>
       ${finTables(r.fin)}${consTable(r.cons)}${segTable(r.seg)}${orderTable(r.ord)}
     </td></tr>`;
   }
