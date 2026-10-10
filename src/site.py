@@ -209,8 +209,7 @@ def fin_panel(r: dict, arch: dict | None, hist: list[dict], n_quarters: int = 8,
         plan = {"fy": f"{fy_end[:4]}年{int(fy_end[5:7])}月期", "n_q": n_q,
                 "fc_label": "来期予想" if next_year else "会社予想", "rows": rows}
     qs = sorted(quarters.values(), key=lambda q: q["end"])[-n_quarters:]
-    # 金額は円のまま(百万円に丸めない)
-    table = [{"label": _period_name(q["end"]), **{f: _yen(q.get(f)) for f in FIN_FIELDS},
+    table = [{"label": _period_name(q["end"]), **{f: _mil(q.get(f)) for f in FIN_FIELDS},
               # EPS = 四半期の純利益 ÷ 株数(株数は直近の短信の 累計純利益 ÷ 累計EPS。過去の四半期も今の株数で換算)
               "eps": None if not shares or q.get("net") is None else round(q["net"] / shares, 1)}
              for q in qs]
@@ -243,33 +242,51 @@ def revision_numbers(rv: dict | None) -> dict | None:
 
 
 def quarter_numbers(arch: dict | None, hist: list[dict]) -> dict | None:
-    """一覧に出す数値。値と YoY は短信1ページ目と同じ累計(前年同期比)。
-    QoQ は単独四半期(3か月)どうしの前四半期比(EPS は純利の QoQ)。売上〜純利は百万円、EPS は円。"""
+    """一覧に出す数値。すべて3か月(四半期単独)の値: 1Q は短信の累計のまま、2Q 以降は 累計 − 前の四半期までの単独の合計。
+    YoY は前年の同じ四半期の単独値、QoQ は前の四半期の単独値と比べる。売上〜純利は百万円、EPS は円。
+    前の四半期の数値が無く単独を出せないときだけ、短信どおりの累計(cum=True)と前年同期比を出す。"""
     if not arch:
         return None
     n_q, end = int(float(arch["n_q"])), str(arch["period_end"])[:7]
     qs = {q["end"]: q for q in hist}
     cum = {f: _f0(arch.get(f"cum_{f}")) for f in FIN_FIELDS}
     prior = {f: _f0(arch.get(f"prior_{f}")) for f in FIN_FIELDS}
-    prev_in_fy = [qs.get(_ym_shift(end, -3 * k)) for k in range(1, n_q)]
 
-    def single(c, prevs, f):
+    def single(c, f, ym, nq):
+        """ym 期末の四半期の単独値 = その時点の累計 c − 同じ期の前の四半期の単独値の合計"""
         if c is None:
             return None
-        if n_q == 1:
+        if nq == 1:
             return c
-        if any(p is None or p.get(f) is None for p in prevs):
-            return None
-        return c - sum(p[f] for p in prevs)
+        prevs = [(qs.get(_ym_shift(ym, -3 * k)) or {}).get(f) for k in range(1, nq)]
+        return None if any(v is None for v in prevs) else c - sum(prevs)
 
     out = {}
     for f in FIN_FIELDS:
-        cur_q = single(cum[f], prev_in_fy, f)              # QoQ 用の単独四半期
-        prv = (qs.get(_ym_shift(end, -3)) or {}).get(f)
-        # 値と YoY は短信1ページ目と同じ累計(前年同期比)
-        out[f] = {"v": _mil(cum[f]), "yoy": _growth(cum[f], prior[f]), "qoq": _growth(cur_q, prv)}
+        q = single(cum[f], f, end, n_q)
+        if q is None:
+            out[f] = {"v": _mil(cum[f]), "yoy": _growth(cum[f], prior[f]), "qoq": None, "cum": True}
+            continue
+        # 前年の同じ四半期: 1Q は短信の前年同期(累計=単独)、2Q 以降は履歴の単独値(無ければ前年同期累計から引く)
+        py = _ym_shift(end, -12)
+        p = prior[f] if n_q == 1 else ((qs.get(py) or {}).get(f) if qs.get(py) else single(prior[f], f, py, n_q))
+        out[f] = {"v": _mil(q), "yoy": _growth(q, p), "qoq": _growth(q, (qs.get(_ym_shift(end, -3)) or {}).get(f))}
+    # EPS(3か月) = 単独の純利益 ÷ 株数(株数 = 累計純利益 ÷ 累計EPS。前年は前年の株数)
     ce, pe = _f0(arch.get("cum_eps")), _f0(arch.get("prior_eps"))
-    out["eps"] = {"v": None if ce is None else round(ce, 2), "yoy": _growth(ce, pe), "qoq": out["net"]["qoq"]}
+    shares = cum["net"] / ce if cum["net"] and ce else None
+    pshares = prior["net"] / pe if prior["net"] and pe else None
+    n = out["net"]
+    if n.get("cum") or not shares:
+        out["eps"] = {"v": None if ce is None else round(ce, 2), "yoy": _growth(ce, pe), "qoq": None, "cum": True}
+    else:
+        qn = single(cum["net"], "net", end, n_q)
+        py = _ym_shift(end, -12)
+        pn = prior["net"] if n_q == 1 else (qs.get(py) or {}).get("net")
+        prev_n = (qs.get(_ym_shift(end, -3)) or {}).get("net")
+        eps = qn / shares
+        out["eps"] = {"v": round(eps, 2),
+                      "yoy": _growth(eps, pn / pshares if pn is not None and pshares else None),
+                      "qoq": _growth(eps, prev_n / shares if prev_n is not None else None)}
     return out
 
 

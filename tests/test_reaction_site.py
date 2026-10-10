@@ -138,7 +138,7 @@ def test_fin_panel_current_quarter_and_plan():
     f = site.fin_panel({"kind": "earnings_report"}, arch, hist, shares=1e6)
     assert [q["label"] for q in f["quarters"]] == ["26.01-03", "26.04-06", "26.07-09"]
     cur = f["quarters"][-1]
-    assert (cur["sales"], cur["op"], cur["eps"]) == (130e6, 18e6, 12.0)          # 250 − 120、純利 20 − 8 = 12百万円 ÷ 100万株
+    assert (cur["sales"], cur["op"], cur["eps"]) == (130, 18, 12.0)          # 250 − 120、純利 20 − 8 = 12百万円 ÷ 100万株
     p = f["plan"]
     assert p["fy"] == "2027年3月期" and p["fc_label"] == "会社予想"
     assert p["rows"][0] == ["売上", 120, 250, None, None, 500, 50.0]           # 1Q累計, 2Q累計, 3Q, 通期, 予想, 進捗率
@@ -152,5 +152,9 @@ def test_quarter_numbers_single_quarter_yoy_qoq_and_eps():
             "cum_net": 16e6, "prior_sales": 200e6, "prior_op": 20e6, "prior_ordinary": 20e6, "prior_net": 12e6,
             "cum_eps": 32.0, "prior_eps": 24.0}
     n = site.quarter_numbers(arch, hist)
-    assert n["sales"] == {"v": 230, "yoy": 15.0, "qoq": 9.1}            # 累計230(前年200)、単独120 vs 前四半期110
-    assert n["eps"] == {"v": 32.0, "yoy": 33.3, "qoq": n["net"]["qoq"]}
+    # 2Q の3か月 = 累計230 − 1Q 110 = 120。前年2Q(2025-09)100 → +20%、前四半期110 → +9.1%
+    assert n["sales"] == {"v": 120, "yoy": 20.0, "qoq": 9.1}
+    # EPS(3か月) = 純利(16 − 7 = 9百万円) ÷ 株数(16百万円 ÷ 32円 = 50万株) = 18円。前年2Q 6百万円 ÷ 50万株 = 12円、前四半期 14円
+    assert n["eps"] == {"v": 18.0, "yoy": 50.0, "qoq": 28.6}
+    # 前の四半期が無ければ短信どおりの累計
+    assert site.quarter_numbers(arch, [])["sales"] == {"v": 230, "yoy": 15.0, "qoq": None, "cum": True}

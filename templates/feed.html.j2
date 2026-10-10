@@ -150,7 +150,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
 <div class="more" id="more"></div>
 </div>
 <footer>
-  出典: TDnet(日本取引所グループ)・四半期業績と受注の過去分は IRBANK。決算の行: 値とYoYは短信1ページ目の累計(前年同期比)、QoQは単独四半期の前四半期比。修正の行: 値は修正後の予想、YoYは前期実績比、QoQ欄は前回予想からの修正率。受注高・受注残: 短信に受注の表がある会社のみ(合計。セグメント別は行を開くと表示)。受注高は3か月(四半期単独)の値で、YoYは前年の同じ四半期比、QoQは前四半期比(「累」は前の四半期の短信が無く期首からの累計)。受注残は期末残高。前回が赤字のときの増減率は (今回−前回)÷|前回|。決算短信と業績・配当予想の修正を表示。種別のボタンを押すとPDFが開きます(短信=決算短信、資料=決算説明資料・補足資料(短信から14日以内)、修正=業績・配当予想の修正)。平日8〜20時は1分ごとに自動更新。行をクリック/タップすると数値(売上・営業益の伸び、進捗率、修正率など)が開きます。<br>
+  出典: TDnet(日本取引所グループ)・四半期業績と受注の過去分は IRBANK。決算の行: 値は3か月(四半期単独)の値(1Qは短信の累計そのまま、2Q以降は累計−前の四半期まで)、YoYは前年の同じ四半期比、QoQは前四半期比。「累」は前の四半期の数値が無く短信の累計を出しているもの。修正の行: 値は修正後の予想、YoYは前期実績比、QoQ欄は前回予想からの修正率。受注高・受注残: 短信に受注の表がある会社のみ(合計。セグメント別は行を開くと表示)。受注高は3か月(四半期単独)の値で、YoYは前年の同じ四半期比、QoQは前四半期比(「累」は前の四半期の短信が無く期首からの累計)。受注残は期末残高。前回が赤字のときの増減率は (今回−前回)÷|前回|。決算短信と業績・配当予想の修正を表示。種別のボタンを押すとPDFが開きます(短信=決算短信、資料=決算説明資料・補足資料(短信から14日以内)、修正=業績・配当予想の修正)。平日8〜20時は1分ごとに自動更新。行をクリック/タップすると数値(売上・営業益の伸び、進捗率、修正率など)が開きます。<br>
   期: 決算は 1Q/2Q/3Q/通期、修正は対象の期間(通期/中間)。<br>
 </footer>
 
@@ -256,7 +256,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
   const cumMark = x => x && x.cum && x.v != null ? { ...x, v: x.v.toLocaleString('ja-JP') + '累', raw: true } : x;
   function numCells(r) {
     const keys = ['sales', 'op', 'ordinary', 'net', 'eps'];
-    const main = r.nums ? keys.map(k => cells3(r.nums[k] || {}, k === 'eps')).join('') : keys.map(() => blank3).join('');
+    const main = r.nums ? keys.map(k => cells3(r.group === '決算' ? cumMark(r.nums[k] || {}) : (r.nums[k] || {}), k === 'eps')).join('') : keys.map(() => blank3).join('');
     // 受注高・受注残高(短信に表がある会社だけ)
     const o = r.ord && r.ord.total;
     return main + (o ? cells3(cumMark(o.orders)) + cells3(o.backlog) : blank3 + blank3);
@@ -313,7 +313,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
     if (!f) return '';
     let h = '';
     if (f.quarters && f.quarters.length) {
-      h += `<div class="fincap">四半期業績(単独・円)<span>EPSは直近の短信の株数で換算</span></div><div class="finbox"><table class="fin">
+      h += `<div class="fincap">四半期業績(単独・百万円)<span>EPSは円(直近の短信の株数で換算)</span></div><div class="finbox"><table class="fin">
         <tr><th>決算期</th><th>売上高</th><th>営業益</th><th>経常益</th><th>最終益</th><th>EPS</th></tr>`
         + f.quarters.map((q, i) => `<tr class="${i === f.quarters.length - 1 ? 'cur' : ''}"><td>${esc(q.label)}</td>`
           + num(q.sales) + num(q.op) + num(q.ordinary) + num(q.net) + epsCell(q.eps) + '</tr>').join('')
