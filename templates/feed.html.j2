@@ -55,12 +55,12 @@ table#list td.c-time, table#list td.c-code, table#list td.c-kind, table#list td.
 table#list th.n, table#list th.g { padding-left: 3px; padding-right: 3px; }
 table#list td.n, table#list td.g { text-align: right; padding-left: 3px; padding-right: 3px; font-variant-numeric: tabular-nums; }
 table#list td.n { color: #b4bbc6; }
-table#list td.n.neg { color: #3fca7f; }                        /* 値のマイナス(赤字) */
+table#list td.n.neg { color: #b4bbc6; }                        /* 値のマイナスもほかの数値と同じ色 */
 table#list td.g { color: #5c6573; }                            /* 0%・データなし */
-table#list td.g.up1 { color: #c98b8b; } table#list td.g.up2 { color: #f0717f; }
-table#list tr.row td.g.up3 { color: #ff6b7a; background: rgba(255, 107, 122, .14) !important; }
-table#list td.g.dn1 { color: #7bae8f; } table#list td.g.dn2 { color: #3fca7f; }
-table#list tr.row td.g.dn3 { color: #3ddc84; background: rgba(61, 220, 132, .12) !important; }
+table#list td.g.up1, table#list td.g.up2 { color: #f0145a; }
+table#list tr.row td.g.up3 { color: #f0145a; background: rgba(240, 20, 90, .14) !important; }
+table#list td.g.dn1, table#list td.g.dn2 { color: #17d4cf; }
+table#list tr.row td.g.dn3 { color: #17d4cf; background: rgba(23, 212, 207, .12) !important; }
 /* 種別は枠なしの文字。押すとPDF */
 table#list a.pdf { background: none; border: 0; padding: 0; margin: 0 3px; font-size: inherit; font-weight: inherit;
   color: inherit; text-decoration: none; }
@@ -243,7 +243,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
   const fmtN = (v, eps) => v == null ? '–' : eps ? v.toFixed(1) : v.toLocaleString('ja-JP');
   const fmtG = g => g == null ? '–' : typeof g === 'string' ? g
     : (g > 0 ? '+' : '') + (Math.abs(g) >= 1000 ? Math.round(g) : g.toFixed(1)) + '%';
-  // YoY・QoQ: プラスは赤、マイナスは緑。大きいほど濃く
+  // YoY・QoQ: プラスは赤、マイナスは水色(±30%以上は色の帯)
   const sign = g => {                                  // 変化の大きさで3段階: 10%未満 / 10〜30% / 30%以上
     if (typeof g !== 'number' || g === 0) return '';
     const a = Math.abs(g);
