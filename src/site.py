@@ -172,7 +172,8 @@ def _mil(v) -> int | None:
     return None if v is None or (isinstance(v, float) and v != v) or v == "" else round(float(v) / 1e6)
 
 
-def fin_panel(r: dict, arch: dict | None, hist: list[dict], n_quarters: int = 8) -> dict | None:
+def fin_panel(r: dict, arch: dict | None, hist: list[dict], n_quarters: int = 8,
+              shares: float | None = None) -> dict | None:
     """行を開いたときの業績表。quarters: 直近の単独四半期、plan: 今期の累計実績と会社予想・進捗率(百万円)。"""
     quarters = {q["end"]: dict(q) for q in hist}
     plan = None
@@ -205,7 +206,8 @@ def fin_panel(r: dict, arch: dict | None, hist: list[dict], n_quarters: int = 8)
                 "fc_label": "来期予想" if next_year else "会社予想", "rows": rows}
     qs = sorted(quarters.values(), key=lambda q: q["end"])[-n_quarters:]
     table = [{"label": _period_name(q["end"]), **{f: _mil(q.get(f)) for f in FIN_FIELDS},
-              "margin": None if not q.get("sales") or q.get("op") is None else round(q["op"] / q["sales"] * 100, 1)}
+              # EPS = 四半期の純利益 ÷ 株数(株数は直近の短信の 累計純利益 ÷ 累計EPS。過去の四半期も今の株数で換算)
+              "eps": None if not shares or q.get("net") is None else round(q["net"] / shares, 1)}
              for q in qs]
     if not table and not plan:
         return None
@@ -440,6 +442,17 @@ def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:
                 o["n_q"], o["period_end"] = a["n_q"], a["period_end"]
     seg_by_id = {o["disclosure_id"]: o for recs in segs.values() for o in recs}
     cons = consensus.by_code(data_dir)
+    # 株数(EPS の換算用): 短信の 累計純利益 ÷ 累計EPS。その開示の時点で一番新しい短信のもの
+    shares_hist: dict[str, list[tuple[str, float]]] = {}
+    for a in sorted(arch.values(), key=lambda a: str(a["disclosed_at"])):
+        net, eps = _f0(a.get("cum_net")), _f0(a.get("cum_eps"))
+        if net and eps:
+            shares_hist.setdefault(a["code"], []).append((str(a["disclosed_at"]), net / eps))
+
+    def shares_at(code, at):
+        xs = [v for t, v in shares_hist.get(code, []) if t <= at] or [v for _, v in shares_hist.get(code, [])]
+        return xs[-1] if xs else None
+
     rows = []
     for r in disc.sort_values(["disclosed_at", "code"], ascending=[False, True]).to_dict("records"):
         p = score_of(r, stats, cfg, feats)
@@ -460,7 +473,8 @@ def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:
                                           [o for o in ords.get(r["code"], []) if o["disclosed_at"] < r["disclosed_at"]]),
                      "fin": fin_panel(r, arch.get(r["disclosure_id"]) if r["kind"] == "earnings_report" else None,
                                       [q for q in hist.get(r["code"], []) if q["announced"] <= r["disclosed_at"][:10]
-                                       or r["kind"] != "earnings_report"]),
+                                       or r["kind"] != "earnings_report"],
+                                      shares=shares_at(r["code"], r["disclosed_at"])),
                      "pct": None if p is None else round(p * 100),
                      "up": p is not None and round(p * 100) > 50})
         rows[-1]["seg"] = segment_numbers(seg_by_id.get(r["disclosure_id"]),
