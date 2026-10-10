@@ -138,7 +138,7 @@ def test_fin_panel_current_quarter_and_plan():
     f = site.fin_panel({"kind": "earnings_report"}, arch, hist, shares=1e6)
     assert [q["label"] for q in f["quarters"]] == ["26.01-03", "26.04-06", "26.07-09"]
     cur = f["quarters"][-1]
-    assert (cur["sales"], cur["op"], cur["eps"]) == (130, 18, 12.0)          # 250 − 120、純利 20 − 8 = 12百万円 ÷ 100万株
+    assert (cur["sales"], cur["op"], cur["eps"]) == (130e6, 18e6, 12.0)          # 250 − 120、純利 20 − 8 = 12百万円 ÷ 100万株
     p = f["plan"]
     assert p["fy"] == "2027年3月期" and p["fc_label"] == "会社予想"
     assert p["rows"][0] == ["売上", 120, 250, None, None, 500, 50.0]           # 1Q累計, 2Q累計, 3Q, 通期, 予想, 進捗率

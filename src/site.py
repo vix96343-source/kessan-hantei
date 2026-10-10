@@ -168,6 +168,10 @@ def _period_name(end_ym: str) -> str:
     return f"{start[2:4]}.{start[5:7]}-{end_ym[5:7]}"
 
 
+def _yen(v) -> int | None:
+    return None if v is None or (isinstance(v, float) and v != v) or v == "" else round(float(v))
+
+
 def _mil(v) -> int | None:
     return None if v is None or (isinstance(v, float) and v != v) or v == "" else round(float(v) / 1e6)
 
@@ -205,7 +209,8 @@ def fin_panel(r: dict, arch: dict | None, hist: list[dict], n_quarters: int = 8,
         plan = {"fy": f"{fy_end[:4]}年{int(fy_end[5:7])}月期", "n_q": n_q,
                 "fc_label": "来期予想" if next_year else "会社予想", "rows": rows}
     qs = sorted(quarters.values(), key=lambda q: q["end"])[-n_quarters:]
-    table = [{"label": _period_name(q["end"]), **{f: _mil(q.get(f)) for f in FIN_FIELDS},
+    # 金額は円のまま(百万円に丸めない)
+    table = [{"label": _period_name(q["end"]), **{f: _yen(q.get(f)) for f in FIN_FIELDS},
               # EPS = 四半期の純利益 ÷ 株数(株数は直近の短信の 累計純利益 ÷ 累計EPS。過去の四半期も今の株数で換算)
               "eps": None if not shares or q.get("net") is None else round(q["net"] / shares, 1)}
              for q in qs]

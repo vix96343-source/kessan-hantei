@@ -313,7 +313,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
     if (!f) return '';
     let h = '';
     if (f.quarters && f.quarters.length) {
-      h += `<div class="fincap">四半期業績(単独・百万円)<span>EPSは円(直近の短信の株数で換算)</span></div><div class="finbox"><table class="fin">
+      h += `<div class="fincap">四半期業績(単独・円)<span>EPSは直近の短信の株数で換算</span></div><div class="finbox"><table class="fin">
         <tr><th>決算期</th><th>売上高</th><th>営業益</th><th>経常益</th><th>最終益</th><th>EPS</th></tr>`
         + f.quarters.map((q, i) => `<tr class="${i === f.quarters.length - 1 ? 'cur' : ''}"><td>${esc(q.label)}</td>`
           + num(q.sales) + num(q.op) + num(q.ordinary) + num(q.net) + epsCell(q.eps) + '</tr>').join('')
