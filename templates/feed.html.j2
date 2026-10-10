@@ -55,7 +55,7 @@ table#list td.c-time, table#list td.c-code, table#list td.c-kind, table#list td.
 table#list td.c-pct { text-align: right; }
 table#list th.n, table#list th.g { padding-left: 6px; padding-right: 6px; }
 table#list td.n, table#list td.g { text-align: right; padding-left: 6px; padding-right: 6px; font-variant-numeric: tabular-nums; }
-table#list td.g { font-size: 11px; opacity: .85; }
+table#list td.g { opacity: .85; }
 table#list td.n.neg, table#list td.g.neg { color: #48da7e !important; opacity: 1; }   /* マイナスは YoY と同じ緑 */
 table#list td.c-pct.down { color: #48c8a8; font-weight: 400; }
 table#list tr.row.up td.c-pct { color: #2ee87b; font-weight: 700; }
@@ -243,12 +243,11 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
   const fmtN = (v, eps) => v == null ? '–' : eps ? v.toFixed(1) : v.toLocaleString('ja-JP');
   const fmtG = g => g == null ? '–' : typeof g === 'string' ? g
     : (g > 0 ? '+' : '') + (Math.abs(g) >= 1000 ? Math.round(g) : g.toFixed(1)) + '%';
-  // YoY・QoQ: プラスは赤、マイナスは緑(+30%以上は太字)
+  // YoY・QoQ: プラスは赤、マイナスは緑
   const sign = g => typeof g !== 'number' || g === 0 ? '' : g > 0 ? ' up' : ' dn';
-  const green = g => typeof g === 'number' && g >= 30 ? ' style="font-weight: 700"' : '';
   const neg = v => (typeof v === 'number' && v < 0) || (typeof v === 'string' && v.startsWith('赤')) ? ' neg' : '';
   const blank3 = '<td class="n"></td><td class="g"></td><td class="g"></td>';
-  const cells3 = (x, eps) => `<td class="n${neg(x.v)}">${fmtN(x.v, eps)}</td><td class="g${sign(x.yoy)}"${green(x.yoy)}>${fmtG(x.yoy)}</td><td class="g${sign(x.qoq)}"${green(x.qoq)}>${fmtG(x.qoq)}</td>`;
+  const cells3 = (x, eps) => `<td class="n${neg(x.v)}">${fmtN(x.v, eps)}</td><td class="g${sign(x.yoy)}">${fmtG(x.yoy)}</td><td class="g${sign(x.qoq)}">${fmtG(x.qoq)}</td>`;
   function numCells(r) {
     const keys = ['sales', 'op', 'ordinary', 'net', 'eps'];
     const main = r.nums ? keys.map(k => cells3(r.nums[k] || {}, k === 'eps')).join('') : keys.map(() => blank3).join('');
