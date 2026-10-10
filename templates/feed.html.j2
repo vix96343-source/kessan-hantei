@@ -285,6 +285,17 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
       + segs.map(s => line(s.name, s, '')).join('') + line('合計', o.total, 'cur') + '</table></div>';
   }
 
+  // セグメント別の売上・利益(累計)。合計は一覧と同じ数値
+  function segTable(g) {
+    if (!g || !g.segments.length) return '';
+    const line = (name, x, cls) => `<tr class="${cls}"><td>${esc(name)}</td>` + num(x.sales.v) + gcell(x.sales.yoy) + gcell(x.sales.qoq)
+      + num(x.op.v) + gcell(x.op.yoy) + gcell(x.op.qoq) + '</tr>';
+    return `<div class="fincap">セグメント別(百万円)<span>期首からの累計・YoYは前年同期比、QoQは前四半期比(3か月単独)</span></div>
+      <div class="finbox"><table class="fin"><tr><th>セグメント</th><th>売上</th><th>YoY</th><th>QoQ</th><th>利益</th><th>YoY</th><th>QoQ</th></tr>`
+      + g.segments.map(s => line(s.name, s, '')).join('')
+      + (g.total && g.total.sales ? line('合計', g.total, 'cur') : '') + '</table></div>';
+  }
+
   function finTables(f) {
     if (!f) return '';
     let h = '';
@@ -302,7 +313,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
     return `<tr class="detail"><td colspan="27">
       <div class="dtitle">${esc(r.title)}</div>
       <div class="dlinks">${(r.pdfs || []).map(p => `<a href="${esc(p.url)}" target="_blank" rel="noopener" title="${esc(p.title || '')}">${esc(p.label === '資料' || p.label === '資料2' ? '説明資料' : p.label === '短信' ? '決算短信' : '修正の開示')}(PDF)</a>`).join('')}</div>
-      ${finTables(r.fin)}${orderTable(r.ord)}
+      ${finTables(r.fin)}${segTable(r.seg)}${orderTable(r.ord)}
     </td></tr>`;
   }
 

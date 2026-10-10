@@ -5,7 +5,7 @@ import logging
 import sys
 from datetime import date
 
-from . import calendar_fetch, disclosures, earnings, irdocs, orders, reaction, revisions, site, universe
+from . import calendar_fetch, disclosures, earnings, irdocs, orders, reaction, revisions, segments, site, universe
 from .config import load_config, now_jst
 
 
@@ -15,9 +15,10 @@ def cmd_disclosures(args, cfg):
     stats["earnings"] = earnings.update(cfg)
     stats["revisions"] = revisions.update(cfg)    # 修正の行に出す修正後の予想など
     stats["orders"] = orders.update(cfg)          # 短信の受注高・受注残高の表
+    stats["segments"] = segments.update(cfg)      # 短信のセグメント別の売上・利益
     # 変化が無い回はページも作り直さない(生成時刻だけ変わる無駄なコミットを防ぐ)
     # (IRサイトの説明資料探しは固まっても監視を止めないよう、watch.yml で別プロセスとして実行する)
-    if stats["new_rows"] or stats["xbrl_parsed"] or stats["earnings"]["evaluated"] or stats["revisions"] or stats["orders"] \
+    if stats["new_rows"] or stats["xbrl_parsed"] or stats["earnings"]["evaluated"] or stats["revisions"] or stats["orders"] or stats["segments"] \
             or not (site.DOCS_DIR / "index.html").exists() or manual_changed():
         stats["pages"] = site.render_all(cfg)
     print(json.dumps(stats, ensure_ascii=False))
