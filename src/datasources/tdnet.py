@@ -440,9 +440,26 @@ def parse_earnings_xbrl(zip_bytes: bytes) -> dict:
     }
 
 
-def fetch_earnings(session: RateLimitedSession, xbrl_url: str) -> dict:
+_ZIP_CACHE: dict[str, bytes] = {}
+_ZIP_CACHE_MAX = 400                 # 1回の実行で読む短信の上限(earnings.max_per_run)より多く。1件 約75KB
+
+
+def get_zip(session: RateLimitedSession, xbrl_url: str) -> bytes | None:
+    """決算短信の XBRL(zip)。同じ実行の中では2度取りに行かない(決算の数値と受注の表で同じ zip を使う)。"""
+    if xbrl_url in _ZIP_CACHE:
+        return _ZIP_CACHE[xbrl_url]
     r = session.get(xbrl_url)
-    return parse_earnings_xbrl(r.content) if r is not None else {}
+    if r is None:
+        return None
+    if len(_ZIP_CACHE) >= _ZIP_CACHE_MAX:
+        _ZIP_CACHE.pop(next(iter(_ZIP_CACHE)))
+    _ZIP_CACHE[xbrl_url] = r.content
+    return r.content
+
+
+def fetch_earnings(session: RateLimitedSession, xbrl_url: str) -> dict:
+    b = get_zip(session, xbrl_url)
+    return parse_earnings_xbrl(b) if b is not None else {}
 
 
 def parse_revision_values(zip_bytes: bytes) -> dict:

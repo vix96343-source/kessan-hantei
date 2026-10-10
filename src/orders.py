@@ -18,6 +18,7 @@ from bs4 import BeautifulSoup
 
 from . import disclosures, earnings
 from .config import DATA_DIR
+from .datasources import tdnet
 from .datasources.http import RateLimitedSession
 
 log = logging.getLogger(__name__)
@@ -433,7 +434,6 @@ def _quarter_of_title(title: str) -> int:
 
 def _irbank_earnings_ids(session: RateLimitedSession, code: str) -> list[tuple[str, int]]:
     """IRBANK の会社別適時開示一覧から、決算短信(訂正を除く)の (開示ID, 四半期) 新しい順"""
-    from .datasources import tdnet
     r = session.get(IRBANK_IR.format(code=code))
     if r is None:
         return []
@@ -533,7 +533,10 @@ def parse_zip(zip_bytes: bytes, cum_sales: float | None = None) -> dict | None:
     names = [n for n in z.namelist() if n.endswith("qualitative.htm")]
     if not names:
         return None
-    return parse_qualitative(z.read(names[0]).decode("utf-8", errors="replace"), cum_sales)
+    html = z.read(names[0]).decode("utf-8", errors="replace")
+    if not _TABLE_HINT.search(html):                  # 受注の言葉が無ければ表を探さない(大半の短信)
+        return None
+    return parse_qualitative(html, cum_sales)
 
 
 # ---------------------------------------------------------------- 取り込み
@@ -553,15 +556,15 @@ def update(cfg: dict, data_dir: Path = DATA_DIR, session: RateLimitedSession | N
     for r in todo.itertuples():
         a = arch.get(r.disclosure_id) or {}
         try:
-            resp = session.get(r.xbrl_url)
+            content = tdnet.get_zip(session, r.xbrl_url)   # 決算の数値を読んだときの zip を使い回す
         except Exception as e:                         # 次回再試行
             log.warning("受注: XBRL取得失敗 %s: %s", r.code, e)
             continue
-        if resp is None:
+        if content is None:
             continue
         sales = pd.to_numeric(a.get("cum_sales"), errors="coerce")
         try:
-            x = parse_zip(resp.content, None if pd.isna(sales) else float(sales))
+            x = parse_zip(content, None if pd.isna(sales) else float(sales))
         except Exception as e:                         # 表の形が想定外でも止めない
             log.warning("受注: 表の読み取り失敗 %s: %s", r.code, e)
             x = None
