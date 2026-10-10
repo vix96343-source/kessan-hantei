@@ -6,7 +6,7 @@
 <title>TDnet 決算速報</title>
 <style>
 :root {
-  --bg: #171a26; --panel: #1e2232; --row: #1b1e2b; --row2: #20243a; --line: #2a2f42;
+  --bg: #000; --panel: #141414; --row: #1b1e2b; --row2: #20243a; --line: #2a2f42;
   --text: #e6e9f0; --muted: #8b93a7; --teal: #6fd6cb; --teal-bg: #1d4f4c; --teal-line: #3c8e86;
   --warn-bg: #3a2f1f; --warn: #e6b56a; --green: #3ee08f; --red: #ff7a7a; --new: #3a3420;
 }
@@ -41,12 +41,14 @@ tbody tr.row td { background: var(--row); }
 tbody tr.row.alt td { background: var(--row2); }
 tr.row { cursor: pointer; } tr.row:hover td { background: #262b42 !important; }
 /* お手本と同じ見た目: 濃紺の背景、▲の行は明るい緑の太字、▼の行は白っぽい灰色の普通の太さ */
-table#list { width: auto; min-width: 520px; font-size: 12px; line-height: 1.3; background: #111827; }
+table#list { width: auto; min-width: 520px; font-size: 12px; line-height: 1.3; background: #000; }
 table#list th { font-size: 12px; font-weight: 400; padding: 2px 12px; text-align: center; color: #8d97aa;
-  background: #111827; border-bottom: 1px solid #2a3147; }
-table#list td { padding: 2px 12px; font-weight: 400; color: #48c8a8; background: #111827 !important;
-  border-bottom: 1px solid #222839; }
-table#list tr.row.alt td { background: #151c2e !important; }
+  background: #000; border-bottom: 1px solid #2a2a2a; }
+/* 背景は真っ黒。日付〜期の文字は黄色、数値は白 */
+table#list td { padding: 2px 12px; font-weight: 400; color: #ffd700; background: #000 !important;
+  border-bottom: 1px solid #1c1c1c; }
+table#list tr.row.alt td { background: #000 !important; }
+table#list td.n, table#list td.g { color: #fff; }
 table#list tr.row.up td { color: #2ee87b; font-weight: 700; }
 table#list td.c-time, table#list td.c-code, table#list td.c-kind, table#list td.c-per { text-align: center; }
 table#list td.c-pct { text-align: right; }
@@ -54,14 +56,14 @@ table#list th.n, table#list th.g { padding-left: 6px; padding-right: 6px; }
 table#list td.n, table#list td.g { text-align: right; padding-left: 6px; padding-right: 6px; font-variant-numeric: tabular-nums; }
 table#list td.g { font-size: 11px; opacity: .85; }
 table#list td.n.neg, table#list td.g.neg { color: #f37474 !important; opacity: 1; }
-table#list th.n { border-left: 1px solid #2a3147; } table#list td.n { border-left: 1px solid #1e2537; }
+table#list th.n { border-left: 1px solid #2a2a2a; } table#list td.n { border-left: 1px solid #1c1c1c; }
 table#list td.c-pct.down { color: #48c8a8; font-weight: 400; }
 table#list tr.row.up td.c-pct { color: #2ee87b; font-weight: 700; }
 /* 種別は枠なしの文字(行と同じ色)。押すとPDF */
 table#list a.pdf { background: none; border: 0; padding: 0; margin: 0 3px; font-size: inherit; font-weight: inherit;
   color: inherit; text-decoration: none; }
 table#list a.pdf:hover { text-decoration: underline; }
-table#list tr.row:hover td { background: #232a40 !important; }
+table#list tr.row:hover td { background: #1a1a1a !important; }
 /* 修正の行: 種別の「修正」の文字だけ紫(ほかは決算の行と同じ色) */
 table#list tr.row.rev td.c-kind, table#list tr.row.rev td.c-kind a { color: #b07cff; }
 table#list td.c-date { text-align: center; }
@@ -79,7 +81,7 @@ tr.dayrow .dn { color: var(--muted); font-size: 12px; margin-left: 10px; }
 .datebox button { padding: 5px 8px; }
 .badge-new { display: inline-block; font-size: 10px; font-weight: 700; color: #1b1500; background: var(--warn);
   border-radius: 3px; padding: 0 4px; margin-left: 6px; vertical-align: 1px; }
-tr.detail td { white-space: normal; background: #141724 !important; padding: 8px 12px 12px; }
+tr.detail td { white-space: normal; background: #0d0d0d !important; padding: 8px 12px 12px; }
 .dtitle { color: var(--muted); margin-bottom: 8px; }
 .dlinks { margin: 2px 0 6px; } .dlinks a { color: var(--teal); margin-right: 16px; }
 .finbox { overflow-x: auto; margin: 4px 0 10px; }
