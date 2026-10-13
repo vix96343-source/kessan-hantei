@@ -1,4 +1,9 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261013549337,2026-10-13T14:30,6432,竹内製作所,業績予想及び配当予想の修正に関するお知らせ,forecast_dividend_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261013549337.pdf,,東,2026-10-13T14:30
+140120261013549309,2026-10-13T14:30,6432,竹内製作所,2027年2月期第2四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261013549309.pdf,https://www.release.tdnet.info/inbs/081220261013549309.zip,東,2026-10-13T14:30
+140120260928541222,2026-10-13T14:30,7512,イオン北海,2027年2月期(第49期) 中間決算説明会　資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120260928541222.pdf,,東札,2026-10-13T14:30
+140120260928541198,2026-10-13T14:30,7512,イオン北海,2027年2月期 中間決算補足資料（第49期）,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120260928541198.pdf,,東札,2026-10-13T14:30
+140120260928541194,2026-10-13T14:30,7512,イオン北海,2027年2月期 第2四半期（中間期）決算短信〔日本基準〕（非連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120260928541194.pdf,https://www.release.tdnet.info/inbs/081220260928541194.zip,東札,2026-10-13T14:30
 140120261009548974,2026-10-13T14:00,7937,ツツミ,中間配当予想の修正（増配）に関するお知らせ,dividend_revision,False,up,,,,,https://www.release.tdnet.info/inbs/140120261009548974.pdf,https://www.release.tdnet.info/inbs/091220261009548974.zip,東,2026-10-13T14:20
 140120261009548704,2026-10-09T17:00,7603,ジーイエット,2027年２月期　第２四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261009548704.pdf,https://www.release.tdnet.info/inbs/081220261009548704.zip,東,2026-10-09T17:00
 140120261009548540,2026-10-09T17:00,3454,ファーストブラザーズ,2026年11月期 第３四半期 決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261009548540.pdf,,東,2026-10-09T17:00
