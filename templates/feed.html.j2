@@ -185,9 +185,11 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
     const mins = h * 60 + jst.getUTCMinutes();
     const live = d >= 1 && d <= 5 && mins >= 450 && mins < 1200;   // 7:30〜20:00
     const t = index.generated_at || '';
-    const last = t ? `最終 ${+t.slice(5, 7)}/${+t.slice(8, 10)} ${t.slice(11, 16)}` : '';
+    const last = t ? `データ ${+t.slice(5, 7)}/${+t.slice(8, 10)} ${t.slice(11, 16)}` : '';
+    // 最後にこの画面がサイトを確認した時刻(新しい開示が無くても、確認できていることが分かるように)
+    const chk = checkedAt ? ` ・ 確認 ${checkedAt}` : '';
     $('dot').className = 'dot' + (err ? ' err' : live ? ' live' : '');
-    $('stamp').textContent = err ? `取得失敗 ・ ${last}` : `${live ? '監視中 ・ ' : ''}${last}`;
+    $('stamp').textContent = err ? `取得失敗 ・ ${last}` : `${live ? '監視中 ・ ' : ''}${last}${chk}`;
   }
 
   async function fetchJSON(path) {
@@ -372,8 +374,13 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
 
   async function loadAll() { while (nextDate()) { await loadMore(3); } }
 
+  let checkedAt = '';
+  const hms = () => new Date(Date.now() + 9 * 3600e3).toISOString().slice(11, 19);
   async function refresh(manual) {
     if (document.hidden && !manual) return;              // 非表示の間は休止
+    const btn = $('reload');
+    if (manual) { btn.disabled = true; btn.textContent = '↻ 確認中…'; }
+    const before = allRows().length;
     try {
       const idx = await fetchJSON('data/index.json');
       // 画面の作りが更新されていたら新しい版に読み直す(URLを変えてブラウザのキャッシュを避ける)
@@ -388,9 +395,18 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
         const latest = index.dates[0];
         if (latest) { await loadDay(latest); markFresh(days[latest]); }
       }
+      checkedAt = hms();
       setStatus(false);
       render();
-    } catch (e) { setStatus(true); }
+      if (manual) {
+        const added = allRows().length - before;
+        btn.textContent = added > 0 ? `↻ ${added}件追加` : '↻ 最新です';
+      }
+    } catch (e) {
+      setStatus(true);
+      if (manual) btn.textContent = '↻ 取得失敗';
+    }
+    if (manual) setTimeout(() => { btn.disabled = false; btn.textContent = '↻ 更新'; }, 2000);
   }
 
 

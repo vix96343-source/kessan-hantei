@@ -216,7 +216,9 @@ def update(cfg: dict, data_dir: Path = DATA_DIR, tdnet_session: RateLimitedSessi
     disc = disclosures.load(data_dir)
     feats = load(data_dir)
     arch = load_archive(data_dir)
-    done = set(feats.loc[feats["status"].isin(["ok", "no_xbrl", "no_data"]), "disclosure_id"])
+    # 「XBRLが無い」と判定した短信も、あとから TDnet に XBRL が載ったら(disclosures に URL が入ったら)読み直す
+    has_xbrl = set(disc.loc[disc["xbrl_url"] != "", "disclosure_id"])
+    done = set(feats.loc[feats["status"].isin(["ok", "no_data"]), "disclosure_id"]) |         set(feats.loc[(feats["status"] == "no_xbrl") & ~feats["disclosure_id"].isin(has_xbrl), "disclosure_id"])
     todo = disc[(disc["kind"] == "earnings_report") & (disc["is_correction"] != "True")
                 & ~disc["disclosure_id"].isin(done)]
     todo = todo.sort_values("disclosed_at").head(limit or ecfg["max_per_run"])   # 古い順: 前の短信を先に蓄積
