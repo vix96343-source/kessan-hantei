@@ -25,6 +25,11 @@ input, select, button { font: inherit; color: var(--text); background: var(--pan
 input[type=search] { flex: 1; min-width: 180px; max-width: 320px; }
 button { cursor: pointer; }
 button.primary { background: var(--teal-bg); border-color: var(--teal-line); color: #dff7f4; }
+/* 更新ボタン: 右上に、黒地・細い枠・白い文字だけのシンプルなもの */
+button.reload { background: #0d0f14; border: 1px solid #2c313c; border-radius: 6px; color: #fff; padding: 4px 12px;
+  font-size: 13px; line-height: 1.4; white-space: nowrap; }
+button.reload:hover { border-color: #4a5160; filter: none; }
+button.reload:disabled { color: #9aa4b2; cursor: default; }
 button:hover { filter: brightness(1.15); }
 .bar2 { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; padding: 0 14px 8px; font-size: 12px; color: var(--muted); }
 .bar2 .sp { flex: 1; }
@@ -113,11 +118,9 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
   <h1>TDnet 決算速報</h1>
   <span class="links"><a href="calendar.html">決算予定 ›</a></span>
   <span class="status"><span class="dot" id="dot"></span><span id="stamp">–</span></span>
+  <button id="reload" class="reload">↻ 更新</button>
 </header>
 
-<div class="bar">
-  <button class="primary" id="reload">↻ 更新</button>
-</div>
 <div class="bar2">
   <span id="count">–</span>
   <span class="sp"></span>
