@@ -151,7 +151,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
 <div class="more" id="more"></div>
 </div>
 <footer>
-  出典: TDnet(日本取引所グループ)・四半期業績と受注の過去分は IRBANK。決算の行: 値は3か月(四半期単独)の値(1Qは短信の累計そのまま、2Q以降は累計−前の四半期まで)、YoYは前年の同じ四半期比、QoQは前四半期比。「累」は前の四半期の数値が無く短信の累計を出しているもの。修正の行: 値は修正後の予想、YoYは前期実績比、QoQ欄は前回予想からの修正率。受注高・受注残: 短信に受注の表がある会社のみ(合計。セグメント別は行を開くと表示)。受注高は3か月(四半期単独)の値で、YoYは前年の同じ四半期比、QoQは前四半期比(「累」は前の四半期の短信が無く期首からの累計)。受注残は期末残高。前回が赤字のときの増減率は (今回−前回)÷|前回|。決算短信と業績・配当予想の修正を表示。種別のボタンを押すとPDFが開きます(短信=決算短信、資料=決算説明資料・補足資料(短信から14日以内)、修正=業績・配当予想の修正)。平日8〜20時は1分ごとに自動更新。行をクリック/タップすると数値(売上・営業益の伸び、進捗率、修正率など)が開きます。<br>
+  出典: TDnet(日本取引所グループ)・四半期業績と受注の過去分は IRBANK。決算の行: 値は3か月(四半期単独)の値(1Qは短信の累計そのまま、2Q以降は累計−前の四半期まで)、YoYは前年の同じ四半期比、QoQは前四半期比。「累」は前の四半期の数値が無く短信の累計を出しているもの。修正の行: 値は修正後の予想、YoYは前期実績比、QoQ欄は前回予想からの修正率。受注高・受注残: 短信に受注の表がある会社のみ(合計。セグメント別は行を開くと表示)。受注高は3か月(四半期単独)の値で、YoYは前年の同じ四半期比、QoQは前四半期比(「累」は前の四半期の短信が無く期首からの累計)。受注残は期末残高。前回が赤字のときの増減率は (今回−前回)÷|前回|。決算短信と業績・配当予想の修正を表示。種別のボタンを押すとPDFが開きます(短信=決算短信、資料=決算説明資料・補足資料(短信から14日以内)、修正=業績・配当予想の修正)。平日7:30〜20時は15秒ごとに自動更新。行をクリック/タップすると数値(売上・営業益の伸び、進捗率、修正率など)が開きます。<br>
   期: 決算は 1Q/2Q/3Q/通期、修正は対象の期間(通期/中間)。<br>
 </footer>
 
@@ -179,10 +179,11 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
   let loading = false;
   if (index.dates.length) { $('dayq').min = index.dates[index.dates.length - 1]; $('dayq').max = index.dates[0]; }
 
-  // TDnet の監視は平日 8〜20時(JST)。新しい開示が無ければデータは更新されないので、監視中かどうかは時間帯で示す
+  // TDnet の監視は平日 7:30〜20時(JST)。新しい開示が無ければデータは更新されないので、監視中かどうかは時間帯で示す
   function setStatus(err) {
     const jst = new Date(Date.now() + 9 * 3600e3), h = jst.getUTCHours(), d = jst.getUTCDay();
-    const live = d >= 1 && d <= 5 && h >= 8 && h < 20;
+    const mins = h * 60 + jst.getUTCMinutes();
+    const live = d >= 1 && d <= 5 && mins >= 450 && mins < 1200;   // 7:30〜20:00
     const t = index.generated_at || '';
     const last = t ? `最終 ${+t.slice(5, 7)}/${+t.slice(8, 10)} ${t.slice(11, 16)}` : '';
     $('dot').className = 'dot' + (err ? ' err' : live ? ' live' : '');
@@ -426,7 +427,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
     render();
   });
   document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
-  setInterval(refresh, 60000);                         // 1分ごとに確認(非表示の間は休止)
+  setInterval(refresh, 15000);                         // 15秒ごとに確認(非表示の間は休止)
 
   // 一番下に近づいたら前の日を読み足す(無限スクロール)
   const nearBottom = () => $('more').getBoundingClientRect().top < innerHeight + 600;
