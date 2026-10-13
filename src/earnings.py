@@ -236,8 +236,10 @@ def update(cfg: dict, data_dir: Path = DATA_DIR, tdnet_session: RateLimitedSessi
             a = archive_row(r.disclosure_id, r.code, r.disclosed_at, x)
             new_arch.append(a)
             idx[(r.code, _month(a["period_end"]))] = a
-        rows.append({"disclosure_id": r.disclosure_id, **evaluate(r.code, r.disclosed_at, x, idx, ecfg["types"]),
-                     "computed_at": now_jst().strftime("%Y-%m-%dT%H:%M")})
+        ev = evaluate(r.code, r.disclosed_at, x, idx, ecfg["types"])
+        if ev["status"] == "no_xbrl" and r.xbrl_url:
+            ev["status"] = "no_data"           # XBRL はあるが読めない: 何度読んでも同じなので取り直さない
+        rows.append({"disclosure_id": r.disclosure_id, **ev, "computed_at": now_jst().strftime("%Y-%m-%dT%H:%M")})
 
     if rows:
         new = pd.DataFrame(rows).reindex(columns=FEATURE_COLUMNS, fill_value="")

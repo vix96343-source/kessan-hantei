@@ -60,6 +60,7 @@ jobs:
           [ "$limit_ts" -lt "$end_ts" ] && end_ts=$limit_ts
           echo "watching until $(TZ=Asia/Tokyo date -d @$end_ts '+%H:%M') JST"
           last_ir=0
+          last_push=0
           while [ "$(date +%s)" -lt "$end_ts" ]; do
             t0=$(date +%s)
             # GitHub の画面で手動登録(data/manual_docs.csv)された変更などを取り込む
@@ -73,6 +74,11 @@ jobs:
             git add data/ docs/
             if ! git diff --cached --quiet; then
               git commit -q -m "data: watch $(TZ=Asia/Tokyo date '+%Y-%m-%d %H:%M')"
+            fi
+            # 公開(GitHub Pages)は1回20〜30秒かかり、次の push で途中のものが取り消される。
+            # 40秒に1回までにまとめて push し、毎回最後まで公開されるようにする
+            if [ -n "$(git log "origin/${GITHUB_REF_NAME}..HEAD" --oneline 2>/dev/null)" ] && [ $(( $(date +%s) - last_push )) -ge 40 ]; then
+              last_push=$(date +%s)
               if ! { git pull -q --rebase origin "${GITHUB_REF_NAME}" && git push -q; }; then
                 # 競合したらこの回の結果は捨てて最新に合わせる(次の回で取り直す)
                 git rebase --abort 2>/dev/null || true
@@ -83,6 +89,10 @@ jobs:
             elapsed=$(( $(date +%s) - t0 ))
             [ "$elapsed" -lt 15 ] && sleep $(( 15 - elapsed ))
           done
+          # まだ push していない分を出してから終わる
+          if [ -n "$(git log "origin/${GITHUB_REF_NAME}..HEAD" --oneline 2>/dev/null)" ]; then
+            git pull -q --rebase origin "${GITHUB_REF_NAME}" && git push -q || echo "::warning::final push failed"
+          fi
           # 6時間の上限で終わるときは、20:00 前なら次の監視を起動して引き継ぐ
           if [ "$(TZ=Asia/Tokyo date +%H%M)" -lt 1955 ]; then
             gh workflow run watch.yml --ref "${GITHUB_REF_NAME}" && echo "next watch dispatched"
