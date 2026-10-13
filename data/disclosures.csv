@@ -1,4 +1,7 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261013549763,2026-10-13T15:40,6159,ミクロン精密,通期連結業績予想と実績値との差異に関するお知らせ,actual_vs_forecast,False,,,,,,https://www.release.tdnet.info/inbs/140120261013549763.pdf,,東,2026-10-13T15:40
+140120261013549759,2026-10-13T15:40,6159,ミクロン精密,2026年８月期 決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261013549759.pdf,https://www.release.tdnet.info/inbs/081220261013549759.zip,東,2026-10-13T15:40
+140120261013549714,2026-10-13T15:40,2769,ヴィレッジＶ,2027年5月期　第1四半期決算短信（日本基準）（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261013549714.pdf,https://www.release.tdnet.info/inbs/081220261013549714.zip,東,2026-10-13T15:40
 140120261013549889,2026-10-13T15:30,4176,Ｇ－ココナラ,2026年8月期 通期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261013549889.pdf,,東,2026-10-13T15:30
 140120261013549864,2026-10-13T15:30,4176,Ｇ－ココナラ,2026年８月期 決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261013549864.pdf,https://www.release.tdnet.info/inbs/081220261013549864.zip,東,2026-10-13T15:30
 140120261013549853,2026-10-13T15:30,9278,ブックオフＧＨＤ,2027年5月期 第1四半期決算補足資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261013549853.pdf,,東,2026-10-13T15:30
