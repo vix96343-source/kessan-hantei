@@ -1,4 +1,14 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261013549611,2026-10-13T15:00,482A,Ｆ－セールスＡＣ,2026年８月期決算短信〔日本基準〕（非連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261013549611.pdf,,福,2026-10-13T15:00
+140120261013549604,2026-10-13T15:00,8095,アステナＨＤ,2026年11月期第３四半期決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261013549604.pdf,https://www.release.tdnet.info/inbs/081220261013549604.zip,東,2026-10-13T15:00
+140120261009548977,2026-10-13T15:00,7520,エコス,2027年2月期 第2四半期(中間期)決算短信[日本基準](連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261009548977.pdf,https://www.release.tdnet.info/inbs/081220261009548977.zip,東,2026-10-13T15:00
+140120261009548752,2026-10-13T15:00,7811,中本パックス,2027年２月期　第２四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261009548752.pdf,https://www.release.tdnet.info/inbs/081220261009548752.zip,東,2026-10-13T15:00
+140120261006546716,2026-10-13T15:00,8198,ＭＶ東海,2027年２月期第２四半期（中間期）決算参考資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261006546716.pdf,,東,2026-10-13T15:00
+140120261006546701,2026-10-13T15:00,8198,ＭＶ東海,2027年２月期 第２四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261006546701.pdf,https://www.release.tdnet.info/inbs/081220261006546701.zip,東,2026-10-13T15:00
+140120261006546498,2026-10-13T15:00,139A,Ｐ－東日本地所,2026年８月期 決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261006546498.pdf,,東,2026-10-13T15:00
+140120261005545782,2026-10-13T15:00,6142,富士精工,2027年２月期第２四半期（中間期）連結業績予想と実績値との差異に関するお知らせ,actual_vs_forecast,False,,,,,,https://www.release.tdnet.info/inbs/140120261005545782.pdf,,名,2026-10-13T15:00
+140120261005545755,2026-10-13T15:00,6142,富士精工,2027年２月期 第２四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261005545755.pdf,https://www.release.tdnet.info/inbs/081220261005545755.zip,名,2026-10-13T15:00
+140120260929541630,2026-10-13T15:00,6217,津田駒工,令和８年11月期第３四半期決算短信[日本基準](連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120260929541630.pdf,https://www.release.tdnet.info/inbs/081220260929541630.zip,東,2026-10-13T15:00
 140120261013549337,2026-10-13T14:30,6432,竹内製作所,業績予想及び配当予想の修正に関するお知らせ,forecast_dividend_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261013549337.pdf,,東,2026-10-13T14:30
 140120261013549309,2026-10-13T14:30,6432,竹内製作所,2027年2月期第2四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261013549309.pdf,https://www.release.tdnet.info/inbs/081220261013549309.zip,東,2026-10-13T14:30
 140120260928541222,2026-10-13T14:30,7512,イオン北海,2027年2月期(第49期) 中間決算説明会　資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120260928541222.pdf,,東札,2026-10-13T14:30
