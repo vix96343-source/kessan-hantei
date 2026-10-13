@@ -17,8 +17,8 @@
       "wins": 14
     },
     "earnings_nodata": {
-      "mean_ret_pct": -0.72,
-      "n": 13,
+      "mean_ret_pct": -0.03,
+      "n": 12,
       "wins": 1
     },
     "earnings_t0": {
@@ -27,8 +27,8 @@
       "wins": 82
     },
     "earnings_t1": {
-      "mean_ret_pct": -1.72,
-      "n": 84,
+      "mean_ret_pct": -1.81,
+      "n": 85,
       "wins": 32
     },
     "earnings_t2": {
@@ -80,8 +80,8 @@
   "n": 560,
   "types": {
     "①": {
-      "mean_ret_pct": -1.74,
-      "n": 71,
+      "mean_ret_pct": -1.85,
+      "n": 72,
       "wins": 29
     },
     "③": {
