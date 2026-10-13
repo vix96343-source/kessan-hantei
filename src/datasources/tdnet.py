@@ -391,7 +391,10 @@ def parse_earnings_xbrl(zip_bytes: bytes) -> dict:
     ends = {cid: (re.findall(r"<xbrli:(?:endDate|instant)>([^<]+)<", body) or [""])[0]
             for cid, body in _CONTEXT.findall(s)}
 
-    result_ctx = [c for (_, c) in facts if c.endswith("_ResultMember") and c.split("_")[0] in _PERIOD_NQ
+    # 期は売上・利益などの数値が入っている context で決める(子会社数などの別の項目が違う期に付いていることがある)
+    is_metric = lambda name: any(p.match(name) for p in METRIC_PATTERNS.values())
+    result_ctx = [c for (n, c) in facts if c.endswith("_ResultMember") and c.split("_")[0] in _PERIOD_NQ
+                  and c.count("_") == 2 and is_metric(n)] or                  [c for (_, c) in facts if c.endswith("_ResultMember") and c.split("_")[0] in _PERIOD_NQ
                   and c.count("_") == 2]
     if not result_ctx:
         return {}

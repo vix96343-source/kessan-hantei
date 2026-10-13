@@ -478,6 +478,22 @@ def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:
         xs = [v for t, v in shares_hist.get(code, []) if t <= at] or [v for _, v in shares_hist.get(code, [])]
         return xs[-1] if xs else None
 
+    # 「この決算より前」は期末で決める(1Qと2Qを同じ日に出す会社がある: 発表日では前後が分からない)
+    def end_of(r):
+        a = arch.get(r["disclosure_id"])
+        return str(a["period_end"])[:7] if a and a.get("period_end") else None
+
+    def before(r, qs, include_self=False):
+        e = end_of(r)
+        if e is None:
+            return [q for q in qs if q["announced"] < r["disclosed_at"][:10]]
+        return [q for q in qs if q["end"] < e or (include_self and q["end"] == e)]
+
+    def earlier(r, recs):
+        e = end_of(r)
+        return [o for o in recs if o["disclosure_id"] != r["disclosure_id"] and
+                (str(o.get("period_end") or "")[:7] < e if e and o.get("period_end") else o["disclosed_at"] < r["disclosed_at"])]
+
     rows = []
     for r in disc.sort_values(["disclosed_at", "code"], ascending=[False, True]).to_dict("records"):
         p = score_of(r, stats, cfg, feats)
@@ -494,19 +510,17 @@ def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:
                          manual={k: v for k, v in manual.items()
                                  if k[1] or latest_earn.get(r["code"]) == r["disclosed_at"]}),
                      "title": r["title"],
-                     "nums": quarter_numbers(arch.get(r["disclosure_id"]),
-                                             [q for q in hist.get(r["code"], []) if q["announced"] < r["disclosed_at"][:10]])
+                     "nums": quarter_numbers(arch.get(r["disclosure_id"]), before(r, hist.get(r["code"], [])))
                      if r["kind"] == "earnings_report" else revision_numbers(revs.get(r["disclosure_id"])),
-                     "ord": order_numbers(ord_by_id.get(r["disclosure_id"]),
-                                          [o for o in ords.get(r["code"], []) if o["disclosed_at"] < r["disclosed_at"]]),
+                     "ord": order_numbers(ord_by_id.get(r["disclosure_id"]), earlier(r, ords.get(r["code"], []))),
                      "fin": fin_panel(r, arch.get(r["disclosure_id"]) if r["kind"] == "earnings_report" else None,
-                                      [q for q in hist.get(r["code"], []) if q["announced"] <= r["disclosed_at"][:10]
-                                       or r["kind"] != "earnings_report"],
+                                      before(r, hist.get(r["code"], []), include_self=True)
+                                      if r["kind"] == "earnings_report" else hist.get(r["code"], []),
                                       shares=shares_at(r["code"], r["disclosed_at"])),
                      "pct": None if p is None else round(p * 100),
                      "up": p is not None and round(p * 100) > 50})
         rows[-1]["seg"] = segment_numbers(seg_by_id.get(r["disclosure_id"]),
-                                          [o for o in segs.get(r["code"], []) if o["disclosed_at"] < r["disclosed_at"]],
+                                          earlier(r, segs.get(r["code"], [])),
                                           rows[-1]["nums"]) if r["kind"] == "earnings_report" else None
         rows[-1]["cons"] = consensus_panel(consensus.snapshot(cons.get(r["code"], []), r["disclosed_at"]),
                                            arch.get(r["disclosure_id"])) if r["kind"] == "earnings_report" else None
