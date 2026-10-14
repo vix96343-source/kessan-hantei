@@ -150,7 +150,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
 <div class="more" id="more"></div>
 </div>
 <footer>
-  出典: TDnet(日本取引所グループ)・四半期業績と受注の過去分は IRBANK。決算の行: 値は3か月(四半期単独)の値(1Qは短信の累計そのまま、2Q以降は累計−前の四半期まで)、YoYは前年の同じ四半期比、QoQは前四半期比。「累」は前の四半期の数値が無く短信の累計を出しているもの。修正の行: 値は修正後の予想、YoYは前期実績比、QoQ欄は前回予想からの修正率。受注高・受注残: 短信に受注の表がある会社のみ(合計。セグメント別は行を開くと表示)。受注高は3か月(四半期単独)の値で、YoYは前年の同じ四半期比、QoQは前四半期比(「累」は前の四半期の短信が無く期首からの累計)。受注残は期末残高。前回が赤字のときの増減率は (今回−前回)÷|前回|。決算短信と業績・配当予想の修正を表示。種別のボタンを押すとPDFが開きます(短信=決算短信、資料=決算説明資料・補足資料(短信から14日以内)、修正=業績・配当予想の修正)。平日7:30〜20時は15秒ごとに自動更新。行をクリック/タップすると数値(売上・営業益の伸び、進捗率、修正率など)が開きます。<br>
+  出典: TDnet(日本取引所グループ)・四半期業績と受注の過去分は IRBANK。決算の行: 値は3か月(四半期単独)の値(1Qは短信の累計そのまま、2Q以降は累計−前の四半期まで)、YoYは前年の同じ四半期比、QoQは前四半期比。「累」は前の四半期の数値が無く短信の累計を出しているもの。修正の行: 値は修正後の予想、YoYは前期実績比、QoQ欄は前回予想からの修正率。受注高・受注残: 短信に受注の表がある会社のみ(合計。セグメント別は行を開くと表示)。受注高は3か月(四半期単独)の値で、YoYは前年の同じ四半期比、QoQは前四半期比(「累」は前の四半期の短信が無く期首からの累計)。受注残は期末残高。前回が赤字のときの増減率は (今回−前回)÷|前回|。決算短信と業績・配当予想の修正を表示。種別のボタンを押すとPDFが開きます(短信=決算短信、資料=決算説明資料・補足資料(短信から14日以内)、修正=業績・配当予想の修正)。平日7:30〜20時は15秒ごとに自動更新(TDnet の新しい開示は5秒ごとに直接確認し「速報」として先に表示)。行をクリック/タップすると数値(売上・営業益の伸び、進捗率、修正率など)が開きます。<br>
   期: 決算は 1Q/2Q/3Q/通期、修正は対象の期間(通期/中間)。<br>
 </footer>
 
@@ -389,18 +389,20 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
     days[d] = [...add, ...rows];
     if (!index.dates.includes(d)) index.dates.unshift(d);
   }
-  async function fetchLive() {
-    if (!PROXY) return;
+  // all=false は1ページ目だけ(新しい開示は1ページ目の上に出る)。自動の確認はこちらで軽く速く
+  async function fetchLive(all = true) {
+    if (!PROXY) return 0;
     const d = jstToday(), ymd = d.replace(/-/g, '');
     const page = async n => {
       const res = await fetch(`${PROXY}/list/${ymd}/${String(n).padStart(3, '0')}`, { cache: 'no-store' });
       return res.ok ? new DOMParser().parseFromString(await res.text(), 'text/html') : null;
     };
     const first = await page(1);
-    if (!first) return;
+    if (!first) return 0;
+    const before = live.size;
     const total = +((first.querySelector('.kaijiSum')?.textContent.match(/全\s*(\d+)\s*件/) || [])[1] || 0);
     const docs = [first];
-    for (let n = 2; n <= Math.min(Math.ceil(total / 100), 10); n++) { const doc = await page(n); if (doc) docs.push(doc); }
+    if (all) for (let n = 2; n <= Math.min(Math.ceil(total / 100), 10); n++) { const doc = await page(n); if (doc) docs.push(doc); }
     const have = new Set((days[d] || []).filter(r => !r.live).map(r => r.id));
     for (const doc of docs) for (const tr of doc.querySelectorAll('#main-list-table tr')) {
       const c = cls => tr.querySelector('td.' + cls);
@@ -418,7 +420,20 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
         pdfs: [{ label: earn ? '短信' : '修正', url: TDNET + href, title }] });
     }
     mergeLive(d);
+    return live.size - before;
   }
+  // 5秒ごとに TDnet の1ページ目を直接見て、新しい開示があればすぐ出す(画面を見ていない間は休止)
+  let liveBusy = false;
+  async function liveTick() {
+    if (!PROXY || document.hidden || liveBusy) return;
+    liveBusy = true;
+    try {
+      if (await fetchLive(false) > 0) { const t = jstToday(); if (days[t]) markFresh(days[t]); render(); }
+    } catch (e) { /* 次の回で取り直す */ }
+    liveBusy = false;
+  }
+  setInterval(liveTick, 5000);
+
 
   let checkedAt = '';
   const hms = () => new Date(Date.now() + 9 * 3600e3).toISOString().slice(11, 19);
@@ -442,7 +457,8 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
         if (latest) { await loadDay(latest); markFresh(days[latest]); }
       }
       // TDnet を直接見て、サイトのデータにまだ無い開示を「速報」として足す(中継が止まっていても一覧は出す)
-      try { await fetchLive(); const t = jstToday(); if (days[t]) markFresh(days[t]); } catch (e) { console.warn('TDnet 直接取得に失敗', e); }
+      // 更新ボタンのときは全ページ、自動のときは1ページ目だけ
+      try { await fetchLive(!!manual); const t = jstToday(); if (days[t]) markFresh(days[t]); } catch (e) { console.warn('TDnet 直接取得に失敗', e); }
       checkedAt = hms();
       setStatus(false);
       render();
