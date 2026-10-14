@@ -299,14 +299,13 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
       + g.segments.map(s => line(s.name, s, '')).join('') + (g.total ? line('合計', g.total, 'cur') : '') + '</table></div>';
   }
 
-  // アナリスト予想の平均(通期)と会社予想・実績との差
+  // アナリスト予想の平均(四半期2つと今期・来期の通期)
   function consTable(c) {
     if (!c) return '';
-    const t = c.annual ? ['今期(実績)', '来期(会社予想)'] : ['今期(会社予想)', '来期'];
-    const cell = x => num(x.cons) + num(x.co) + gcell(x.diff);
-    return `<div class="fincap">コンセンサス(アナリスト予想の平均・通期)<span>${esc(c.date)} 時点${c.before ? '(発表前)' : '(発表後)'}・アナリスト ${c.n ?? '–'}人・売上は百万円、EPSは円。差=会社÷コンセンサス−1</span></div>
-      <div class="finbox"><table class="fin"><tr><th></th><th>今期 予想平均</th><th>${t[0]}</th><th>差</th><th>来期 予想平均</th><th>${t[1]}</th><th>差</th></tr>`
-      + c.rows.map(r => `<tr><td>${esc(r.label)}</td>` + cell(r.this) + cell(r.next) + '</tr>').join('') + '</table></div>';
+    return `<div class="fincap">【コンセンサス】(百万円)<span>${c.next_fy ? '来期=' + esc(c.next_fy) + '・' : ''}${esc(c.date)} 時点${c.before ? '(発表前)' : '(発表後)'}・アナリスト ${c.n ?? '–'}人・四半期は3か月の値・EPSは円</span></div>
+      <div class="finbox"><table class="fin"><tr><th></th>${c.cols.map(h => `<th>${esc(h)}</th>`).join('')}</tr>`
+      + c.rows.map(r => `<tr><td class="lab">${esc(r.label)}</td>` + r.vals.map(v => r.label === 'EPS' ? epsCell(v) : num(v)).join('') + '</tr>').join('')
+      + '</table></div>';
   }
 
   // 受注の推移(期間・受注高(累計)・YoY・単体Q・QoQ・QYoY・受注残・残YoY)

@@ -491,37 +491,40 @@ def segment_numbers(rec: dict | None, past: list[dict], main: dict | None, ords:
 
 
 def consensus_panel(snap: dict | None, arch: dict | None) -> dict | None:
-    """アナリスト予想の平均(通期)と、会社予想(通期の決算なら実績)との差。売上は百万円、EPS は円。
-    通期決算のあとに取った値は「今期」が来期にずれているので、来期として扱う。"""
+    """アナリスト予想の平均(Yahoo Finance)。列: 四半期(3か月)の予想2つと今期・来期の通期、行: 売上(百万円)・EPS(円)。
+    取れるのは売上と EPS だけ(営業利益・経常利益・純利益の予想は無い)。
+    四半期の名前は、発表前に取った値なら「今回発表の四半期・その次」、発表後なら「次・その次」。"""
     if not snap:
         return None
     n_q = int(float(arch["n_q"])) if arch and arch.get("n_q") else None
+    end = str(arch["period_end"])[:7] if arch and arch.get("period_end") else None
+    before = bool(snap["before"])
     annual = n_q == 4
-    shifted = annual and not snap["before"]
-    cons = {"this": None if shifted else ("0y", snap.get("n_0y")),
-            "next": ("0y", snap.get("n_0y")) if shifted else ("1y", snap.get("n_1y"))}
+    shifted = annual and not before                    # 通期決算のあとに取った値は「今期」が来期にずれている
 
-    def company(term, m):
-        if not arch:
-            return None
-        if term == "this":
-            if annual:
-                return _f0(arch.get("cum_eps")) if m == "eps" else _f0(arch.get("cum_sales"))
-            return None if m == "eps" or str(arch.get("fc_next_year")) == "True" else _f0(arch.get("fc_sales"))
-        return _f0(arch.get("fc_sales")) if annual and m == "rev" else None
+    def qlabel(k):                                     # k=0: yfinance の 0q、k=1: +1q
+        if not n_q:
+            return "今四半期" if k == 0 else "次四半期"
+        q = n_q + k + (0 if before else 1)
+        fy = "今期" if q <= 4 else "来期"
+        return f"{fy}{(q - 1) % 4 + 1}Q"
 
+    fy_end = _ym_shift(end, 3 * (4 - n_q)) if end and n_q else None
+    next_fy = _ym_shift(fy_end, 12) if fy_end else None
+    cols = [(qlabel(0), "0q"), (qlabel(1), "1q"),
+            ("今期通期", None if shifted else "0y"), ("来期通期", "0y" if shifted else "1y")]
     rows = []
     for m, label in (("rev", "売上"), ("eps", "EPS")):
-        row = {"label": label}
-        for term in ("this", "next"):
-            c = cons[term]
-            cv = _f0(snap.get(f"{m}_{c[0]}")) if c else None
-            co = company(term, m)
-            fmt = (lambda v: None if v is None else round(v, 1)) if m == "eps" else _mil
-            row[term] = {"cons": fmt(cv), "co": fmt(co), "diff": _growth(co, cv)}
-        rows.append(row)
-    return {"date": str(snap["fetched_at"])[:10], "before": bool(snap["before"]), "annual": annual,
-            "n": _f0(snap.get("n_0y")), "rows": rows}
+        vals = []
+        for _, k in cols:
+            v = _f0(snap.get(f"{m}_{k}")) if k else None
+            vals.append(None if v is None else (round(v, 1) if m == "eps" else _mil(v)))
+        if any(v is not None for v in vals):
+            rows.append({"label": label, "vals": vals})
+    if not rows:
+        return None
+    return {"date": str(snap["fetched_at"])[:10], "before": before, "n": _f0(snap.get("n_0y")),
+            "next_fy": f"{next_fy[:4]}/{next_fy[5:7]}" if next_fy else "", "cols": [c for c, _ in cols], "rows": rows}
 
 
 def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:

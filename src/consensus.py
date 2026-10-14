@@ -14,7 +14,8 @@ from .config import DATA_DIR, now_jst
 
 log = logging.getLogger(__name__)
 
-COLUMNS = ["code", "fetched_at", "n_0y", "eps_0y", "rev_0y", "n_1y", "eps_1y", "rev_1y"]
+COLUMNS = ["code", "fetched_at", "n_0y", "eps_0y", "rev_0y", "n_1y", "eps_1y", "rev_1y",
+           "n_0q", "eps_0q", "rev_0q", "n_1q", "eps_1q", "rev_1q"]
 
 
 def path(data_dir: Path = DATA_DIR) -> Path:
@@ -44,12 +45,12 @@ def fetch(code: str) -> dict | None:
     if e is None or e.empty:
         return None
     row = {"code": code}
-    for k in ("0y", "1y"):
-        key = "0y" if k == "0y" else "+1y"
+    # 0y=今期・1y=来期(通期)、0q=今の四半期・1q=次の四半期(3か月)
+    for k, key in (("0y", "0y"), ("1y", "+1y"), ("0q", "0q"), ("1q", "+1q")):
         row[f"n_{k}"] = _num(e["numberOfAnalysts"].get(key)) if "numberOfAnalysts" in e else None
         row[f"eps_{k}"] = _num(e["avg"].get(key))
         row[f"rev_{k}"] = _num(r["avg"].get(key)) if r is not None and not r.empty else None
-    if not row["n_0y"] or (row["eps_0y"] is None and row["rev_0y"] is None):
+    if not row.get("n_0y") or (row["eps_0y"] is None and row["rev_0y"] is None):
         return None
     return row
 
@@ -97,8 +98,10 @@ def by_code(data_dir: Path = DATA_DIR) -> dict[str, list[dict]]:
 
 
 def snapshot(recs: list[dict], disclosed_at: str) -> dict | None:
-    """決算の発表より前に取った一番新しい値(無ければ発表後の一番古い値)"""
+    """決算の発表より前に取った一番新しい値。四半期の予想が入っていない古い記録しか無ければ、発表後の一番新しい値。"""
+    has_q = lambda r: str(r.get("rev_0q", "")) not in ("", "nan") or str(r.get("eps_0q", "")) not in ("", "nan")
     before = [r for r in recs if r["fetched_at"] < disclosed_at]
-    if before:
+    after = [r for r in recs if r["fetched_at"] >= disclosed_at]
+    if before and (has_q(before[-1]) or not any(has_q(r) for r in after)):
         return {**before[-1], "before": True}
-    return {**recs[0], "before": False} if recs else None
+    return {**after[-1], "before": False} if after else ({**before[-1], "before": True} if before else None)
