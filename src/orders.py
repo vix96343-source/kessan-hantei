@@ -112,7 +112,7 @@ def _grid(table) -> list[list[str]]:
 
 def _metric(label: str) -> str | None:
     l = re.sub(r"\s", "", label)
-    if re.search(r"件|損失|前期繰越", l):
+    if re.search(r"件|損失|前期繰越|期首", l):         # 期首の繰越残高は期末の受注残ではない
         return None
     if re.search(r"受注残|手持受注|次期繰越|繰越工事高", l):
         return "backlog"
@@ -240,6 +240,14 @@ def _grid_facts(header: list[list[str]], data: list[list[str]], numeric_cols: li
         if not names or re.match(r"^[（(]", names[-1]):
             continue                                   # 「(非住宅物件等含む)」のような内数の行
         row_metric = next((m for m in (_metric(n) for n in names) if m), None)
+        # 行の見出しに期が書いてある表(「前連結会計年度 | 国内EPC事業 | …」「当連結会計年度 | …」)は行の期を使う
+        row_period = None
+        for nm in names[:-1]:
+            k = re.sub(r"\s", "", nm)
+            if re.match(r"前(連結|事業|第|中間|期|年)", k):
+                row_period = "prior"
+            elif re.match(r"当(連結|事業|第|中間|期|年)", k):
+                row_period = "cur"
         seg = names[-1]
         if _metric(seg) and len(names) == 1:
             seg = "合計"                               # 「受注高 | 50,163 | 59,267 …」のように行見出しが項目名
@@ -257,7 +265,10 @@ def _grid_facts(header: list[list[str]], data: list[list[str]], numeric_cols: li
             v = _num(row[j])
             if metric is None or v is None:
                 continue
-            facts.append({"seg": seg, "metric": metric, "period": c["period"], "kind": c["kind"],
+            period = row_period if row_period and c["kind"] == "value" else c["period"]
+            if row_period == "prior" and c["kind"] == "pct":
+                continue                               # 前年の行の増減率は今回の YoY ではない
+            facts.append({"seg": seg, "metric": metric, "period": period, "kind": c["kind"],
                           "value": v, "signed": _signed(row[j]), "growth_label": c["growth_label"],
                           "group": group, "parent": child_of})
     return facts, all_header
@@ -432,6 +443,13 @@ def parse_pdf_text(text: str, tpls: list[dict], unit: float | None = None) -> di
         width, ncols = tpl["width"], tpl["numeric_cols"]
         label_cols = [j for j in range(width) if j not in ncols]
 
+        # 金額の列(見出しが受注高・受注残など)に小数(構成比や前年比の%)が来たら、表の形が違うので合わない行とする
+        heads = [" ".join(dict.fromkeys(r[j] for r in tpl["header"] if j < len(r) and r[j])) for j in range(width)]
+        money = [_col_kind(heads[j]) == "value" for j in ncols]
+
+        def fits(vals):
+            return all(not (m and "." in v) for m, v in zip(money, vals))
+
         def match_from(start):
             data, pos = [], start
             for labels in tpl["rows"]:
@@ -441,7 +459,7 @@ def parse_pdf_text(text: str, tpls: list[dict], unit: float | None = None) -> di
                     continue
                 for i in range(pos, min(pos + 40, len(lines))):
                     vals = _pdf_row(lines[i], label, len(ncols))
-                    if vals is not None:
+                    if vals is not None and fits(vals):
                         row = [""] * width
                         for j, n in zip(label_cols, labels):
                             row[j] = n

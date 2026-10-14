@@ -13,7 +13,7 @@ from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader
 
-from . import calendar_fetch, consensus, disclosures, earnings, history, irdocs, orders, reaction, revisions, segments, universe
+from . import calendar_fetch, consensus, disclosures, earnings, history, irdocs, order_adjust, orders, reaction, revisions, segments, universe
 from .config import DATA_DIR, ROOT, now_jst
 
 DOCS_DIR = ROOT / "docs"
@@ -293,7 +293,7 @@ def quarter_numbers(arch: dict | None, hist: list[dict]) -> dict | None:
     return out
 
 
-def order_numbers(rec: dict | None, past: list[dict]) -> dict | None:
+def order_numbers(rec: dict | None, past: list[dict], adj: dict | None = None) -> dict | None:
     """受注高・受注残高(百万円)と YoY・QoQ。
     受注高は説明資料と同じ3か月(四半期単独)の値 = 累計 − 前の四半期までの累計。
     YoY は前年の同じ四半期(短信の前年同期の累計からも同じ引き算)、QoQ は前の四半期の3か月の値と比べる。
@@ -342,14 +342,23 @@ def order_numbers(rec: dict | None, past: list[dict]) -> dict | None:
         before = cum(_ym_shift(ym, -3), name, which)
         return None if before is None else c - before
 
+    def qm(ym, name, which="cur"):
+        """3か月の値(百万円)。説明資料で1の誤差を直した値があればそれ"""
+        v = single(ym, name, which)
+        if which == "cur" and name is not None:
+            fixed = (adj or {}).get(re.sub(r"\s|・", "", unicodedata.normalize("NFKC", name)), {}).get(ym)
+            if fixed is not None:
+                return fixed
+        return _mil(v)
+
     def nums(s, name):
         b = {"v": _mil(s.get("backlog")), "yoy": s.get("backlog_yoy"), "qoq": None}
-        q = single(end, name, "cur") if n_q and end else None
+        q = qm(end, name) if n_q and end else None
         if q is None:
             o = {"v": _mil(s.get("orders")), "yoy": s.get("orders_yoy"), "qoq": None, "cum": True}
         else:
             pe = _ym_shift(end, -3)
-            o = {"v": _mil(q), "yoy": _growth(q, single(end, name, "prior")), "qoq": _growth(q, single(pe, name, "cur"))}
+            o = {"v": q, "yoy": _growth(q, qm(end, name, "prior")), "qoq": _growth(q, qm(pe, name))}
         if n_q and end:
             ps = seg_of(by_end.get(_ym_shift(end, -3)), name)
             # 受注残高: 前の四半期末と比べる(1Qは短信の表にある前期末の残高でもよい)
@@ -363,11 +372,12 @@ def order_numbers(rec: dict | None, past: list[dict]) -> dict | None:
                           **nums(s, re.sub(r"\s", "", s["name"]))} for s in d["segments"]],
             "hist": order_history(by_end, end),
             "seg_hist": [{"name": sg["name"], **({"parent": sg["parent"]} if sg.get("parent") else {}),
-                          "rows": order_history(by_end, end, n=8, seg=re.sub(r"\s", "", sg["name"]))}
+                          "rows": order_history(by_end, end, n=8, seg=re.sub(r"\s", "", sg["name"]),
+                                                adj=(adj or {}).get(re.sub(r"\s|・", "", unicodedata.normalize("NFKC", sg["name"])), {}))}
                          for sg in d["segments"]]}
 
 
-def order_history(by_end: dict, upto: str, n: int = 20, seg: str | None = None) -> list[dict]:
+def order_history(by_end: dict, upto: str, n: int = 20, seg: str | None = None, adj: dict | None = None) -> list[dict]:
     """受注の推移(古い順・最大 n 四半期): 期間・受注高(累計)と YoY・3か月の値(単体Q)と QoQ・QYoY・受注残と YoY。
     seg を渡すとそのセグメント(品目)の推移(名前は空白を除いて照合)。"""
     def tot(ym):
@@ -399,13 +409,16 @@ def order_history(by_end: dict, upto: str, n: int = 20, seg: str | None = None) 
         fy = _ym_shift(ym, 3 * (4 - q))
         cum, py = t.get("orders"), tot(_ym_shift(ym, -12))
         sq = single(ym)
+        sqm = lambda y: (adj or {}).get(y, _mil(single(y)))      # 説明資料で1の誤差を直した値があればそれ
         # 前年の記録があれば実数から計算する(短信の「前年同期比」は比率か増減率かが表によって違う)
         yoy = _growth(cum, py.get("orders")) if py.get("orders") is not None else t.get("orders_yoy")
         byoy = _growth(t.get("backlog"), py.get("backlog")) if py.get("backlog") is not None else t.get("backlog_yoy")
         pb = tot(_ym_shift(ym, -3)).get("backlog")
         out.append({"label": f"{fy[2:4]}/{int(fy[5:7])} {q}Q", "cum": _mil(cum), "yoy": yoy,
                     "bqoq": _growth(t.get("backlog"), pb),
-                    "q": _mil(sq), "qoq": _growth(sq, single(_ym_shift(ym, -3))), "qyoy": _growth(sq, single(_ym_shift(ym, -12))),
+                    "q": sqm(ym) if sq is not None else None,
+                    "qoq": _growth(sqm(ym) if sq is not None else None, sqm(_ym_shift(ym, -3))),
+                    "qyoy": _growth(sqm(ym) if sq is not None else None, sqm(_ym_shift(ym, -12))),
                     "backlog": _mil(t.get("backlog")), "byoy": byoy})
     return out
 
@@ -543,6 +556,7 @@ def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:
             if a and not o["period_end"]:
                 o["n_q"], o["period_end"] = a["n_q"], a["period_end"]
     ord_by_id = {o["disclosure_id"]: o for recs in ords.values() for o in recs}
+    ord_adj = order_adjust.load(data_dir)["adj"]
     segs = segments.by_code(data_dir)
     for recs in segs.values():
         for o in recs:
@@ -596,7 +610,8 @@ def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:
                      "title": r["title"],
                      "nums": quarter_numbers(arch.get(r["disclosure_id"]), before(r, hist.get(r["code"], [])))
                      if r["kind"] == "earnings_report" else revision_numbers(revs.get(r["disclosure_id"])),
-                     "ord": order_numbers(ord_by_id.get(r["disclosure_id"]), earlier(r, ords.get(r["code"], []))),
+                     "ord": order_numbers(ord_by_id.get(r["disclosure_id"]), earlier(r, ords.get(r["code"], [])),
+                                          ord_adj.get(r["code"])),
                      "fin": fin_panel(r, arch.get(r["disclosure_id"]) if r["kind"] == "earnings_report" else None,
                                       before(r, hist.get(r["code"], []), include_self=True)
                                       if r["kind"] == "earnings_report" else hist.get(r["code"], []),

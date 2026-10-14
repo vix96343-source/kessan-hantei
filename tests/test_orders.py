@@ -151,3 +151,15 @@ def test_orders_are_three_month_values_like_the_presentation():
     assert abs(o["orders"]["yoy"] - (78509 / 24699 - 1) * 100) < 0.5
     # 前の四半期の記録が無いときは短信どおりの累計
     assert order_numbers(q2, [])["total"]["orders"] == {"v": 120540, "yoy": 156.4, "qoq": None, "cum": True}
+
+
+def test_one_off_rounding_fixed_from_presentation_page():
+    # 短信の累計(百万円未満切り捨て)の差では 78,510・22,959・664 になるが、説明資料には 78,509・22,958・663 と載っている
+    from src import order_adjust
+    pages = ["受注高・売上高・受注残高の推移 | 24,699 22,958 | 34,004 | 42,030 | 78,509 | 半導体関連装置",
+             "受注高・売上高・受注残高の推移 | 分析装置 | 663 483 | 1,460 | 2,366 | 1,346"]
+    names = {"半導体関連装置": "半導体関連装置", "分析装置": "分析装置"}
+    vals = {"半導体関連装置": {"2025-08": 24699, "2025-11": 22959, "2026-05": 42030, "2026-08": 78510},
+            "分析装置": {"2025-08": 664, "2025-11": 483, "2026-08": 1346}}
+    adj = order_adjust.adjust_from_pages(pages, names, vals)
+    assert adj == {"半導体関連装置": {"2025-11": 22958, "2026-08": 78509}, "分析装置": {"2025-08": 663}}
