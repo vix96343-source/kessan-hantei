@@ -1,4 +1,7 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261014550232,2026-10-14T15:00,7847,グラファイトＤ,2027年２月期 第２四半期（中間期）決算短信〔日本基準〕（非連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261014550232.pdf,https://www.release.tdnet.info/inbs/081220261014550232.zip,東,2026-10-14T15:00
+140120261014550224,2026-10-14T15:00,8904,ＡＶＡＮＴＩＡ,2026年8月期 決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261014550224.pdf,,東名,2026-10-14T15:00
+140120261013549905,2026-10-14T15:00,4673,川崎地質,2026年11月期第３四半期決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261013549905.pdf,https://www.release.tdnet.info/inbs/081220261013549905.zip,東,2026-10-14T15:00
 140120261014550369,2026-10-14T14:30,3181,買取王国,業績予想と実績値との差異に関するお知らせ,actual_vs_forecast,False,,,,,,https://www.release.tdnet.info/inbs/140120261014550369.pdf,,東,2026-10-14T14:30
 140120261014550299,2026-10-14T14:30,3181,買取王国,2027年２月期　第２四半期（中間期）決算短信〔日本基準〕（非連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261014550299.pdf,https://www.release.tdnet.info/inbs/081220261014550299.zip,東,2026-10-14T14:30
 140120261014550538,2026-10-14T14:00,3077,ホリイフード,2026年11月期第３四半期決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261014550538.pdf,https://www.release.tdnet.info/inbs/081220261014550538.zip,東,2026-10-14T14:00
