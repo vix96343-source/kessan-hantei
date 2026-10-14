@@ -98,6 +98,7 @@ table.fin td.neg { color: var(--red); }
 /* 行を開いたときの表: 一覧の文字色の指定より優先させる(#list を付ける)。YoY・QoQ はプラス赤・マイナス水色、マイナスの数値も水色 */
 #list table.fin td.gup { color: #f07894; } #list table.fin td.gdn { color: #7dd8d4; }
 #list table.fin td.neg { color: #7dd8d4; }
+#list table.fin.qtab td, #list table.fin.qtab th { padding-top: 0; padding-bottom: 0; line-height: 1.15; }   /* 四半期業績の表は縦を詰める */
 #list table.fin td, #list table.fin th { padding-left: 10px; padding-right: 10px; }   /* 行を開いたときの表の列の間隔 */
 table.fin tr.cur td { background: #21305a; color: #fff; }
 table.fin td.lab { color: var(--warn); }
@@ -333,7 +334,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
     if (!f) return '';
     let h = '';
     if (f.quarters && f.quarters.length) {
-      h += `<div class="fincap">四半期業績(単独・百万円)<span>EPSは円(直近の短信の株数で換算)</span></div><div class="finbox"><table class="fin">
+      h += `<div class="fincap">四半期業績(単独・百万円)<span>EPSは円(直近の短信の株数で換算)</span></div><div class="finbox"><table class="fin qtab">
         <tr><th>決算期</th><th>売上高</th><th>営業益</th><th>経常益</th><th>最終益</th><th>EPS</th></tr>`
         + f.quarters.map((q, i) => `<tr class="${i === f.quarters.length - 1 ? 'cur' : ''}"><td>${esc(q.label)}</td>`
           + num(q.sales) + num(q.op) + num(q.ordinary) + num(q.net) + epsCell(q.eps) + '</tr>').join('')
