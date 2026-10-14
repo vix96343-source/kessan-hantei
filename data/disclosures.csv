@@ -1,4 +1,5 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261013549507,2026-10-14T11:30,4057,Ｇ－インタファクトリ,2027年５月期 第１四半期決算短信〔日本基準〕（非連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261013549507.pdf,https://www.release.tdnet.info/inbs/081220261013549507.zip,東,2026-10-14T11:30
 140120261014550115,2026-10-14T09:00,9948,アークス,2027年２月期第２四半期決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261014550115.pdf,,東札,2026-10-14T09:51
 140120261013549735,2026-10-14T08:30,2459,アウン,2027年5月期第1四半期決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261013549735.pdf,https://www.release.tdnet.info/inbs/081220261013549735.zip,東,2026-10-14T09:51
 140120261013549733,2026-10-14T08:30,2459,アウン,2027年5月期 第1四半期決算補足資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261013549733.pdf,,東,2026-10-14T09:51
