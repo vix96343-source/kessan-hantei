@@ -98,6 +98,13 @@ table.fin td.neg { color: var(--red); }
 /* 行を開いたときの表: 一覧の文字色の指定より優先させる(#list を付ける)。YoY・QoQ はプラス赤・マイナス水色、マイナスの数値も水色 */
 #list table.fin td.gup { color: #f07894; } #list table.fin td.gdn { color: #7dd8d4; }
 #list table.fin td.neg { color: #7dd8d4; }
+/* 行を開いたときの表を見やすく: 行と列に少し余白、1行おきに薄い縞、見出しの下線、最新の四半期を強調 */
+#list table.fin { line-height: 1.45; }
+#list table.fin th { padding: 2px 10px; color: #9aa4b2; font-weight: 400; border-bottom: 1px solid #3a4256; }
+#list table.fin td { padding: 1px 10px; border-bottom: 0; background: transparent !important; }
+#list table.fin tr:nth-child(odd) td { background: #161c27 !important; }
+#list table.fin tr.cur td { background: #1f2a40 !important; color: #e8ecf2; }
+#list table.fin tr.cur td.gup { color: #f58ea6; } #list table.fin tr.cur td.gdn, #list table.fin tr.cur td.neg { color: #8fe3df; }
 table.fin tr.cur td { background: #21305a; color: #fff; }
 table.fin td.lab { color: var(--warn); }
 .fincap { color: var(--teal); font-size: 12px; margin: 6px 0 2px; }
