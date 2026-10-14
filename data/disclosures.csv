@@ -1,4 +1,6 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261008548189,2026-10-14T15:15,3065,ライフフーズ,2027年２月期第２四半期累計期間の業績予想と実績値との差異および業績予想の修正、配当予想の修正に関するお知らせ,forecast_dividend_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261008548189.pdf,,東,2026-10-14T15:15
+140120261008548181,2026-10-14T15:15,3065,ライフフーズ,2027年２月期第２四半期（中間期）決算短信〔日本基準〕(非連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261008548181.pdf,https://www.release.tdnet.info/inbs/081220261008548181.zip,東,2026-10-14T15:15
 140120261014550232,2026-10-14T15:00,7847,グラファイトＤ,2027年２月期 第２四半期（中間期）決算短信〔日本基準〕（非連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261014550232.pdf,https://www.release.tdnet.info/inbs/081220261014550232.zip,東,2026-10-14T15:00
 140120261014550224,2026-10-14T15:00,8904,ＡＶＡＮＴＩＡ,2026年8月期 決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261014550224.pdf,,東名,2026-10-14T15:00
 140120261013549905,2026-10-14T15:00,4673,川崎地質,2026年11月期第３四半期決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261013549905.pdf,https://www.release.tdnet.info/inbs/081220261013549905.zip,東,2026-10-14T15:00
