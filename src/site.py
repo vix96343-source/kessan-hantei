@@ -593,7 +593,8 @@ def render_all(cfg: dict, data_dir: Path = DATA_DIR, docs_dir: Path = DOCS_DIR) 
     latest = {"date": dates[0], "rows": by_date[dates[0]]} if dates else {"date": "", "rows": []}
     pages = {
         "index.html": ("feed.html.j2", dict(page="feed", index_json=dump(index).replace("</", "<\\/"),
-                                            day_json=dump(latest).replace("</", "<\\/"))),
+                                            day_json=dump(latest).replace("</", "<\\/"),
+                                            proxy=(cfg.get("site") or {}).get("tdnet_proxy", ""))),
         "calendar.html": ("calendar.html.j2", dict(page="calendar", groups=_group(calendar_rows(data_dir)))),
     }
     for name, (tpl, ctx) in pages.items():

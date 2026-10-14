@@ -208,6 +208,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
   async function loadDay(d) {
     const j = await fetchJSON(`data/${d}.json`);
     days[d] = j.rows;
+    try { mergeLive(d); } catch (e) {}                  // 速報(TDnet から直接読んだ分)を残す
   }
 
   function allRows() { return loadedDates().flatMap(d => days[d]); }
@@ -358,6 +359,67 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
   }
 
 
+  // ---- TDnet を直接読む(Cloudflare の中継経由)。サイトのデータに載る前の新しい開示を「速報」として先に出す ----
+  const PROXY = {{ proxy | tojson }};
+  const TDNET = 'https://www.release.tdnet.info/inbs/';
+  const live = new Map();                              // id -> 速報の行(サイトのデータに載ったら消す)
+  const LABEL = { earnings_report: '決算', forecast_revision: '業績', dividend_revision: '配当', forecast_dividend_revision: '業績 配当' };
+  // 表題からの種別の判定(src/datasources/tdnet.py の classify_title と同じ考え方)
+  const RE = {
+    corr: /^[\s(（【]*訂正|^[\s]*[(（【][^)）】]*訂正[^)）】]*[)）】]|一部訂正|訂正版|データ訂正/,
+    fund: /上場投信|上場投資信託|連動型|ＥＴＦ|ETF|ＥＴＮ|ETN|指数連動|ＲＥＩＴ|REIT|インフラファンド/,
+    fc: /業績予想|業績見通し|業績予測/, dv: /配当予想|配当の予想|増配|減配|無配|記念配当|特別配当/, rv: /修正|上方|下方|増配|減配|無配/,
+  };
+  function kindOf(t) {
+    if (RE.corr.test(t) || RE.fund.test(t)) return null;
+    if (/決算短信/.test(t)) {
+      if (/(お知らせ|について|延期|遅延)\s*$/.test(t) && !/補足|説明資料/.test(t)) return null;
+      return /補足|説明|参考資料|概要/.test(t) ? null : 'earnings_report';
+    }
+    const fc = RE.fc.test(t), dv = RE.dv.test(t), rv = RE.rv.test(t);
+    return fc && dv && rv ? 'forecast_dividend_revision' : fc && rv ? 'forecast_revision' : dv && rv ? 'dividend_revision' : null;
+  }
+  const jstToday = () => new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10);
+  function mergeLive(d) {
+    const rows = (days[d] || []).filter(r => !r.live);
+    const ids = new Set(rows.map(r => r.id));
+    for (const id of [...live.keys()]) if (ids.has(id)) live.delete(id);   // サイトのデータに載ったら速報は消す
+    const add = [...live.values()].filter(r => r.date === d);
+    if (!add.length && !days[d]) return;
+    days[d] = [...add, ...rows];
+    if (!index.dates.includes(d)) index.dates.unshift(d);
+  }
+  async function fetchLive() {
+    if (!PROXY) return;
+    const d = jstToday(), ymd = d.replace(/-/g, '');
+    const page = async n => {
+      const res = await fetch(`${PROXY}/list/${ymd}/${String(n).padStart(3, '0')}`, { cache: 'no-store' });
+      return res.ok ? new DOMParser().parseFromString(await res.text(), 'text/html') : null;
+    };
+    const first = await page(1);
+    if (!first) return;
+    const total = +((first.querySelector('.kaijiSum')?.textContent.match(/全\s*(\d+)\s*件/) || [])[1] || 0);
+    const docs = [first];
+    for (let n = 2; n <= Math.min(Math.ceil(total / 100), 10); n++) { const doc = await page(n); if (doc) docs.push(doc); }
+    const have = new Set((days[d] || []).filter(r => !r.live).map(r => r.id));
+    for (const doc of docs) for (const tr of doc.querySelectorAll('#main-list-table tr')) {
+      const c = cls => tr.querySelector('td.' + cls);
+      const a = c('kjTitle')?.querySelector('a');
+      if (!a || !c('kjTime') || !c('kjCode')) continue;
+      const title = a.textContent.trim(), kind = kindOf(title);
+      if (!kind) continue;
+      const href = a.getAttribute('href'), id = href.replace(/\.pdf$/, '');
+      if (have.has(id) || live.has(id)) continue;
+      const raw = c('kjCode').textContent.trim(), code = raw.length === 5 && raw.endsWith('0') ? raw.slice(0, 4) : raw;
+      const earn = kind === 'earnings_report';
+      live.set(id, { id, date: d, time: c('kjTime').textContent.trim(), code, live: true,
+        name: (c('kjName')?.textContent.trim() || '').normalize('NFKC'), group: earn ? '決算' : '修正', label: LABEL[kind],
+        period: '速報', url: TDNET + href, title, nums: null,
+        pdfs: [{ label: earn ? '短信' : '修正', url: TDNET + href, title }] });
+    }
+    mergeLive(d);
+  }
+
   let checkedAt = '';
   const hms = () => new Date(Date.now() + 9 * 3600e3).toISOString().slice(11, 19);
   async function refresh(manual) {
@@ -379,6 +441,8 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
         const latest = index.dates[0];
         if (latest) { await loadDay(latest); markFresh(days[latest]); }
       }
+      // TDnet を直接見て、サイトのデータにまだ無い開示を「速報」として足す(中継が止まっていても一覧は出す)
+      try { await fetchLive(); const t = jstToday(); if (days[t]) markFresh(days[t]); } catch (e) { console.warn('TDnet 直接取得に失敗', e); }
       checkedAt = hms();
       setStatus(false);
       render();

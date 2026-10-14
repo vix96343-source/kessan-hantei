@@ -85,3 +85,7 @@ irdocs:
   workers: 6                 # 別々の会社のサイトを同時に探す数(同じサイトへは1秒に1回まで)
   render_workers: 3          # ブラウザ表示で探す同時数
   checkpoint_every: 20       # 何件ごとに途中保存するか
+
+site:
+  # 更新ボタン・自動更新で TDnet の一覧を直接読むための中継(cloudflare/tdnet-proxy.js を Cloudflare Workers に置いたもの)
+  tdnet_proxy: "https://tdnet-proxy.vix96343.workers.dev"
