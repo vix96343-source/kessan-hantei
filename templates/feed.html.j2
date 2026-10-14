@@ -337,10 +337,11 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
     if (!f) return '';
     let h = '';
     if (f.quarters && f.quarters.length) {
-      h += `<div class="fincap">四半期業績(単独・百万円)<span>EPSは円(直近の短信の株数で換算)</span></div><div class="finbox"><table class="fin">
-        <tr><th>決算期</th><th>売上高</th><th>営業益</th><th>経常益</th><th>最終益</th><th>EPS</th></tr>`
+      h += `<div class="fincap">四半期業績(単独・百万円)<span>EPSは円(直近の短信の株数で換算)。YoYは前年の同じ四半期比、QoQは前四半期比</span></div><div class="finbox"><table class="fin">
+        <tr><th>決算期</th>${['売上高', '営業益', '経常益', '最終益', 'EPS'].map(h => `<th>${h}</th><th>YoY</th><th>QoQ</th>`).join('')}</tr>`
         + f.quarters.map((q, i) => `<tr class="${i === f.quarters.length - 1 ? 'cur' : ''}"><td>${esc(q.label)}</td>`
-          + num(q.sales) + num(q.op) + num(q.ordinary) + num(q.net) + epsCell(q.eps) + '</tr>').join('')
+          + ['sales', 'op', 'ordinary', 'net'].map(k => num(q[k]) + gcell(q[k + '_yoy']) + gcell(q[k + '_qoq'])).join('')
+          + epsCell(q.eps) + gcell(q.eps_yoy) + gcell(q.eps_qoq) + '</tr>').join('')
         + '</table></div>';
     }
     return h;

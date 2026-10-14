@@ -212,10 +212,20 @@ def fin_panel(r: dict, arch: dict | None, hist: list[dict], n_quarters: int = 8,
         plan = {"fy": f"{fy_end[:4]}年{int(fy_end[5:7])}月期", "n_q": n_q,
                 "fc_label": "来期予想" if next_year else "会社予想", "rows": rows}
     qs = sorted(quarters.values(), key=lambda q: q["end"])[-n_quarters:]
+    def growth_of(q, f, months):
+        """その四半期の値と、months か月前の四半期の値との増減率(3か月の値どうし)"""
+        b = quarters.get(_ym_shift(q["end"], -months)) or {}
+        return _growth(q.get(f), b.get(f))
+
     table = [{"label": _period_name(q["end"]), **{f: _mil(q.get(f)) for f in FIN_FIELDS},
+              # YoY は前年の同じ四半期、QoQ は前の四半期と比べる(EPS は株数が同じなので純利益と同じ)
+              **{f"{f}_yoy": growth_of(q, f, 12) for f in FIN_FIELDS},
+              **{f"{f}_qoq": growth_of(q, f, 3) for f in FIN_FIELDS},
               # EPS = 四半期の純利益 ÷ 株数(株数は直近の短信の 累計純利益 ÷ 累計EPS。過去の四半期も今の株数で換算)
               "eps": None if not shares or q.get("net") is None else round(q["net"] / shares, 1)}
              for q in qs]
+    for t in table:
+        t["eps_yoy"], t["eps_qoq"] = t["net_yoy"], t["net_qoq"]
     if not table and not plan:
         return None
     return {"quarters": table, "plan": plan}
