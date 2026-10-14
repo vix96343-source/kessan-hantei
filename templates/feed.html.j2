@@ -53,11 +53,11 @@ table#list th { font-size: 12px; font-weight: 400; padding: 2px 8px; text-align:
 table#list td { padding: 2px 8px; font-weight: 400; color: #b4bbc6; background: #12161e !important; border: 0; }
 table#list tr.row.alt td { background: #161b25 !important; }
 table#list tr.row:hover td { background: #1f2635 !important; }
-table#list td.c-date, table#list td.c-time, table#list td.c-code, table#list td.c-per, table#list td.c-name { color: #b4bbc6; }
+table#list td.c-date, table#list td.c-time, table#list td.c-code, table#list td.c-name { color: #b4bbc6; }
 table#list td.c-kind { color: #7dffa8; }                       /* 種別(決算・業績・配当)は淡い緑 */
 table#list td.c-time, table#list td.c-code { text-align: center; }
 table#list td.c-kind, table#list th.c-kind { text-align: left; padding-left: 4px; padding-right: 2px; }   /* 種別は企業名のすぐ右に左寄せ */
-table#list td.c-per, table#list th.c-per { text-align: left; padding-left: 4px; }   /* 期は種別のすぐ右に左寄せ */
+table#list td.c-kind .live { color: #9aa4b2; font-size: 11px; margin-left: 4px; }   /* TDnet から直接読んだ速報 */
 table#list th.n, table#list th.g { padding-left: 5px; padding-right: 5px; }
 table#list td.n, table#list td.g { text-align: right; padding-left: 5px; padding-right: 5px; font-variant-numeric: tabular-nums; }
 table#list td.n { color: #b4bbc6; }
@@ -136,7 +136,6 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
     <th class="c-code" data-k="code">コード</th>
     <th class="c-name" data-k="name">企業名</th>
     <th class="c-kind" data-k="group">種別</th>
-    <th class="c-per" data-k="period">期</th>
     <th class="n">売上</th><th class="g">YoY</th><th class="g">QoQ</th>
     <th class="n">営利</th><th class="g">YoY</th><th class="g">QoQ</th>
     <th class="n">経利</th><th class="g">YoY</th><th class="g">QoQ</th>
@@ -151,7 +150,6 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
 </div>
 <footer>
   出典: TDnet(日本取引所グループ)・四半期業績と受注の過去分は IRBANK。決算の行: 値は3か月(四半期単独)の値(1Qは短信の累計そのまま、2Q以降は累計−前の四半期まで)、YoYは前年の同じ四半期比、QoQは前四半期比。「累」は前の四半期の数値が無く短信の累計を出しているもの。修正の行: 値は修正後の予想、YoYは前期実績比、QoQ欄は前回予想からの修正率。受注高・受注残: 短信に受注の表がある会社のみ(合計。セグメント別は行を開くと表示)。受注高は3か月(四半期単独)の値で、YoYは前年の同じ四半期比、QoQは前四半期比(「累」は前の四半期の短信が無く期首からの累計)。受注残は期末残高。前回が赤字のときの増減率は (今回−前回)÷|前回|。決算短信と業績・配当予想の修正を表示。種別のボタンを押すとPDFが開きます(短信=決算短信、資料=決算説明資料・補足資料(短信から14日以内)、修正=業績・配当予想の修正)。平日7:30〜20時は15秒ごとに自動更新(TDnet の新しい開示は5秒ごとに直接確認し「速報」として先に表示)。行をクリック/タップすると数値(売上・営業益の伸び、進捗率、修正率など)が開きます。<br>
-  期: 決算は 1Q/2Q/3Q/通期、修正は対象の期間(通期/中間)。<br>
 </footer>
 
 <script id="index" type="application/json">{{ index_json | safe }}</script>
@@ -313,7 +311,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
   }
 
   function detail(r) {
-    return `<tr class="detail"><td colspan="27">
+    return `<tr class="detail"><td colspan="26">
       <div class="dtitle">${esc(r.title)}</div>
       <div class="dlinks">${(r.pdfs || []).map(p => `<a href="${esc(p.url)}" target="_blank" rel="noopener" title="${esc(p.title || '')}">${esc(p.label === '資料' || p.label === '資料2' ? '説明資料' : p.label === '短信' ? '決算短信' : '修正の開示')}(PDF)</a>`).join('')}<a href="https://kabuyoho.jp/report?bcode=${encodeURIComponent(r.code)}" target="_blank" rel="noopener">株予報(コンセンサス)</a></div>
       ${finTables(r.fin)}${consTable(r.cons)}${segTable(r.seg)}${orderTable(r.ord)}
@@ -329,7 +327,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
     rows.forEach((r, i) => {
       if (byTime && r.date !== day) {
         const c = (index.days || []).find(x => x.date === r.date);
-        html += `<tr class="dayrow"><td colspan="27"><span class="dd">${r.date.replace(/-/g, '/')}(${wd(r.date)})</span>`
+        html += `<tr class="dayrow"><td colspan="26"><span class="dd">${r.date.replace(/-/g, '/')}(${wd(r.date)})</span>`
               + (c ? `<span class="dn">決算 ${c.earn}件 ・ 修正 ${c.rev}件</span>` : '') + '</td></tr>';
         day = r.date;
       }
@@ -338,10 +336,10 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
         <td class="c-date">${r.date.slice(5).replace('-', '/')}</td><td class="c-time">T${esc(r.time)}</td>
         <td class="c-code">${esc(r.code)}</td>
         <td class="c-name" title="${esc(r.name)} ${esc(r.title)}">${esc(r.name)}${isNew ? '<span class="badge-new">NEW</span>' : ''}</td>
-        <td class="c-kind"><a class="pdf" href="${esc(r.url)}" target="_blank" rel="noopener" title="${esc(r.title)}">${esc(r.label || r.group)}</a></td><td class="c-per">${esc(r.period)}</td>${numCells(r)}</tr>`;
+        <td class="c-kind"><a class="pdf" href="${esc(r.url)}" target="_blank" rel="noopener" title="${esc(r.title)}">${esc(r.label || r.group)}</a>${r.live ? '<span class="live">速報</span>' : ''}</td>${numCells(r)}</tr>`;
       if (open.has(r.id)) html += detail(r);
     });
-    $('tb').innerHTML = html || `<tr><td colspan="27" class="more">${state.onlyNew ? '新着はありません' : '該当する開示はありません'}</td></tr>`;
+    $('tb').innerHTML = html || `<tr><td colspan="26" class="more">${state.onlyNew ? '新着はありません' : '該当する開示はありません'}</td></tr>`;
 
     const nd = nextDate();
     $('more').innerHTML = nd
@@ -416,7 +414,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
       const earn = kind === 'earnings_report';
       live.set(id, { id, date: d, time: c('kjTime').textContent.trim(), code, live: true,
         name: (c('kjName')?.textContent.trim() || '').normalize('NFKC'), group: earn ? '決算' : '修正', label: LABEL[kind],
-        period: '速報', url: TDNET + href, title, nums: null,
+        period: '', url: TDNET + href, title, nums: null,
         pdfs: [{ label: earn ? '短信' : '修正', url: TDNET + href, title }] });
     }
     mergeLive(d);
