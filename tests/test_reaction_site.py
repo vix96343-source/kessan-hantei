@@ -152,9 +152,8 @@ def test_quarter_numbers_single_quarter_yoy_qoq_and_eps():
             "cum_net": 16e6, "prior_sales": 200e6, "prior_op": 20e6, "prior_ordinary": 20e6, "prior_net": 12e6,
             "cum_eps": 32.0, "prior_eps": 24.0}
     n = site.quarter_numbers(arch, hist)
-    # 2Q の3か月 = 累計230 − 1Q 110 = 120。前年2Q(2025-09)100 → +20%、前四半期110 → +9.1%
-    assert n["sales"] == {"v": 120, "yoy": 20.0, "qoq": 9.1}
-    # EPS(3か月) = 純利(16 − 7 = 9百万円) ÷ 株数(16百万円 ÷ 32円 = 50万株) = 18円。前年2Q 6百万円 ÷ 50万株 = 12円、前四半期 14円
-    assert n["eps"] == {"v": 18.0, "yoy": 50.0, "qoq": 28.6}
-    # 前の四半期が無ければ短信どおりの累計
-    assert site.quarter_numbers(arch, [])["sales"] == {"v": 230, "yoy": 15.0, "qoq": None, "cum": True}
+    # 値と YoY は短信の累計(230、前年200 → +15%)、QoQ は3か月どうし(2Q 230 − 110 = 120 と前四半期 110 → +9.1%)
+    assert n["sales"] == {"v": 230, "yoy": 15.0, "qoq": 9.1}
+    assert n["eps"] == {"v": 32.0, "yoy": 33.3, "qoq": n["net"]["qoq"]}
+    # 前の四半期が無ければ QoQ だけ空
+    assert site.quarter_numbers(arch, [])["sales"] == {"v": 230, "yoy": 15.0, "qoq": None}

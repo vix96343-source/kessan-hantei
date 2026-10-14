@@ -245,9 +245,8 @@ def revision_numbers(rv: dict | None) -> dict | None:
 
 
 def quarter_numbers(arch: dict | None, hist: list[dict]) -> dict | None:
-    """一覧に出す数値。すべて3か月(四半期単独)の値: 1Q は短信の累計のまま、2Q 以降は 累計 − 前の四半期までの単独の合計。
-    YoY は前年の同じ四半期の単独値、QoQ は前の四半期の単独値と比べる。売上〜純利は百万円、EPS は円。
-    前の四半期の数値が無く単独を出せないときだけ、短信どおりの累計(cum=True)と前年同期比を出す。"""
+    """一覧に出す数値。値と YoY は決算短信1ページ目の連結経営成績(期首からの累計・前年同期比)。
+    QoQ は3か月(四半期単独)の値どうしの前四半期比(EPS は純利の QoQ)。売上〜純利は百万円、EPS は円。"""
     if not arch:
         return None
     n_q, end = int(float(arch["n_q"])), str(arch["period_end"])[:7]
@@ -266,30 +265,12 @@ def quarter_numbers(arch: dict | None, hist: list[dict]) -> dict | None:
 
     out = {}
     for f in FIN_FIELDS:
+        # 値と YoY は短信1ページ目の連結(期首からの累計・前年同期比)。QoQ は3か月の値どうし(前の四半期の数値があるとき)
         q = single(cum[f], f, end, n_q)
-        if q is None:
-            out[f] = {"v": _mil(cum[f]), "yoy": _growth(cum[f], prior[f]), "qoq": None, "cum": True}
-            continue
-        # 前年の同じ四半期: 1Q は短信の前年同期(累計=単独)、2Q 以降は履歴の単独値(無ければ前年同期累計から引く)
-        py = _ym_shift(end, -12)
-        p = prior[f] if n_q == 1 else ((qs.get(py) or {}).get(f) if qs.get(py) else single(prior[f], f, py, n_q))
-        out[f] = {"v": _mil(q), "yoy": _growth(q, p), "qoq": _growth(q, (qs.get(_ym_shift(end, -3)) or {}).get(f))}
-    # EPS(3か月) = 単独の純利益 ÷ 株数(株数 = 累計純利益 ÷ 累計EPS。前年は前年の株数)
+        out[f] = {"v": _mil(cum[f]), "yoy": _growth(cum[f], prior[f]),
+                  "qoq": None if q is None else _growth(q, (qs.get(_ym_shift(end, -3)) or {}).get(f))}
     ce, pe = _f0(arch.get("cum_eps")), _f0(arch.get("prior_eps"))
-    shares = cum["net"] / ce if cum["net"] and ce else None
-    pshares = prior["net"] / pe if prior["net"] and pe else None
-    n = out["net"]
-    if n.get("cum") or not shares:
-        out["eps"] = {"v": None if ce is None else round(ce, 2), "yoy": _growth(ce, pe), "qoq": None, "cum": True}
-    else:
-        qn = single(cum["net"], "net", end, n_q)
-        py = _ym_shift(end, -12)
-        pn = prior["net"] if n_q == 1 else (qs.get(py) or {}).get("net")
-        prev_n = (qs.get(_ym_shift(end, -3)) or {}).get("net")
-        eps = qn / shares
-        out["eps"] = {"v": round(eps, 2),
-                      "yoy": _growth(eps, pn / pshares if pn is not None and pshares else None),
-                      "qoq": _growth(eps, prev_n / shares if prev_n is not None else None)}
+    out["eps"] = {"v": None if ce is None else round(ce, 2), "yoy": _growth(ce, pe), "qoq": out["net"]["qoq"]}
     return out
 
 
