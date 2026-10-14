@@ -1,4 +1,6 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261014550720,2026-10-14T15:35,365A,伊澤タオル,2027年2月期第2四半期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261014550720.pdf,,東,2026-10-14T15:35
+140120261014550709,2026-10-14T15:35,365A,伊澤タオル,2027年２月期第２四半期決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261014550709.pdf,https://www.release.tdnet.info/inbs/081220261014550709.zip,東,2026-10-14T15:35
 140120261014550419,2026-10-14T15:31,5250,ＧＭＯプライム,2026年12月期 第３四半期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261014550419.pdf,,東,2026-10-14T15:31
 140120261014550195,2026-10-14T15:31,5250,ＧＭＯプライム,2026年12月期　第３四半期決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261014550195.pdf,https://www.release.tdnet.info/inbs/081220261014550195.zip,東,2026-10-14T15:31
 140120261014550718,2026-10-14T15:30,156A,Ｇ－マテリアルＧ,2026年8月期通期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261014550718.pdf,,東,2026-10-14T15:30
