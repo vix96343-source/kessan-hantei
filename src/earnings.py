@@ -12,6 +12,8 @@
 ③ ローツェ型 A(受注急増)・KPI・製品価格は短信の数値に無いため、文章を読むレイヤー(Phase 2)で扱う
 """
 import logging
+import unicodedata
+from datetime import timedelta
 from pathlib import Path
 
 import pandas as pd
@@ -207,6 +209,13 @@ def evaluate(code: str, disclosed_at: str, x: dict, idx: dict, tcfg: dict) -> di
 
 # ---------------------------------------------------------------- 取り込み
 
+def _pdf_due(name: str, disclosed_at: str, wait_min: int = 15) -> bool:
+    """XBRL の無い短信を PDF から読む時刻か: TOKYO PRO Market(社名が「Ｐ－」)は XBRL を出さないのですぐ、ほかは15分後"""
+    if unicodedata.normalize("NFKC", str(name)).startswith("P-"):
+        return True
+    return str(disclosed_at) <= (now_jst() - timedelta(minutes=wait_min)).strftime("%Y-%m-%dT%H:%M")
+
+
 def update(cfg: dict, data_dir: Path = DATA_DIR, tdnet_session: RateLimitedSession | None = None,
            limit: int | None = None) -> dict:
     """未評価の決算短信(全市場)を TDnet の XBRL で評価し、短信の数値を tdnet_earnings.csv に蓄積する。"""
@@ -216,9 +225,11 @@ def update(cfg: dict, data_dir: Path = DATA_DIR, tdnet_session: RateLimitedSessi
     disc = disclosures.load(data_dir)
     feats = load(data_dir)
     arch = load_archive(data_dir)
-    # 「XBRLが無い」と判定した短信も、あとから TDnet に XBRL が載ったら(disclosures に URL が入ったら)読み直す
+    # 「XBRLが無い」と判定した短信は、あとから TDnet に XBRL が載ったら、または PDF を読む時刻になったら読み直す
     has_xbrl = set(disc.loc[disc["xbrl_url"] != "", "disclosure_id"])
-    done = set(feats.loc[feats["status"].isin(["ok", "no_data"]), "disclosure_id"]) |         set(feats.loc[(feats["status"] == "no_xbrl") & ~feats["disclosure_id"].isin(has_xbrl), "disclosure_id"])
+    pdf_due = set(disc.loc[disc.apply(lambda r: _pdf_due(r["name"], r["disclosed_at"]), axis=1), "disclosure_id"])         if len(disc) else set()
+    waiting = feats["status"] == "no_xbrl"
+    done = set(feats.loc[feats["status"].isin(["ok", "no_data"]), "disclosure_id"]) |         set(feats.loc[waiting & ~feats["disclosure_id"].isin(has_xbrl | pdf_due), "disclosure_id"])
     todo = disc[(disc["kind"] == "earnings_report") & (disc["is_correction"] != "True")
                 & ~disc["disclosure_id"].isin(done)]
     todo = todo.sort_values("disclosed_at").head(limit or ecfg["max_per_run"])   # 古い順: 前の短信を先に蓄積
@@ -227,8 +238,14 @@ def update(cfg: dict, data_dir: Path = DATA_DIR, tdnet_session: RateLimitedSessi
     idx = archive_index(arch_rows)
     rows, new_arch = [], []
     for r in todo.itertuples():
+        pdf_tried = False
         try:
             x = tdnet.fetch_earnings(tdnet_session, r.xbrl_url) if r.xbrl_url else {}
+            # XBRL を出さない会社(TOKYO PRO Market)や、15分たっても XBRL が載らない短信は PDF の1ページ目から読む
+            if not x and not r.xbrl_url and _pdf_due(r.name, r.disclosed_at):
+                resp = tdnet_session.get(r.pdf_url)
+                x = tdnet.parse_summary_pdf(resp.content, r.title) if resp is not None else {}
+                pdf_tried = True
         except Exception as e:                       # 1件の失敗で止めない。次回再試行
             log.warning("決算評価失敗 %s %s: %s", r.code, r.disclosure_id, e)
             continue
@@ -237,8 +254,8 @@ def update(cfg: dict, data_dir: Path = DATA_DIR, tdnet_session: RateLimitedSessi
             new_arch.append(a)
             idx[(r.code, _month(a["period_end"]))] = a
         ev = evaluate(r.code, r.disclosed_at, x, idx, ecfg["types"])
-        if ev["status"] == "no_xbrl" and r.xbrl_url:
-            ev["status"] = "no_data"           # XBRL はあるが読めない: 何度読んでも同じなので取り直さない
+        if ev["status"] == "no_xbrl" and (r.xbrl_url or pdf_tried):
+            ev["status"] = "no_data"           # XBRL・PDF はあるが読めない: 何度読んでも同じなので取り直さない
         rows.append({"disclosure_id": r.disclosure_id, **ev, "computed_at": now_jst().strftime("%Y-%m-%dT%H:%M")})
 
     if rows:

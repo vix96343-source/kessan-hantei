@@ -501,3 +501,91 @@ def parse_revision_values(zip_bytes: bytes) -> dict:
     prior = {k: _metric(facts, prior_ctx, k) for k in METRIC_PATTERNS}
     prior["eps"] = _eps(facts, prior_ctx)
     return {"period": period, "cur": block("CurrentMember"), "prev": block("PreviousMember"), "prior": prior}
+
+
+# ---------------------------------------------------------------- XBRL の無い決算短信(PDF の1ページ目)
+
+_FY_LABEL = re.compile(r"^\s*(\d{4})\s*年\s*(\d{1,2})\s*月期")
+_PDF_NUM = re.compile(r"^[△▲\-－−]?\s*[\d,]+(\.\d+)?$|^[-－―‐]$")
+
+
+# 経営成績の表の見出しの列名(順番どおりに拾う)。対応しない列(EBITDA 等)も数えて位置を合わせる
+_PDF_COL = re.compile(r"売上高|売上収益|営業収益|営業総収入|収益|EBITDA|事業利益|コア営業利益|営業利益|経常利益"
+                      r"|税引前(当期|四半期|中間)?(純)?利益|(親会社(株主|の所有者)に帰属する)?(当期|四半期|中間)?純利益|当期利益")
+_PDF_COL_KEYS = [("sales", re.compile(r"売上|営業収益|営業総収入|^収益")), ("op", re.compile(r"^営業利益")),
+                 ("ordinary", re.compile(r"経常利益|税引前")), ("net", re.compile(r"純利益|当期利益"))]
+
+
+def _pdf_tokens(line: str) -> list[str]:
+    """「2027年２月期中間期 1,615 △25.7 153 …」の期の後ろの数値(「△ 50」のような空白入りもまとめる)"""
+    rest = _FY_LABEL.sub("", line.translate(str.maketrans("０１２３４５６７８９", "0123456789")))
+    rest = re.sub(r"^[^\d△▲\-－−―‐]*", "", rest)               # 「中間期」「第１四半期」などの残り
+    rest = re.sub(r"([△▲])\s+(\d)", r"\1\2", rest)
+    return [t for t in rest.split() if _PDF_NUM.match(t)]
+
+
+def _pdf_value(tok: str, unit: float) -> float | None:
+    if re.fullmatch(r"[-－―‐]", tok):
+        return None
+    v = float(re.sub(r"[^\d.]", "", tok))
+    return (-v if tok[0] in "△▲-－−" else v) * unit
+
+
+def parse_summary_pdf(pdf_bytes: bytes, title: str) -> dict:
+    """XBRL を出さない会社(TOKYO PRO Market など)の決算短信 PDF の1ページ目「経営成績」から、
+    parse_earnings_xbrl と同じ形(累計・前年同期・EPS)を返す。読めなければ空 dict。"""
+    from pypdf import PdfReader
+    try:
+        text = PdfReader(io.BytesIO(pdf_bytes)).pages[0].extract_text() or ""
+    except Exception:
+        return {}
+    t = title.translate(str.maketrans("１２３４", "1234"))
+    m = re.search(r"第([1-3])四半期", t)
+    n_q = int(m.group(1)) if m else (2 if "中間" in t else 4)
+    lines = [l for l in text.splitlines() if l.strip()]
+    start = next((i for i, l in enumerate(lines) if "経営成績" in l), None)
+    if start is None:
+        return {}
+    head = " ".join(lines[start:start + 3])
+    unit = 1e3 if "千円" in head and "百万円" not in head else 1e6
+    rows = [l for l in lines[start + 1:start + 12] if _FY_LABEL.match(l) and len(_pdf_tokens(l)) >= 7]
+    if len(rows) < 1:
+        return {}
+    # 列は見出しの名前で対応づける(売上と営業利益の間に EBITDA などの列がある会社がある)
+    first_row = lines.index(rows[0])
+    header = re.sub(r"\s", "", " ".join(lines[start:first_row]))
+    cols = [m.group(0) for m in _PDF_COL.finditer(header)]
+    keys = []
+    for c in cols:
+        k = next((k for k, pat in _PDF_COL_KEYS if pat.search(c)), None)
+        keys.append(k if k not in keys else None)
+    if "sales" not in keys and "op" not in keys:
+        keys = ["sales", "op", "ordinary", "net"]
+
+    def vals(line):
+        toks = _pdf_tokens(line)
+        amounts = toks[0::2] if len(toks) >= 2 * len(keys) else toks       # 金額と増減率が交互
+        return {k: _pdf_value(v, unit) for k, v in zip(keys, amounts) if k}
+
+    cur = vals(rows[0])
+    prior = vals(rows[1]) if len(rows) > 1 else {}
+    # １株当たり純利益: 「１株当たり」の後の期の行の最初の数値(円)
+    eps = {"cum": None, "prior": None}
+    k = next((i for i in range(start, min(start + 20, len(lines))) if "１株当たり" in lines[i] or "1株当たり" in lines[i]), None)
+    if k is not None:
+        stop = next((i for i in range(k + 1, min(k + 30, len(lines))) if re.match(r"\s*[（(]\s*[2２]\s*[)）]", lines[i])),
+                    min(k + 30, len(lines)))                     # 次の「（２）財政状態」の手前まで
+        er = [l for l in lines[k + 1:stop] if _FY_LABEL.match(l) and _pdf_tokens(l)]
+        for w, line in zip(("cum", "prior"), er[:2]):
+            eps[w] = _pdf_value(_pdf_tokens(line)[0], 1.0)
+    fy = _FY_LABEL.match(rows[0].translate(str.maketrans("０１２３４５６７８９", "0123456789")))
+    y, mth = int(fy.group(1)), int(fy.group(2)) - 3 * (4 - n_q)
+    y, mth = y + (mth - 1) // 12, (mth - 1) % 12 + 1
+    import calendar
+    end = f"{y:04d}-{mth:02d}-{calendar.monthrange(y, mth)[1]:02d}"
+    if cur.get("sales") is None and cur.get("op") is None:
+        return {}
+    return {"n_q": n_q, "period_end": end, "scope": "NonConsolidatedMember" if "非連結" in title else "ConsolidatedMember",
+            "cum": cur, "prior_cum": prior, "prior_change": {}, "forecast": {}, "forecast_change": {},
+            "forecast_is_next_year": n_q == 4, "forecast_q2": {}, "forecast_q2_change": {}, "revised": None,
+            "eps": eps, "company_url": "", "has_material": None, "has_briefing": None, "source": "pdf"}
