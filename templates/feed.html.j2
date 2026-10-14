@@ -105,7 +105,10 @@ table.fin td.lab { color: var(--warn); }
 .fincap span { color: var(--muted); margin-left: 8px; }
 .segname { color: #c5ccd6; font-size: 12px; margin: 6px 0 1px; }
 /* 行を開いたときの中身は2列: 左に業績・コンセンサス・受注の推移、右にセグメント別の受注の推移 */
-.dcols { display: flex; flex-wrap: wrap; gap: 6px 36px; align-items: flex-start; }
+.dcols { display: flex; flex-wrap: wrap; gap: 6px 24px; align-items: flex-start; }
+/* 列の幅は表の幅に合わせる(長い注記は折り返す) */
+.dcol { width: min-content; }
+.dcol .fincap { white-space: normal; }
 .dcol:empty { display: none; }
 .dl { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 4px 18px; font-size: 13px; }
 .dl div { display: flex; justify-content: space-between; gap: 8px; border-bottom: 1px dotted var(--line); padding: 2px 0; }
