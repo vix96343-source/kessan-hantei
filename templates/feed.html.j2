@@ -95,6 +95,7 @@ table.fin th { position: static; background: #232a40; color: var(--teal); font-w
 table.fin th:first-child, table.fin td:first-child { text-align: left; }
 table.fin td { padding: 0 6px; text-align: right; border-bottom: 1px dotted #262c40; white-space: nowrap; }
 table.fin td.neg { color: var(--red); }
+table.fin td.gup { color: #f07894; } table.fin td.gdn { color: #7dd8d4; }
 table.fin tr.cur td { background: #21305a; color: #fff; }
 table.fin td.lab { color: var(--warn); }
 .fincap { color: var(--teal); font-size: 12px; margin: 6px 0 2px; }
@@ -270,7 +271,8 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
   const epsCell = v => v == null ? '<td>–</td>' : `<td class="${v < 0 ? 'neg' : ''}">${v.toFixed(1)}</td>`;
   const pct = v => v == null ? '<td>–</td>' : `<td class="${v < 0 ? 'neg' : ''}">${v.toFixed(1)}%</td>`;
 
-  const gcell = v => v == null ? '<td>–</td>' : `<td class="${v < 0 ? 'neg' : ''}">${fmtG(v)}</td>`;
+  // 行を開いたときの表の YoY・QoQ も一覧と同じ色(プラスは赤、マイナスは水色)
+  const gcell = v => v == null ? '<td>–</td>' : `<td class="${v > 0 ? 'gup' : v < 0 ? 'gdn' : ''}">${fmtG(v)}</td>`;
   function orderTable(o) {
     if (!o) return '';
     const segs = o.segments.length ? o.segments : [];
