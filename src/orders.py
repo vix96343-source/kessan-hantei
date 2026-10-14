@@ -432,8 +432,22 @@ def _quarter_of_title(title: str) -> int:
     return 2 if "中間" in t else 4
 
 
+def period_end_of_title(title: str) -> str | None:
+    """「2027年2月期 第1四半期決算短信」→ その四半期の期末の年月 '2026-05'(通期は期末そのもの)"""
+    t = title.translate(str.maketrans("０１２３４５６７８９", "0123456789"))
+    m = re.search(r"(\d{4})\s*年\s*(\d{1,2})\s*月期", t)
+    if not m:
+        return None
+    return _ym_shift(f"{int(m.group(1)):04d}-{int(m.group(2)):02d}", -3 * (4 - _quarter_of_title(title)))
+
+
 def _irbank_earnings_ids(session: RateLimitedSession, code: str) -> list[tuple[str, int]]:
     """IRBANK の会社別適時開示一覧から、決算短信(訂正を除く)の (開示ID, 四半期) 新しい順"""
+    return [(d, q) for d, q, _ in _irbank_earnings(session, code)]
+
+
+def _irbank_earnings(session: RateLimitedSession, code: str) -> list[tuple[str, int, str | None]]:
+    """IRBANK の会社別適時開示一覧から、決算短信(訂正を除く)の (開示ID, 四半期, 期末の年月) 新しい順"""
     r = session.get(IRBANK_IR.format(code=code))
     if r is None:
         return []
@@ -442,9 +456,115 @@ def _irbank_earnings_ids(session: RateLimitedSession, code: str) -> list[tuple[s
     for a in soup.find_all("a", href=re.compile(rf"^/{re.escape(code)}/1401\d{{14}}$")):
         did = a["href"].rsplit("/", 1)[-1]
         c = tdnet.classify_title(re.sub(r"[（(]\d{1,2}:\d{2}[)）]$", "", a.get_text(strip=True)))
-        if c["kind"] == "earnings_report" and not c["is_correction"] and did not in dict(ids):
-            ids.append((did, _quarter_of_title(a.get_text(strip=True))))
+        if c["kind"] == "earnings_report" and not c["is_correction"] and did not in {i[0] for i in ids}:
+            ids.append((did, _quarter_of_title(a.get_text(strip=True)), period_end_of_title(a.get_text(strip=True))))
     return sorted(ids, reverse=True)
+
+
+def fix_scale(code: str, ym: str, n_q: int, x: dict, hist: dict) -> dict:
+    """PDF の表の単位が今回の短信と違う(千円と百万円など)と金額が1000倍ずれる。
+    その期の連結売上(過去の四半期業績の累計)と比べて 1000 倍・1/1000 のずれを直す。"""
+    qs = [hist.get(code, {}).get(_ym_shift(ym, -3 * k)) for k in range(n_q)]
+    v = (x.get("total") or {}).get("orders") or (x.get("total") or {}).get("backlog")
+    if v is None or any(q is None or q.get("sales") is None for q in qs):
+        return x
+    sales = sum(q["sales"] for q in qs)
+    if not sales:
+        return x
+    r = abs(v / sales)
+    f = 1e-3 if r > 200 else 1e3 if r < 0.002 else None
+    if f is None:
+        return x
+    for sg in x.get("segments", []) + ([x["total"]] if x.get("total") else []):
+        for k in ("orders", "orders_prior", "orders_fy", "backlog", "backlog_prior", "backlog_fy"):
+            if sg.get(k) is not None:
+                sg[k] *= f
+    return x
+
+
+def fix_scale_to(x: dict, anchor_total: dict) -> dict:
+    """今回の短信(XBRL・HTML の確かな値)と比べて 100 倍以上ずれていれば、1000 倍単位で直す(千円の表など)"""
+    a = anchor_total.get("backlog") or anchor_total.get("orders")
+    t = x.get("total") or {}
+    v = t.get("backlog") or t.get("orders")
+    if not a or not v:
+        return x
+    f = 1.0
+    while abs(v) * f > abs(a) * 100:
+        f *= 1e-3
+    while abs(v) * f < abs(a) / 100:
+        f *= 1e3
+    if f != 1.0:
+        for sg in x.get("segments", []) + ([x["total"]] if x.get("total") else []):
+            for k in ("orders", "orders_prior", "orders_fy", "backlog", "backlog_prior", "backlog_fy"):
+                if sg.get(k) is not None:
+                    sg[k] *= f
+    return x
+
+
+def backfill_history(cfg: dict, depth: int = 20, data_dir: Path = DATA_DIR,
+                     session: RateLimitedSession | None = None) -> dict:
+    """受注の表がある会社について、過去 depth 四半期(既定5年)の決算短信 PDF を IRBANK から読み、
+    受注の推移(期ごとの累計・3か月・受注残)を出せるようにする。期末は短信の表題から決める。手元でのみ実行。"""
+    from pypdf import PdfReader
+    from .datasources import irbank
+
+    from . import history
+    session = session or irbank.session_from_config(cfg)
+    df = load(data_dir)
+    hist = {c: {q["end"]: q for q in v} for c, v in history.by_code(history.load(data_dir)).items()}
+    arch = {a["disclosure_id"]: a for a in earnings.load_archive(data_dir).to_dict("records")}
+    have = {(r["code"], str(r["period_end"])[:7]) for r in df.to_dict("records") if r["period_end"]}
+    latest = {}
+    for r in df[df["status"] == "ok"].sort_values("disclosed_at").to_dict("records"):
+        a = arch.get(r["disclosure_id"])
+        if a and not r["period_end"]:
+            r["n_q"], r["period_end"] = a["n_q"], a["period_end"]
+        d = json.loads(r["data"])
+        if d.get("tpl") and r["period_end"]:
+            latest[r["code"]] = {**r, "data": d}
+    rows, stats = [], {"codes": 0, "pdfs": 0, "ok": 0}
+    for code, cur in latest.items():
+        end = str(cur["period_end"])[:7]
+        floor = _ym_shift(end, -3 * depth)
+        try:
+            items = [(i, q, ym) for i, q, ym in _irbank_earnings(session, code)
+                     if ym and floor <= ym < end and (code, ym) not in have]
+        except Exception as e:
+            log.warning("受注の推移: IRBANK 一覧の取得失敗 %s: %s", code, e)
+            continue
+        stats["codes"] += 1
+        seen = set()
+        for did, q, ym in items:                       # 同じ期の短信が複数あれば新しい方だけ
+            if ym in seen:
+                continue
+            seen.add(ym)
+            x = None
+            try:
+                resp = session.get(IRBANK_PDF.format(doc=did[4:]))
+                stats["pdfs"] += 1
+                if resp is not None:
+                    text = "\n".join(p.extract_text() or "" for p in PdfReader(io.BytesIO(resp.content)).pages)
+                    x = parse_pdf_text(text, cur["data"]["tpl"], cur["data"].get("unit"))
+                    if x:
+                        x = fix_scale(code, ym, q, x, hist)
+                        x = fix_scale_to(x, cur["data"].get("total") or {})
+            except Exception as e:
+                log.warning("受注の推移: PDF の読み取り失敗 %s %s: %s", code, did, e)
+            if x:
+                x["src"] = "irbank_pdf"
+                stats["ok"] += 1
+            rows.append({"disclosure_id": did, "code": code,
+                         "disclosed_at": f"{did[4:8]}-{did[8:10]}-{did[10:12]}T00:00",
+                         "n_q": str(q), "period_end": ym, "status": "ok" if x else "none",
+                         "data": json.dumps(x, ensure_ascii=False) if x else ""})
+    if rows:
+        new = pd.DataFrame(rows).reindex(columns=COLUMNS)
+        out = pd.concat([df[~df["disclosure_id"].isin(new["disclosure_id"])], new])
+        out.sort_values(["disclosed_at", "disclosure_id"], ascending=False).to_csv(path(data_dir), index=False,
+                                                                                 encoding="utf-8")
+    log.info("orders history: %s", stats)
+    return stats
 
 
 def backfill(cfg: dict, data_dir: Path = DATA_DIR, session: RateLimitedSession | None = None) -> dict:

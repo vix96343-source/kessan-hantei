@@ -359,47 +359,108 @@ def order_numbers(rec: dict | None, past: list[dict]) -> dict | None:
 
     d = rec["data"]
     return {"total": nums(d["total"], None),
-            "segments": [{"name": s["name"], **nums(s, re.sub(r"\s", "", s["name"]))} for s in d["segments"]]}
+            "segments": [{"name": s["name"], **nums(s, re.sub(r"\s", "", s["name"]))} for s in d["segments"]],
+            "hist": order_history(by_end, end)}
 
 
-def segment_numbers(rec: dict | None, past: list[dict], main: dict | None) -> dict | None:
-    """セグメント別の売上・利益(百万円)と YoY・QoQ。値と YoY は累計(前年同期比)、
-    QoQ は3か月単独どうし(累計 − 前の四半期までの累計)で、前の四半期の短信の記録があるときだけ。
-    合計の行は一覧と同じ数値(main = quarter_numbers の結果)。"""
-    if not rec:
+def order_history(by_end: dict, upto: str, n: int = 20) -> list[dict]:
+    """受注の推移(古い順・最大 n 四半期): 期間・受注高(累計)と YoY・3か月の値(単体Q)と QoQ・QYoY・受注残と YoY。"""
+    def tot(ym):
+        r = by_end.get(ym)
+        return (r["data"].get("total") or {}) if r else {}
+
+    def nq(ym):
+        r = by_end.get(ym)
+        return int(float(r["n_q"])) if r and r.get("n_q") else None
+
+    def single(ym):
+        c, q = tot(ym).get("orders"), nq(ym)
+        if c is None or q is None:
+            return None
+        if q == 1:
+            return c
+        b = tot(_ym_shift(ym, -3)).get("orders")
+        return None if b is None or nq(_ym_shift(ym, -3)) != q - 1 else c - b
+
+    out = []
+    for ym in sorted(k for k in by_end if k and k <= upto)[-n:]:
+        t, q = tot(ym), nq(ym)
+        if q is None or (t.get("orders") is None and t.get("backlog") is None):
+            continue
+        fy = _ym_shift(ym, 3 * (4 - q))
+        cum, py = t.get("orders"), tot(_ym_shift(ym, -12))
+        sq = single(ym)
+        # 前年の記録があれば実数から計算する(短信の「前年同期比」は比率か増減率かが表によって違う)
+        yoy = _growth(cum, py.get("orders")) if py.get("orders") is not None else t.get("orders_yoy")
+        byoy = _growth(t.get("backlog"), py.get("backlog")) if py.get("backlog") is not None else t.get("backlog_yoy")
+        out.append({"label": f"{fy[2:4]}/{int(fy[5:7])} {q}Q", "cum": _mil(cum), "yoy": yoy,
+                    "q": _mil(sq), "qoq": _growth(sq, single(_ym_shift(ym, -3))), "qyoy": _growth(sq, single(_ym_shift(ym, -12))),
+                    "backlog": _mil(t.get("backlog")), "byoy": byoy})
+    return out
+
+
+def segment_numbers(rec: dict | None, past: list[dict], main: dict | None, ords: dict | None = None) -> dict | None:
+    """セグメント別の表: 受注高・受注残高(受注の表がある会社)・売上・利益を、すべて3か月(四半期単独)の値で。
+    売上・利益の3か月 = その期の累計 − 前の四半期までの累計(前年同期も同じ引き算で出して YoY)、QoQ は前の四半期の3か月と比べる。
+    前の四半期の記録が無いときだけ累計(cum=True)。合計の行は一覧と同じ数値(main)と受注の合計(ords)。"""
+    if not rec and not (ords and ords.get("segments")):
         return None
+    key = lambda n: re.sub(r"\s|・", "", unicodedata.normalize("NFKC", n))
     by_end = {str(p["period_end"])[:7]: p for p in past if p.get("period_end")}
-    n_q = int(float(rec["n_q"])) if rec.get("n_q") else None
-    end = str(rec.get("period_end") or "")[:7]
+    n_q = int(float(rec["n_q"])) if rec and rec.get("n_q") else None
+    end = str(rec.get("period_end") or "")[:7] if rec else ""
+    if rec and end:
+        by_end[end] = rec
 
-    def seg_of(r, key):
-        return next((s for s in r["data"]["segments"] if re.sub(r"\s", "", s["name"]) == key), None) if r else None
+    def seg_at(ym, k):
+        r = by_end.get(ym)
+        return next((x for x in r["data"]["segments"] if key(x["name"]) == k), None) if r else None
 
-    def single(ym, nq, cum, key, f):
-        if cum is None or nq is None:
+    def nq_at(ym):
+        r = by_end.get(ym)
+        return int(float(r["n_q"])) if r and r.get("n_q") else None
+
+    def single(ym, k, f, prior=False):
+        x, nq = seg_at(ym, k), nq_at(ym)
+        c = None if x is None else x.get(f"{f}_prior" if prior else f)
+        if c is None or nq is None:
             return None
         if nq == 1:
-            return cum
-        before = seg_of(by_end.get(_ym_shift(ym, -3)), key)
-        return None if before is None or before.get(f) is None else cum - before[f]
+            return c
+        if nq_at(_ym_shift(ym, -3)) != nq - 1:
+            return None
+        b = seg_at(_ym_shift(ym, -3), k)
+        b = None if b is None else b.get(f"{f}_prior" if prior else f)
+        return None if b is None else c - b
 
-    def nums(s):
-        key = re.sub(r"\s", "", s["name"])
-        out = {}
-        for f in ("sales", "op"):
-            o = {"v": _mil(s.get(f)), "yoy": _growth(s.get(f), s.get(f"{f}_prior")), "qoq": None}
-            if n_q and end:
-                pe = _ym_shift(end, -3)
-                prev = by_end.get(pe)
-                ps = seg_of(prev, key)
-                if ps:
-                    pn = int(float(prev["n_q"])) if prev.get("n_q") else None
-                    o["qoq"] = _growth(single(end, n_q, s.get(f), key, f), single(pe, pn, ps.get(f), key, f))
-            out[f] = o
-        return out
+    def flow(x, k, f):
+        q = single(end, k, f) if n_q and end else None
+        if q is None:
+            return {"v": _mil(x.get(f)), "yoy": _growth(x.get(f), x.get(f"{f}_prior")), "qoq": None, "cum": True}
+        return {"v": _mil(q), "yoy": _growth(q, single(end, k, f, prior=True)),
+                "qoq": _growth(q, single(_ym_shift(end, -3), k, f))}
 
-    total = {"sales": (main or {}).get("sales"), "op": (main or {}).get("op")} if main else None
-    return {"segments": [{"name": s["name"], **nums(s)} for s in rec["data"]["segments"]], "total": total}
+    rows, index = [], {}
+    for x in (rec["data"]["segments"] if rec else []):
+        k = key(x["name"])
+        index[k] = len(rows)
+        rows.append({"name": x["name"], "sales": flow(x, k, "sales"), "op": flow(x, k, "op")})
+    for o in (ords or {}).get("segments", []):          # 受注の表のセグメント(名前が同じなら同じ行に)
+        k = key(o["name"])
+        if k in index:
+            rows[index[k]].update(orders=o["orders"], backlog=o["backlog"])
+        else:
+            index[k] = len(rows)
+            rows.append({"name": o["name"], "orders": o["orders"], "backlog": o["backlog"]})
+    total = {}
+    if main:
+        total.update(sales=main.get("sales"), op=main.get("op"))
+    if ords:
+        total.update(orders=ords["total"]["orders"], backlog=ords["total"]["backlog"])
+    if len(rows) < 2 and not ords:
+        return None
+    cols = [c for c in ("orders", "backlog", "sales", "op") if any(c in r for r in rows) or c in total]
+    return {"cols": cols, "segments": rows, "total": total or None}
 
 
 def consensus_panel(snap: dict | None, arch: dict | None) -> dict | None:
@@ -521,7 +582,7 @@ def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:
                      "up": p is not None and round(p * 100) > 50})
         rows[-1]["seg"] = segment_numbers(seg_by_id.get(r["disclosure_id"]),
                                           earlier(r, segs.get(r["code"], [])),
-                                          rows[-1]["nums"]) if r["kind"] == "earnings_report" else None
+                                          rows[-1]["nums"], rows[-1]["ord"]) if r["kind"] == "earnings_report" else None
         rows[-1]["cons"] = consensus_panel(consensus.snapshot(cons.get(r["code"], []), r["disclosed_at"]),
                                            arch.get(r["disclosure_id"])) if r["kind"] == "earnings_report" else None
     return rows

@@ -1,0 +1,44 @@
+from src import segments
+from src.site import segment_numbers
+
+# ローツェ 1Q の短信 PDF のセグメント情報(前年同期の表 → 当期の表の順)。見出しが折り返して「(△)」が数値の行に残る
+PDF = """
+前第１四半期連結累計期間(自 2025年３月１日 至 2025年５月31日)
+計 32,976 110 33,086 △25 33,061
+セグメント利益又は損失
+(△) 8,786 △110 8,675 △234 8,441
+当第１四半期連結累計期間(自 2026年３月１日 至 2026年５月31日)
+外部顧客への売上高 37,075 131 37,206 － 37,206
+計 37,106 131 37,237 △30 37,206
+セグメント利益又は損失
+(△) 10,834 △119 10,714 △484 10,230
+"""
+TPL = {"cols": ["半導体・ＦＰＤ関連装置事業", "ライフサイエンス事業", None, None, None], "n": 5, "unit": 1e6}
+
+
+def test_previous_quarter_segments_from_pdf():
+    x = segments.parse_pdf_text(PDF, TPL)
+    semi, life = x["segments"]
+    assert (semi["sales"], semi["op"], semi["sales_prior"], semi["op_prior"]) == (37106e6, 10834e6, 32976e6, 8786e6)
+    assert (life["sales"], life["op"]) == (131e6, -119e6)
+
+
+def _rec(n_q, end, sales, op, sales_prior, op_prior, at):
+    return {"disclosure_id": at, "disclosed_at": at, "n_q": str(n_q), "period_end": end,
+            "data": {"segments": [{"name": "半導体・ＦＰＤ関連装置事業", "sales": sales * 1e6, "op": op * 1e6,
+                                   "sales_prior": sales_prior * 1e6, "op_prior": op_prior * 1e6},
+                                  {"name": "ライフサイエンス事業", "sales": 1e6, "op": 0.0, "sales_prior": 1e6, "op_prior": 0.0}],
+                     "total": None}}
+
+
+def test_segment_values_are_three_month_with_yoy_and_qoq():
+    q1 = _rec(1, "2026-05", 37106, 10834, 32976, 8786, "2026-07-08")
+    q2 = _rec(2, "2026-08", 79388, 23969, 66000, 17000, "2026-10-08")      # 2Q 累計
+    g = segment_numbers(q2, [q1], None)
+    semi = g["segments"][0]
+    assert semi["sales"]["v"] == 79388 - 37106                             # 2Q の3か月 42,282
+    assert semi["sales"]["qoq"] == round((42282 - 37106) / 37106 * 100, 1)
+    assert semi["sales"]["yoy"] == round((42282 - (66000 - 32976)) / (66000 - 32976) * 100, 1)
+    assert semi["op"]["v"] == 23969 - 10834
+    # 前の四半期の記録が無ければ累計
+    assert segment_numbers(q2, [], None)["segments"][0]["sales"]["cum"] is True
