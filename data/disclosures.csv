@@ -1,4 +1,7 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261014550763,2026-10-14T16:45,5129,Ｇ－ＦＩＸＥＲ,2026年8月期　決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261014550763.pdf,,東,2026-10-14T16:45
+140120261014550677,2026-10-14T16:45,5578,Ｇ－ＡＲアドバンスト,2026年８月期 決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261014550677.pdf,,東,2026-10-14T16:45
+140120261014550668,2026-10-14T16:45,5578,Ｇ－ＡＲアドバンスト,2026年８月期 決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261014550668.pdf,https://www.release.tdnet.info/inbs/081220261014550668.zip,東,2026-10-14T16:45
 140120261014550696,2026-10-14T16:40,5129,Ｇ－ＦＩＸＥＲ,2026年８月期決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261014550696.pdf,https://www.release.tdnet.info/inbs/081220261014550696.zip,東,2026-10-14T16:40
 140120261009548636,2026-10-14T16:30,3387,クリレスＨＤ,2027年２月期第２四半期（中間期）決算（補足説明資料）,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261009548636.pdf,,東,2026-10-14T16:30
 140120261006546313,2026-10-14T16:30,3387,クリレスＨＤ,2027年２月期第２四半期（中間期）決算短信〔ＩＦＲＳ〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261006546313.pdf,https://www.release.tdnet.info/inbs/081220261006546313.zip,東,2026-10-14T16:30
