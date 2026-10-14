@@ -1,4 +1,7 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261014550627,2026-10-14T17:30,464A,Ｇ－ＱＰＳＨＤ,2027年５月期第１四半期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261014550627.pdf,,東,2026-10-14T17:30
+140120261014550614,2026-10-14T17:30,464A,Ｇ－ＱＰＳＨＤ,2027年５月期 第１四半期 決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261014550614.pdf,https://www.release.tdnet.info/inbs/081220261014550614.zip,東,2026-10-14T17:30
+140120261014550601,2026-10-14T17:30,464A,Ｇ－ＱＰＳＨＤ,連結業績予想修正に関するお知らせ,forecast_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261014550601.pdf,,東,2026-10-14T17:30
 140120261014550775,2026-10-14T17:00,7879,ノダ,業績予想の修正に関するお知らせ,forecast_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261014550775.pdf,,東,2026-10-14T17:00
 140120261014550768,2026-10-14T17:00,7879,ノダ,2026年11月期 第3四半期決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261014550768.pdf,https://www.release.tdnet.info/inbs/081220261014550768.zip,東,2026-10-14T17:00
 140120261014550625,2026-10-14T17:00,3083,スターシーズ,2027年2月期第2四半期（中間期）決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261014550625.pdf,,東,2026-10-14T17:00
