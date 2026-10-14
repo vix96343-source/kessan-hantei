@@ -60,8 +60,12 @@ def test_rorze_ratio_style_and_nesting():
     t = x["total"]
     assert t["orders"] == 128546e6 and t["backlog"] == 111485e6
     assert t["orders_yoy"] == 155.5 and t["backlog_yoy"] == 124.0       # 255.5 → +155.5%
-    assert [s["name"] for s in x["segments"]] == ["半導体関連装置", "分析装置", "ＦＰＤ関連装置", "ライフサイエンス事業"]
-    assert x["segments"][0]["orders_yoy"] == 156.4
+    # 事業(見出しだけの行と「計」)の下に品目がぶら下がる
+    assert [s["name"] for s in x["segments"]] == ["半導体・ＦＰＤ関連装置事業", "半導体関連装置", "分析装置",
+                                                 "ＦＰＤ関連装置", "ライフサイエンス事業"]
+    grp = x["segments"][0]
+    assert grp.get("group") and grp["orders"] == 127639e6 and grp["orders_yoy"] == 155.7
+    assert x["segments"][1]["parent"] == "半導体・ＦＰＤ関連装置事業" and x["segments"][1]["orders_yoy"] == 156.4
 
 
 def test_growth_style():
@@ -129,7 +133,8 @@ def test_previous_quarter_pdf_text_with_current_table_shape():
     ])
     x = orders.parse_pdf_text(pdf, tpl, 1e6)
     assert x["total"]["orders"] == 46529e6 and x["total"]["backlog"] == 68736e6
-    assert x["total"]["orders_yoy"] == 92.1 and x["segments"][0]["orders"] == 42030e6
+    assert x["total"]["orders_yoy"] == 92.1 and x["segments"][1]["orders"] == 42030e6
+    assert x["segments"][0]["name"] == "半導体・ＦＰＤ関連装置事業" and x["segments"][0]["orders"] == 45788e6
 
 
 def test_orders_are_three_month_values_like_the_presentation():

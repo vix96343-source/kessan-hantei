@@ -359,15 +359,24 @@ def order_numbers(rec: dict | None, past: list[dict]) -> dict | None:
 
     d = rec["data"]
     return {"total": nums(d["total"], None),
-            "segments": [{"name": s["name"], **nums(s, re.sub(r"\s", "", s["name"]))} for s in d["segments"]],
-            "hist": order_history(by_end, end)}
+            "segments": [{"name": s["name"], **({"parent": s["parent"]} if s.get("parent") else {}),
+                          **nums(s, re.sub(r"\s", "", s["name"]))} for s in d["segments"]],
+            "hist": order_history(by_end, end),
+            "seg_hist": [{"name": sg["name"], **({"parent": sg["parent"]} if sg.get("parent") else {}),
+                          "rows": order_history(by_end, end, n=8, seg=re.sub(r"\s", "", sg["name"]))}
+                         for sg in d["segments"]]}
 
 
-def order_history(by_end: dict, upto: str, n: int = 20) -> list[dict]:
-    """受注の推移(古い順・最大 n 四半期): 期間・受注高(累計)と YoY・3か月の値(単体Q)と QoQ・QYoY・受注残と YoY。"""
+def order_history(by_end: dict, upto: str, n: int = 20, seg: str | None = None) -> list[dict]:
+    """受注の推移(古い順・最大 n 四半期): 期間・受注高(累計)と YoY・3か月の値(単体Q)と QoQ・QYoY・受注残と YoY。
+    seg を渡すとそのセグメント(品目)の推移(名前は空白を除いて照合)。"""
     def tot(ym):
         r = by_end.get(ym)
-        return (r["data"].get("total") or {}) if r else {}
+        if not r:
+            return {}
+        if seg is None:
+            return r["data"].get("total") or {}
+        return next((x for x in r["data"].get("segments", []) if re.sub(r"\s", "", x["name"]) == seg), None) or {}
 
     def nq(ym):
         r = by_end.get(ym)
@@ -393,7 +402,9 @@ def order_history(by_end: dict, upto: str, n: int = 20) -> list[dict]:
         # 前年の記録があれば実数から計算する(短信の「前年同期比」は比率か増減率かが表によって違う)
         yoy = _growth(cum, py.get("orders")) if py.get("orders") is not None else t.get("orders_yoy")
         byoy = _growth(t.get("backlog"), py.get("backlog")) if py.get("backlog") is not None else t.get("backlog_yoy")
+        pb = tot(_ym_shift(ym, -3)).get("backlog")
         out.append({"label": f"{fy[2:4]}/{int(fy[5:7])} {q}Q", "cum": _mil(cum), "yoy": yoy,
+                    "bqoq": _growth(t.get("backlog"), pb),
                     "q": _mil(sq), "qoq": _growth(sq, single(_ym_shift(ym, -3))), "qyoy": _growth(sq, single(_ym_shift(ym, -12))),
                     "backlog": _mil(t.get("backlog")), "byoy": byoy})
     return out
@@ -437,8 +448,10 @@ def segment_numbers(rec: dict | None, past: list[dict], main: dict | None, ords:
         q = single(end, k, f) if n_q and end else None
         if q is None:
             return {"v": _mil(x.get(f)), "yoy": _growth(x.get(f), x.get(f"{f}_prior")), "qoq": None, "cum": True}
-        return {"v": _mil(q), "yoy": _growth(q, single(end, k, f, prior=True)),
-                "qoq": _growth(q, single(_ym_shift(end, -3), k, f))}
+        p = single(end, k, f, prior=True)
+        if p is None:                                   # 当期の短信に前年同期の表が無い会社は前年の短信の記録から
+            p = single(_ym_shift(end, -12), k, f)
+        return {"v": _mil(q), "yoy": _growth(q, p), "qoq": _growth(q, single(_ym_shift(end, -3), k, f))}
 
     rows, index = [], {}
     for x in (rec["data"]["segments"] if rec else []):
@@ -449,9 +462,19 @@ def segment_numbers(rec: dict | None, past: list[dict], main: dict | None, ords:
         k = key(o["name"])
         if k in index:
             rows[index[k]].update(orders=o["orders"], backlog=o["backlog"])
+            continue
+        row = {"name": o["name"], "orders": o["orders"], "backlog": o["backlog"]}
+        pk = key(o["parent"]) if o.get("parent") else None
+        if pk and pk in index:                          # 品目は事業の行のすぐ下に(字下げ)
+            row["child"] = True
+            at = index[pk] + 1
+            while at < len(rows) and rows[at].get("child"):
+                at += 1
+            rows.insert(at, row)
+            index = {key(r["name"]): i for i, r in enumerate(rows)}
         else:
             index[k] = len(rows)
-            rows.append({"name": o["name"], "orders": o["orders"], "backlog": o["backlog"]})
+            rows.append(row)
     total = {}
     if main:
         total.update(sales=main.get("sales"), op=main.get("op"))

@@ -223,8 +223,8 @@ def parse_pdf_text(text: str, tpl: dict) -> dict | None:
         if lab.startswith("計") and len(lab) <= 3:
             sales = vals
         elif sales and (re.match(r"セグメント(利益|損失)", lab) or
-                        # 見出しが折り返して数値の行に「(△)」だけ残る形(前の行が「セグメント利益又は損失」)
-                        (not re.search(r"[^\s()（）△▲]", lab) and i > 0
+                        # 見出しが折り返して数値の行に「(△)」「又は損失(△)」が残る形(前の行が「セグメント利益…」)
+                        ((not re.search(r"[^\s()（）△▲]", lab) or re.match(r"(又は)?(損失|利益)", lab)) and i > 0
                          and re.search(r"セグメント(利益|損失)", _key(lines[i - 1])))):
             blocks.append((sales, vals))
             sales = None
@@ -260,6 +260,72 @@ def plausible(code: str, ym: str, n_q: int, x: dict, hist: dict) -> bool:
     cons = sum(q["sales"] for q in qs)
     seg = sum(sg.get("sales") or 0 for sg in x["segments"])
     return bool(cons) and 0.85 <= seg / cons <= 1.25
+
+
+def backfill_history(cfg: dict, depth: int = 6, data_dir: Path = DATA_DIR,
+                     session: RateLimitedSession | None = None) -> dict:
+    """セグメントの3か月の値と YoY に要る過去の四半期(既定: 直近6四半期 = 前年の同じ四半期とその前まで)を、
+    IRBANK が保管している決算短信 PDF のセグメント情報の表から読む。期末は短信の表題から決める。手元でのみ実行。"""
+    from pypdf import PdfReader
+    from . import history
+    from .datasources import irbank
+    from .orders import IRBANK_PDF, _irbank_earnings, _ym_shift
+
+    session = session or irbank.session_from_config(cfg)
+    df = load(data_dir)
+    hist = {c: {q["end"]: q for q in v} for c, v in history.by_code(history.load(data_dir)).items()}
+    arch = {a["disclosure_id"]: a for a in earnings.load_archive(data_dir).to_dict("records")}
+    have = {(r["code"], str(r["period_end"])[:7]) for r in df.to_dict("records") if r["period_end"] and r["status"] == "ok"}
+    latest = {}
+    for r in df[df["status"] == "ok"].sort_values("disclosed_at").to_dict("records"):
+        a = arch.get(r["disclosure_id"])
+        if a and not r["period_end"]:
+            r["n_q"], r["period_end"] = a["n_q"], a["period_end"]
+        d = json.loads(r["data"])
+        if d.get("tpl") and r["period_end"]:
+            latest[r["code"]] = {**r, "data": d}
+    rows, stats = [], {"codes": 0, "pdfs": 0, "ok": 0}
+    for code, cur in latest.items():
+        end = str(cur["period_end"])[:7]
+        floor = _ym_shift(end, -3 * depth)
+        try:
+            items = [(i, q, ym) for i, q, ym in _irbank_earnings(session, code)
+                     if ym and floor <= ym < end and (code, ym) not in have]
+        except Exception as e:
+            log.warning("セグメントの推移: IRBANK 一覧の取得失敗 %s: %s", code, e)
+            continue
+        stats["codes"] += 1
+        seen = set()
+        for did, q, ym in items:
+            if ym in seen:
+                continue
+            seen.add(ym)
+            x = None
+            try:
+                resp = session.get(IRBANK_PDF.format(doc=did[4:]))
+                stats["pdfs"] += 1
+                if resp is not None:
+                    text = "\n".join(p.extract_text() or "" for p in PdfReader(io.BytesIO(resp.content)).pages)
+                    x = parse_pdf_text(text, cur["data"]["tpl"])
+                    if x and not plausible(code, ym, q, x, hist):
+                        x = None
+            except Exception as e:
+                log.warning("セグメントの推移: PDF の読み取り失敗 %s %s: %s", code, did, e)
+            if x:
+                stats["ok"] += 1
+            rows.append({"disclosure_id": did, "code": code, "disclosed_at": f"{did[4:8]}-{did[8:10]}-{did[10:12]}T00:00",
+                         "n_q": str(q), "period_end": ym, "status": "ok" if x else "none",
+                         "data": json.dumps(x, ensure_ascii=False) if x else ""})
+    if rows:
+        new = pd.DataFrame(rows).reindex(columns=COLUMNS)
+        out = pd.concat([df[~df["disclosure_id"].isin(new["disclosure_id"])], new])
+        out = out.sort_values(["disclosed_at", "disclosure_id"], ascending=False)
+        # 同じ会社・同じ期で、読めた行があれば読めなかった行は捨てる
+        okk = {(r["code"], str(r["period_end"])[:7]) for r in out.to_dict("records") if r["status"] == "ok"}
+        out = out[~((out["status"] != "ok") & out.apply(lambda r: (r["code"], str(r["period_end"])[:7]) in okk, axis=1))]
+        out.to_csv(path(data_dir), index=False, encoding="utf-8")
+    log.info("segments history: %s", stats)
+    return stats
 
 
 def backfill(cfg: dict, data_dir: Path = DATA_DIR, session: RateLimitedSession | None = None) -> dict:

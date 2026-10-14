@@ -165,15 +165,40 @@ def parse_table(table) -> tuple[list[dict], float | None, dict | None]:
     width = len(grid[0])
     numeric_cols = sorted({j for i, row in enumerate(grid) if is_data[i] for j, c in enumerate(row)
                            if _num(c) is not None})
-    facts, header_text = _grid_facts(grid[:first], [row for i, row in enumerate(grid) if is_data[i]], numeric_cols)
+    parents = _parents(grid, is_data, numeric_cols)
+    data = [row for i, row in enumerate(grid) if is_data[i]]
+    facts, header_text = _grid_facts(grid[:first], data, numeric_cols, parents)
     unit = _unit(table, header_text)
     label_cols = [j for j in range(width) if j not in numeric_cols]
     tpl = {"header": grid[:first], "width": width, "numeric_cols": numeric_cols, "unit": unit,
-           "rows": [[row[j] for j in label_cols] for i, row in enumerate(grid) if is_data[i]]}
+           "rows": [[row[j] for j in label_cols] for row in data], "parents": parents}
     return facts, unit, tpl
 
 
-def _grid_facts(header: list[list[str]], data: list[list[str]], numeric_cols: list[int]) -> tuple[list[dict], str]:
+_HEAD_WORD = re.compile(r"受注|前年|前期|セグメント|品目|区分|名称|単位|種類|期別|金額|構成|市場|部門")
+
+
+def _parents(grid: list[list[str]], is_data: list[bool], numeric_cols: list[int]) -> list[str | None]:
+    """データ行ごとの親(見出しだけの行に書かれた事業名)。「計」の行まで続き、そこで終わる。
+    例: 半導体・ＦＰＤ関連装置事業(見出しだけ) → 半導体関連装置 / 分析装置 / ＦＰＤ関連装置 → 計"""
+    out, parent = [], None
+    for i, row in enumerate(grid):
+        labels = [c for j, c in enumerate(row) if j not in numeric_cols and c]
+        if not is_data[i]:
+            vals = {row[j] for j in numeric_cols if j < len(row)}
+            text = labels[-1] if labels else ""
+            if text and vals <= {"", text} and not _HEAD_WORD.search(re.sub(r"\s", "", text)):
+                parent = text
+            continue
+        out.append(parent)
+        name = re.sub(r"\s", "", labels[-1]) if labels else ""
+        if parent and (name in ("計", "小計") or (name.endswith("計") and not name.endswith("合計"))):
+            parent = None
+    return out
+
+
+def _grid_facts(header: list[list[str]], data: list[list[str]], numeric_cols: list[int],
+                parents: list[str | None] | None = None) -> tuple[list[dict], str]:
     """見出し行とデータ行から事実のリストを作る。返り値の2つ目は見出しの文字(単位探し用)。"""
     width = len(header[0]) if header else len(data[0])
     numeric_cols = set(numeric_cols)
@@ -206,7 +231,8 @@ def _grid_facts(header: list[list[str]], data: list[list[str]], numeric_cols: li
                    "growth_label": "増減率" in re.sub(r"\s", "", labels[j])}
 
     facts = []
-    for row in data:
+    for ri, row in enumerate(data):
+        parent = parents[ri] if parents and ri < len(parents) else None
         names = []
         for j in label_cols:
             if row[j] and (not names or names[-1] != row[j]):
@@ -217,6 +243,13 @@ def _grid_facts(header: list[list[str]], data: list[list[str]], numeric_cols: li
         seg = names[-1]
         if _metric(seg) and len(names) == 1:
             seg = "合計"                               # 「受注高 | 50,163 | 59,267 …」のように行見出しが項目名
+        group, child_of = False, None
+        if parent:
+            key = re.sub(r"\s", "", seg)
+            if key in ("計", "小計") or (key.endswith("計") and not key.endswith("合計")):
+                seg, group = parent, True              # 事業の「計」= その事業の受注
+            else:
+                child_of = parent
         for j, c in cols.items():
             if c["kind"] is None:
                 continue
@@ -225,7 +258,8 @@ def _grid_facts(header: list[list[str]], data: list[list[str]], numeric_cols: li
             if metric is None or v is None:
                 continue
             facts.append({"seg": seg, "metric": metric, "period": c["period"], "kind": c["kind"],
-                          "value": v, "signed": _signed(row[j]), "growth_label": c["growth_label"]})
+                          "value": v, "signed": _signed(row[j]), "growth_label": c["growth_label"],
+                          "group": group, "parent": child_of})
     return facts, all_header
 
 
@@ -243,6 +277,10 @@ def _assemble(facts: list[dict], unit: float) -> dict | None:
             segs[k] = {"name": f["seg"]}
             order.append(k)
         s = segs[k]
+        if f.get("group"):
+            s["group"] = True
+        if f.get("parent"):
+            s["parent"] = f["parent"]
         if f["kind"] == "value":
             s.setdefault(f"{f['metric']}_{f['period']}", f["value"] * unit)
         else:
@@ -251,8 +289,9 @@ def _assemble(facts: list[dict], unit: float) -> dict | None:
             s[f"{f['metric']}_growth_label"] = f["growth_label"]
 
     totals = [k for k in order if _TOTAL.match(k)]
-    subtotals = [k for k in order if k not in totals and _SUBTOTAL.search(k)]
-    leaves = [k for k in order if k not in totals and k not in subtotals]
+    subtotals = [k for k in order if k not in totals and _SUBTOTAL.search(k) and not segs[k].get("group")]
+    groups = [k for k in order if segs[k].get("group")]
+    leaves = [k for k in order if k not in totals and k not in subtotals and k not in groups]
     if not totals:
         totals = [k for k in subtotals if k == "計"][-1:]
         subtotals = [k for k in subtotals if k not in totals]
@@ -275,15 +314,33 @@ def _assemble(facts: list[dict], unit: float) -> dict | None:
         for s in [segs[k] for k in leaves] + [total]:
             s[f"{m}_yoy"] = _yoy(s, m, style)
 
+    for m in METRICS:                                   # 事業(group)の YoY も同じ書き方で
+        style = _pct_style([segs[k] for k in leaves], total, m)
+        for k in groups:
+            segs[k][f"{m}_yoy"] = _yoy(segs[k], m, style)
+
     def out(s):
-        return {"name": s["name"], **{f"{m}{suf}": s.get(f"{m}_{p}") for m in METRICS
+        return {"name": s["name"], **({"group": True} if s.get("group") else {}),
+                **({"parent": s["parent"]} if s.get("parent") else {}),
+                **{f"{m}{suf}": s.get(f"{m}_{p}") for m in METRICS
                                        for suf, p in (("", "cur"), ("_prior", "prior"), ("_fy", "fy"))},
                 **{f"{m}_yoy": s.get(f"{m}_yoy") for m in METRICS}}
 
     t = out(total)
     if t["orders"] is None and t["backlog"] is None:
         return None
-    segments = [out(segs[k]) for k in leaves] if len(leaves) > 1 else []
+    # 表示の順: 事業の行をその品目の前に
+    shown = []
+    for k in order:
+        if k in totals or k in subtotals or k in shown:
+            continue
+        par = segs[k].get("parent")
+        pk = _seg_key(par) if par else None
+        if pk and pk in segs and pk not in shown:
+            shown.append(pk)
+        if k not in shown:
+            shown.append(k)
+    segments = [out(segs[k]) for k in shown] if len(leaves) > 1 or groups else []
     return {"segments": segments, "total": t}
 
 
@@ -406,7 +463,10 @@ def parse_pdf_text(text: str, tpls: list[dict], unit: float | None = None) -> di
         if not best:
             continue
         done = best_end
-        f, _ = _grid_facts(tpl["header"], best, ncols)
+        par = tpl.get("parents") or []
+        labels_of = {tuple(r): par[i] if i < len(par) else None for i, r in enumerate(tpl["rows"])}
+        best_parents = [labels_of.get(tuple(row[j] for j in label_cols)) for row in best]
+        f, _ = _grid_facts(tpl["header"], best, ncols, best_parents)
         facts += f
         unit = unit or tpl["unit"]
     if not facts:
