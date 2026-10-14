@@ -1,4 +1,6 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261014550369,2026-10-14T14:30,3181,買取王国,業績予想と実績値との差異に関するお知らせ,actual_vs_forecast,False,,,,,,https://www.release.tdnet.info/inbs/140120261014550369.pdf,,東,2026-10-14T14:30
+140120261014550299,2026-10-14T14:30,3181,買取王国,2027年２月期　第２四半期（中間期）決算短信〔日本基準〕（非連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261014550299.pdf,https://www.release.tdnet.info/inbs/081220261014550299.zip,東,2026-10-14T14:30
 140120261014550538,2026-10-14T14:00,3077,ホリイフード,2026年11月期第３四半期決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261014550538.pdf,https://www.release.tdnet.info/inbs/081220261014550538.zip,東,2026-10-14T14:00
 140120261014550534,2026-10-14T14:00,3077,ホリイフード,2026年11月期第３四半期決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261014550534.pdf,,東,2026-10-14T14:00
 140120261014550319,2026-10-14T14:00,9837,モリト,2026年11月期連結業績予想の修正に関するお知らせ,forecast_revision,False,up,OperatingIncome,2.9,CurrentYearDuration,"{""NetIncome"": 1.7, ""NetSales"": 4.8, ""OperatingIncome"": 2.9, ""OrdinaryIncome"": 2.7}",https://www.release.tdnet.info/inbs/140120261014550319.pdf,https://www.release.tdnet.info/inbs/091220261014550319.zip,東,2026-10-14T14:00
