@@ -1,4 +1,12 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261014550775,2026-10-14T17:00,7879,ノダ,業績予想の修正に関するお知らせ,forecast_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261014550775.pdf,,東,2026-10-14T17:00
+140120261014550768,2026-10-14T17:00,7879,ノダ,2026年11月期 第3四半期決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261014550768.pdf,https://www.release.tdnet.info/inbs/081220261014550768.zip,東,2026-10-14T17:00
+140120261014550625,2026-10-14T17:00,3083,スターシーズ,2027年2月期第2四半期（中間期）決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261014550625.pdf,,東,2026-10-14T17:00
+140120261014550591,2026-10-14T17:00,3083,スターシーズ,2027年２月期第２四半期（中間期）連結業績予想と実績値との差異に関するお知らせ,actual_vs_forecast,False,,,,,,https://www.release.tdnet.info/inbs/140120261014550591.pdf,,東,2026-10-14T17:00
+140120261014550550,2026-10-14T17:00,3083,スターシーズ,2027年２月期 第２四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261014550550.pdf,https://www.release.tdnet.info/inbs/081220261014550550.zip,東,2026-10-14T17:00
+140120261014550547,2026-10-14T17:00,284A,Ｐ－フクヤ建設,2026年８月期 決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261014550547.pdf,,東,2026-10-14T17:00
+140120261014550261,2026-10-14T17:00,152A,Ｐ－オプティ,2027年2月期 中間決算短信〔日本基準〕（非連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261014550261.pdf,,東,2026-10-14T17:00
+140120261008547819,2026-10-14T17:00,329A,Ｐ－ジール,2026年８月期 決算短信〔日本基準〕（非連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261008547819.pdf,,東,2026-10-14T17:00
 140120261014550763,2026-10-14T16:45,5129,Ｇ－ＦＩＸＥＲ,2026年8月期　決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261014550763.pdf,,東,2026-10-14T16:45
 140120261014550677,2026-10-14T16:45,5578,Ｇ－ＡＲアドバンスト,2026年８月期 決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261014550677.pdf,,東,2026-10-14T16:45
 140120261014550668,2026-10-14T16:45,5578,Ｇ－ＡＲアドバンスト,2026年８月期 決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261014550668.pdf,https://www.release.tdnet.info/inbs/081220261014550668.zip,東,2026-10-14T16:45
