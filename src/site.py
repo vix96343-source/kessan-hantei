@@ -370,7 +370,7 @@ def order_numbers(rec: dict | None, past: list[dict], adj: dict | None = None) -
     return {"total": nums(d["total"], None),
             "segments": [{"name": s["name"], **({"parent": s["parent"]} if s.get("parent") else {}),
                           **nums(s, re.sub(r"\s", "", s["name"]))} for s in d["segments"]],
-            "hist": order_history(by_end, end),
+            "hist": order_history(by_end, end, n=8),          # 受注の推移は直近2年(8四半期)
             "seg_hist": [{"name": sg["name"], **({"parent": sg["parent"]} if sg.get("parent") else {}),
                           "rows": order_history(by_end, end, n=8, seg=re.sub(r"\s", "", sg["name"]),
                                                 adj=(adj or {}).get(re.sub(r"\s|・", "", unicodedata.normalize("NFKC", sg["name"])), {}))}
