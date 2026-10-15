@@ -1,4 +1,6 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261015551805,2026-10-15T16:05,244A,Ｇ－グロースエクスパ,2026年８月期 通期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261015551805.pdf,,東,2026-10-15T16:05
+140120261015551765,2026-10-15T16:05,244A,Ｇ－グロースエクスパ,2026年８月期 決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261015551765.pdf,https://www.release.tdnet.info/inbs/081220261015551765.zip,東,2026-10-15T16:05
 140120261015551772,2026-10-15T16:00,9241,Ｇ－ＦＬＮ,2026年8月期通期_決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261015551772.pdf,,東,2026-10-15T16:00
 140120261015551754,2026-10-15T16:00,4885,室町ケミカル,業績予想の修正に関するお知らせ,forecast_revision,False,up,OperatingIncome,66.7,CurrentAccumulatedQ2Duration,"{""NetIncome"": 77.8, ""NetSales"": 6.1, ""OperatingIncome"": 66.7, ""OrdinaryIncome"": 100.0}",https://www.release.tdnet.info/inbs/140120261015551754.pdf,https://www.release.tdnet.info/inbs/091220261015551754.zip,東,2026-10-15T16:00
 140120261015551714,2026-10-15T16:00,4885,室町ケミカル,2027年5月期 第1四半期　決算補足説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261015551714.pdf,,東,2026-10-15T16:00
