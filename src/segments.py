@@ -230,7 +230,8 @@ def parse_pdf_text(text: str, tpl: dict) -> dict | None:
             continue
         label, vals = r
         lab = _key(label)
-        if "外部顧客" in lab:                           # 外部顧客への売上高(短信の本文の数値)
+        # 外部顧客への売上高(短信の本文の数値)。見出しが折り返して「外部顧客への」だけ前の行にある形も
+        if "外部顧客" in lab or (i > 0 and "外部顧客" in _key(lines[i - 1]) and re.match(r"(売上|営業収益)", lab)):
             ext = vals
         elif lab.startswith("計") and len(lab) <= 3:
             sales = ext or vals

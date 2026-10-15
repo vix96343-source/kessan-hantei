@@ -87,3 +87,20 @@ def test_pdf_total_is_the_last_column():
 def test_sen_truncates_below_thousand_yen():
     from src.site import _sen
     assert (_sen(4242100999.0), _sen(-41525999.0), _sen(1e3 * 4242100), _sen(None)) == (4242100, -41525, 4242100, None)
+
+
+def test_pdf_external_sales_label_wrapped():
+    # 吉野家 1Q: 「外 部 顧 客 へ の」が前の行に折り返し、数値の行は「売上高」
+    text = """報告セグメント
+外 部 顧 客 へ の
+売上高 38,779 8,782 7,797 55,359 3,411 58,771 ― 58,771
+セ グ メ ン ト 間
+又は振替高
+285 51 ― 336 372 709 △709 ―
+計 39,064 8,834 7,797 55,696 3,784 59,480 △709 58,771
+セグメント利益 2,498 861 524 3,883 142 4,025 △1,480 2,544
+"""
+    tpl = {"cols": ["吉野家", "はなまる", "海外", None, "その他", None, None, None], "n": 8, "unit": 1e6}
+    x = segments.parse_pdf_text(text, tpl)
+    assert [s["sales"] for s in x["segments"]] == [38779e6, 8782e6, 7797e6, 3411e6]
+    assert x["total"]["sales"] == 58771e6 and x["total"]["op"] == 2544e6
