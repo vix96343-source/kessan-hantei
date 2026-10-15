@@ -23,7 +23,9 @@ FILES = {"segments": segments, "orders": orders}
 
 
 def git(*args, check=True):
-    return subprocess.run(["git", *args], cwd=ROOT, check=check, capture_output=True, text=True, encoding="utf-8")
+    # タスク スケジューラから pythonw で動かすとき、git の黒い窓を出さない
+    return subprocess.run(["git", *args], cwd=ROOT, check=check, capture_output=True, text=True, encoding="utf-8",
+                          creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
 
 
 def snapshot() -> dict[str, pd.DataFrame]:
