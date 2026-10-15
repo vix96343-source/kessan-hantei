@@ -268,20 +268,31 @@ def table_template(z: zipfile.ZipFile, segs: list[dict]) -> dict | None:
     # 表は短信本文(qualitative.htm)にある会社と、セグメント情報の注記のファイル(…sg…ixbrl.htm)にある会社がある
     names = [n for n in z.namelist() if n.endswith("qualitative.htm")] + \
         [n for n in z.namelist() if re.search(r"/\d{7}-\w\wsg\d\d-.*ixbrl\.htm$", n)]
-    def is_seg_table(t):
-        """セグメント情報の数値の表: セグメント利益の行と、売上(外部顧客・計)の行に数値がある"""
+    seg_cores = [re.sub(r"(事業|業)$", "", _key(sg["name"])) for sg in segs if sg["name"] != "その他"]
+
+    def score(t):
+        """セグメント情報の数値の表らしさ: 売上(外部顧客・計・売上高)の行と利益(セグメント利益・営業利益)の行に数値があり、
+        見出しにセグメントの名前が出てくる数。表でなければ -1"""
         txt = re.sub(r"\s", "", t.get_text())
-        if not re.search(r"セグメント(利益|損失)", txt):
-            return False
         rows = [r for r in _grid(t) if r and any(_num(c) is not None for c in r[1:])]
-        return any(_EXT_ROW.search(_key(r[0])) or _key(r[0]).startswith("計") or
-                   re.fullmatch(r"売上(高|収益)|営業収益", _key(r[0])) for r in rows)
+        has_sales = any(_EXT_ROW.search(_key(r[0])) or _key(r[0]).startswith("計") or
+                        re.fullmatch(r"売上(高|収益)|営業収益", _key(r[0])) for r in rows)
+        has_profit = re.search(r"セグメント(利益|損失)", txt) or \
+            any(re.match(r"営業(利益|損失)", _key(r[0])) for r in rows)
+        if not (has_sales and has_profit):
+            return -1
+        hits = sum(1 for c in seg_cores if len(c) >= 2 and c in txt)
+        # 名前が2つ以上見出しにあるか、「セグメント利益」の行がある表だけ(連結の損益計算書の表を拾わない)
+        return hits if hits >= 2 or re.search(r"セグメント(利益|損失)", txt) else -1
 
     tables = []
     for name in names:
         soup = BeautifulSoup(z.read(name).decode("utf-8", errors="replace"), "html.parser")
-        tables = [t for t in soup.find_all("table") if is_seg_table(t)]
-        if tables:
+        scored = [(score(t), k, t) for k, t in enumerate(soup.find_all("table"))]
+        scored = [x for x in scored if x[0] >= 0]
+        if scored:
+            best = max(x[0] for x in scored)
+            tables = [t for sc, k, t in scored if sc == best]     # 名前の一番多い表の、最後のもの(当期)
             break
     if not tables:
         return None
