@@ -348,19 +348,6 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
       + '</table>';
   }
 
-  // セグメント別の累計(短信のセグメント情報の値そのまま)
-  function segCumTable(g) {
-    if (!g || !g.segments.length || !g.cols.some(c => c === 'sales' || c === 'op')) return '';
-    const segs = g.segments.filter(s => s.sales || s.op);
-    if (!segs.length) return '';
-    const rows = segs.map(s => [s.name, s, '']).concat(g.total && (g.total.sales || g.total.op) ? [[g.total.name || '合計', g.total, 'cur']] : []);
-    const cell = x => !x ? '<td>–</td>'.repeat(2) : num(x.v) + gcell(x.yoy);
-    return `<div class="fincap">セグメント別 累計(百万円)<span>決算短信のセグメント情報の値(期首からの累計)、YoYは前年同期比</span></div>`
-      + '<div class="finbox"><table class="fin"><tr><th>セグメント</th><th>売上</th><th>YoY</th><th>利益</th><th>YoY</th></tr>'
-      + rows.map(([name, x, cls]) => `<tr class="${cls}"><td>${esc(name)}</td>` + cell(x.sales) + cell(x.op) + '</tr>').join('')
-      + '</table></div>';
-  }
-
   // アナリスト予想の平均(四半期2つと今期・来期の通期)
   function consTable(c) {
     if (!c) return '';
@@ -409,7 +396,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
       <div class="dtitle">${esc(r.title)}</div>
       <div class="dlinks">${(r.pdfs || []).map(p => `<a href="${esc(p.url)}" target="_blank" rel="noopener" title="${esc(p.title || '')}">${esc(p.label === '資料' || p.label === '資料2' ? '説明資料' : p.label === '短信' ? '決算短信' : '修正の開示')}(PDF)</a>`).join('')}<a href="https://kabuyoho.jp/report?bcode=${encodeURIComponent(r.code)}" target="_blank" rel="noopener">株予報(コンセンサス)</a></div>
       <div class="dcols"><div class="dcol">${finTables(r.fin)}${consTable(r.cons)}${orderHistory(r.ord)}</div>
-      <div class="dcol">${segQuarter(r.seg)}${segMatrix(r.seg)}${segOrderHistory(r.ord)}${segCumTable(r.seg)}</div></div>
+      <div class="dcol">${segQuarter(r.seg)}${segMatrix(r.seg)}${segOrderHistory(r.ord)}</div></div>
     </td></tr>`;
   }
 
