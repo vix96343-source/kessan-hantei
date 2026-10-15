@@ -203,3 +203,17 @@ def test_pdf_extra_trailing_column_and_ifrs_total_row():
 """
     x = segments.parse_pdf_text(ifrs, {"cols": ["国内事業", "海外事業", None, None, None], "n": 5, "unit": 1e6})
     assert [s["sales"] for s in x["segments"]] == [13766e6, 1647e6] and x["total"]["sales"] == 15413e6
+
+
+def test_intersegment_basis_when_narrative_says_so():
+    # ウエストHD: 本文に「売上高はセグメント間の取引を含んでおり」→ 計の行
+    text = """なお、セグメント別の金額については、売上高はセグメント間の取引を含んでおり、営業利益は全社費用等配分前の金額であります。
+外部顧客への売上高 24,689 21,728 46,417 － 46,417
+セグメント間の内部売上高又は振替高 67 － 67 △67 －
+計 24,756 21,728 46,484 △67 46,417
+セグメント利益 2,165 8,419 10,584 △1,000 9,584
+"""
+    x = segments.parse_pdf_text(text, {"cols": ["再生可能エネルギー事業", "蓄電所事業", None, None, None], "n": 5, "unit": 1e6})
+    assert [s["sales"] for s in x["segments"]] == [24756e6, 21728e6]
+    assert segments.includes_intersegment("売上高はセグメント間の内部売上高又は振替高を含んでおります") is True
+    assert segments.includes_intersegment("外部顧客への売上高は") is False

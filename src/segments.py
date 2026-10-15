@@ -132,9 +132,12 @@ def parse_zip(zip_bytes: bytes) -> dict | None:
 
     # 外部顧客への売上高をタグ付けしている会社は、その値だけを使う(「―」のセグメントは計に逃げず空にする)
     has_ext = any(_ext(by_member[m][w]) for m in order for w in ("cur", "prior"))
+    q = [n for n in z.namelist() if n.endswith("qualitative.htm")]
+    inter = bool(q) and includes_intersegment(z.read(q[0]).decode("utf-8", errors="replace"))
 
     def values(f):
-        s = _ext(f) or (None if has_ext else _sales(f))
+        # 本文がセグメント間を含む「計」で書かれている会社は計、それ以外は外部顧客への売上高
+        s = (_sales(f) or _ext(f)) if inter else (_ext(f) or (None if has_ext else _sales(f)))
         sales = f[s] if s else None
         p = _pick(f, PROFIT)
         return sales, (f[p] if p else None)
@@ -311,6 +314,12 @@ def table_template(z: zipfile.ZipFile, segs: list[dict]) -> dict | None:
 
 # 外部顧客への売上高の行(日本基準「外部顧客への売上高」「外部顧客に対する売上高」、IFRS「外部収益」「外部売上収益」)
 _EXT_ROW = re.compile(r"外部(顧客|収益|売上)")
+# 短信の本文に「(セグメント別の)売上高はセグメント間の取引を含んでおり」とある会社は、本文の数値が「計」(セグメント間を含む)
+_INCL_INTER = re.compile(r"売上(高|収益)?は、?セグメント間の(内部)?(売上高?|取引|振替高?|収益)[^。]{0,12}を?含(んで|め|む)")
+
+
+def includes_intersegment(text: str) -> bool:
+    return bool(_INCL_INTER.search(re.sub(r"\s", "", text)))
 _PDF_NUM = re.compile(r"^[△▲\-－−]?[\d,]+(\.\d+)?$|^[-－―‐]$")
 
 
@@ -342,6 +351,7 @@ def parse_pdf_text(text: str, tpl: dict) -> dict | None:
 def _parse_pdf_text(text: str, tpl: dict) -> dict | None:
     from .orders import _num
     n, unit, cols = tpl["n"], tpl["unit"], tpl["cols"]
+    inter = includes_intersegment(text)               # 本文が「計」(セグメント間を含む)で書かれている会社
     lines = [l for l in text.splitlines() if l.strip()]
     blocks = []                                        # [(売上の行の値, 利益の行の値)]
     sales = ext = None
@@ -358,8 +368,9 @@ def _parse_pdf_text(text: str, tpl: dict) -> dict | None:
             if _pdf_row(lines[k], n) or re.search(r"\d,\d{3}", lines[k]):
                 break
             above = _key(lines[k]) + above
-        if _EXT_ROW.search(lab) or (_EXT_ROW.search(above) and
-                                   (not lab or (re.search(r"売上|収益", lab) and not re.search(r"内部|セグメント間|振替", lab)))):
+        # 本文が「計」で書かれている会社(inter)は外部顧客の行を使わず、計の行を使う
+        if not inter and (_EXT_ROW.search(lab) or (_EXT_ROW.search(above) and
+                          (not lab or (re.search(r"売上|収益", lab) and not re.search(r"内部|セグメント間|振替", lab))))):
             ext = vals
         elif (lab.startswith("計") and len(lab) <= 3) or lab == "合計":   # IFRS は「合計」の行
             sales = ext or vals
