@@ -426,8 +426,8 @@ def order_history(by_end: dict, upto: str, n: int = 20, seg: str | None = None, 
 def segment_numbers(rec: dict | None, past: list[dict], main: dict | None, ords: dict | None = None) -> dict | None:
     """セグメント別の表: 受注高・受注残高(受注の表がある会社)・売上・利益。
     売上・利益は決算短信のセグメント情報の表そのままの累計と YoY(前年同期比)に加えて、
-    単体Q(3か月 = 累計 − 前の四半期までの累計)と QoQ・QYoY(前の四半期の記録があるとき)。合計の行は一覧と同じ数値(main)と受注の合計(ords)。
-    金額は短信のセグメント情報の表と同じ単位(千円の会社は千円)で一の位まで。受注の列がある会社は受注の表に合わせて百万円。"""
+    単体Q(3か月 = 累計 − 前の四半期までの累計)と QoQ・QYoY(前の四半期の記録があるとき)。合計の行は短信のセグメント表の合計(読めたときだけ)と受注の合計(ords)。
+    金額は千円(千円未満は切り捨て)。"""
     if not rec and not (ords and ords.get("segments")):
         return None
     key = lambda n: re.sub(r"\s|・", "", unicodedata.normalize("NFKC", n))
@@ -506,9 +506,6 @@ def segment_numbers(rec: dict | None, past: list[dict], main: dict | None, ords:
             index[k] = len(rows)
             rows.append(row)
     total = {}
-    if main:                                           # 短信の表の合計が読めなかったときだけ一覧と同じ数値(百万円 → 千円)
-        total.update({f: {**main[f], "v": None if main[f].get("v") is None else main[f]["v"] * 1000}
-                      for f in ("sales", "op") if main.get(f)})
     t = (rec or {}).get("data", {}).get("total") if rec else None
     if t and (t.get("sales") is not None or t.get("op") is not None):
         # 合計は短信のセグメント表の一番右の列の値そのまま(計上額、無ければ合計)。足し算はしない

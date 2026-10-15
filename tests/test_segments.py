@@ -58,7 +58,7 @@ def test_thousand_yen_segments_to_the_last_digit():
     g = segment_numbers(q2, [q1], {"sales": {"v": 10975}, "op": {"v": 764}})
     assert g["unit"] == "千円"
     assert [s["sales"]["v"] for s in g["segments"]] == [4242100, 1565437]   # 短信の千円の値そのまま
-    assert g["total"]["sales"]["v"] == 10975000                           # 短信の表の合計が無ければ一覧の数値(百万円)を千円で
+    assert g["total"] is None                                             # 短信の表の合計が無ければ合計の行は出さない(百万円の丸めた値は出さない)
     assert "raw" not in g["segments"][0]["sales"]
 
 
