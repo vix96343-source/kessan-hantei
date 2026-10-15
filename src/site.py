@@ -179,6 +179,14 @@ def _mil(v) -> int | None:
     return None if v is None or (isinstance(v, float) and v != v) or v == "" else round(float(v) / 1e6)
 
 
+def _sen(v) -> int | None:
+    """千円(千円未満は切り捨て)。円の整数にしてから割るので浮動小数の誤差で1ずれない"""
+    if v is None or (isinstance(v, float) and v != v) or v == "":
+        return None
+    n = round(float(v))
+    return n // 1000 if n >= 0 else -(-n // 1000)
+
+
 def fin_panel(r: dict, arch: dict | None, hist: list[dict], n_quarters: int = 8,
               shares: float | None = None) -> dict | None:
     """行を開いたときの業績表。quarters: 直近の単独四半期、plan: 今期の累計実績と会社予想・進捗率(百万円)。"""
@@ -217,7 +225,7 @@ def fin_panel(r: dict, arch: dict | None, hist: list[dict], n_quarters: int = 8,
         b = quarters.get(_ym_shift(q["end"], -months)) or {}
         return _growth(q.get(f), b.get(f))
 
-    table = [{"label": _period_name(q["end"]), **{f: _mil(q.get(f)) for f in FIN_FIELDS},
+    table = [{"label": _period_name(q["end"]), **{f: _sen(q.get(f)) for f in FIN_FIELDS},
               # YoY は前年の同じ四半期、QoQ は前の四半期と比べる(EPS は株数が同じなので純利益と同じ)
               **{f"{f}_yoy": growth_of(q, f, 12) for f in FIN_FIELDS},
               **{f"{f}_qoq": growth_of(q, f, 3) for f in FIN_FIELDS},
@@ -334,19 +342,19 @@ def order_numbers(rec: dict | None, past: list[dict], adj: dict | None = None) -
         return None if before is None else c - before
 
     def qm(ym, name, which="cur"):
-        """3か月の値(百万円)。説明資料で1の誤差を直した値があればそれ"""
+        """3か月の値(千円)。説明資料で1の誤差を直した値(百万円)があればそれ"""
         v = single(ym, name, which)
         if which == "cur" and name is not None:
             fixed = (adj or {}).get(re.sub(r"\s|・", "", unicodedata.normalize("NFKC", name)), {}).get(ym)
             if fixed is not None:
-                return fixed
-        return _mil(v)
+                return fixed * 1000
+        return _sen(v)
 
     def nums(s, name):
-        b = {"v": _mil(s.get("backlog")), "yoy": s.get("backlog_yoy"), "qoq": None}
+        b = {"v": _sen(s.get("backlog")), "yoy": s.get("backlog_yoy"), "qoq": None}
         q = qm(end, name) if n_q and end else None
         if q is None:
-            o = {"v": _mil(s.get("orders")), "yoy": s.get("orders_yoy"), "qoq": None, "cum": True}
+            o = {"v": _sen(s.get("orders")), "yoy": s.get("orders_yoy"), "qoq": None, "cum": True}
         else:
             pe = _ym_shift(end, -3)
             o = {"v": q, "yoy": _growth(q, qm(end, name, "prior")), "qoq": _growth(q, qm(pe, name))}
@@ -400,17 +408,18 @@ def order_history(by_end: dict, upto: str, n: int = 20, seg: str | None = None, 
         fy = _ym_shift(ym, 3 * (4 - q))
         cum, py = t.get("orders"), tot(_ym_shift(ym, -12))
         sq = single(ym)
-        sqm = lambda y: (adj or {}).get(y, _mil(single(y)))      # 説明資料で1の誤差を直した値があればそれ
+        # 説明資料で1の誤差を直した値(百万円)があればそれ
+        sqm = lambda y: (adj or {})[y] * 1000 if y in (adj or {}) else _sen(single(y))
         # 前年の記録があれば実数から計算する(短信の「前年同期比」は比率か増減率かが表によって違う)
         yoy = _growth(cum, py.get("orders")) if py.get("orders") is not None else t.get("orders_yoy")
         byoy = _growth(t.get("backlog"), py.get("backlog")) if py.get("backlog") is not None else t.get("backlog_yoy")
         pb = tot(_ym_shift(ym, -3)).get("backlog")
-        out.append({"label": f"{fy[2:4]}/{int(fy[5:7])} {q}Q", "cum": _mil(cum), "yoy": yoy,
+        out.append({"label": f"{fy[2:4]}/{int(fy[5:7])} {q}Q", "cum": _sen(cum), "yoy": yoy,
                     "bqoq": _growth(t.get("backlog"), pb),
                     "q": sqm(ym) if sq is not None else None,
                     "qoq": _growth(sqm(ym) if sq is not None else None, sqm(_ym_shift(ym, -3))),
                     "qyoy": _growth(sqm(ym) if sq is not None else None, sqm(_ym_shift(ym, -12))),
-                    "backlog": _mil(t.get("backlog")), "byoy": byoy})
+                    "backlog": _sen(t.get("backlog")), "byoy": byoy})
     return out
 
 
@@ -428,9 +437,15 @@ def segment_numbers(rec: dict | None, past: list[dict], main: dict | None, ords:
     if rec and end:
         by_end[end] = rec
 
+    TOT = "__合計__"                                    # 短信の表の合計(一番右の列)
+
     def seg_at(ym, k):
         r = by_end.get(ym)
-        return next((x for x in r["data"]["segments"] if key(x["name"]) == k), None) if r else None
+        if not r:
+            return None
+        if k == TOT:
+            return r["data"].get("total")
+        return next((x for x in r["data"]["segments"] if key(x["name"]) == k), None)
 
     def nq_at(ym):
         r = by_end.get(ym)
@@ -466,9 +481,7 @@ def segment_numbers(rec: dict | None, past: list[dict], main: dict | None, ords:
         return {"v": sc(c), "yoy": _growth(c, p), "q": sc(q), "qoq": _growth(q, b), "qyoy": _growth(q, qp),
                 "raw": (c, p, q, b, qp)}
 
-    tpl = (rec or {}).get("data", {}).get("tpl") or {}
-    unit = 1e6 if ords or not tpl.get("unit") else float(tpl["unit"])
-    sc = lambda v: None if v is None or v != v else round(float(v) / unit)
+    sc = _sen                                          # 千円(千円未満は切り捨て)
 
     rows, index = [], {}
     for x in (rec["data"]["segments"] if rec else []):
@@ -493,27 +506,23 @@ def segment_numbers(rec: dict | None, past: list[dict], main: dict | None, ords:
             index[k] = len(rows)
             rows.append(row)
     total = {}
-    if main:
-        total.update(sales=main.get("sales"), op=main.get("op"))
-    segs = [r for r in rows if "sales" in r]
-    if segs and all(r[f]["raw"][0] is not None for r in segs for f in ("sales", "op")):
-        # 合計は短信のセグメント表の「計」(セグメントの合計)。累計と単体Q の両方を出すため
-        def add(vals):
-            return None if not vals or any(v is None for v in vals) else sum(vals)
+    if main:                                           # 短信の表の合計が読めなかったときだけ一覧と同じ数値(百万円 → 千円)
+        total.update({f: {**main[f], "v": None if main[f].get("v") is None else main[f]["v"] * 1000}
+                      for f in ("sales", "op") if main.get(f)})
+    t = (rec or {}).get("data", {}).get("total") if rec else None
+    if t and (t.get("sales") is not None or t.get("op") is not None):
+        # 合計は短信のセグメント表の一番右の列の値そのまま(計上額、無ければ合計)。足し算はしない
+        total.update(sales=flow(t, TOT, "sales"), op=flow(t, TOT, "op"), name="合計")
+    for r in rows + [total]:
         for f in ("sales", "op"):
-            xs = [r[f]["raw"] for r in segs]
-            c, p, q, b, qp = (add([x[i] for x in xs]) for i in range(5))
-            total[f] = {"v": sc(c), "yoy": _growth(c, p), "q": sc(q), "qoq": _growth(q, b), "qyoy": _growth(q, qp)}
-        total["name"] = "計"
-    for r in segs:
-        for f in ("sales", "op"):
-            r[f].pop("raw", None)
+            if isinstance(r.get(f), dict):
+                r[f].pop("raw", None)
     if ords:
         total.update(orders=ords["total"]["orders"], backlog=ords["total"]["backlog"])
     if len(rows) < 2 and not ords:
         return None
     cols = [c for c in ("orders", "backlog", "sales", "op") if any(c in r for r in rows) or c in total]
-    return {"cols": cols, "segments": rows, "total": total or None, "unit": "千円" if unit == 1e3 else "百万円"}
+    return {"cols": cols, "segments": rows, "total": total or None, "unit": "千円"}
 
 
 def consensus_panel(snap: dict | None, arch: dict | None) -> dict | None:

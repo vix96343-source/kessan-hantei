@@ -146,11 +146,11 @@ def test_orders_are_three_month_values_like_the_presentation():
     q1 = rec(1, "2026-05-31", 42030, 188.4, 62253, "2026-07-08")
     q2 = rec(2, "2026-08-31", 120540, 256.4, 103863, "2026-10-08")
     o = order_numbers(q2, [q1])["total"]
-    assert o["orders"]["v"] == 78510 and "cum" not in o["orders"]
+    assert o["orders"]["v"] == 78510000 and "cum" not in o["orders"]   # 千円
     assert o["orders"]["qoq"] == 86.8 and o["backlog"]["qoq"] == 66.8
     assert abs(o["orders"]["yoy"] - (78509 / 24699 - 1) * 100) < 0.5
     # 前の四半期の記録が無いときは短信どおりの累計
-    assert order_numbers(q2, [])["total"]["orders"] == {"v": 120540, "yoy": 156.4, "qoq": None, "cum": True}
+    assert order_numbers(q2, [])["total"]["orders"] == {"v": 120540000, "yoy": 156.4, "qoq": None, "cum": True}
 
 
 def test_one_off_rounding_fixed_from_presentation_page():

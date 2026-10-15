@@ -35,6 +35,7 @@ PROFIT = ["OperatingIncome", "OperatingProfitLossIFRS", "SegmentProfitLossIFRS",
 _CTX = re.compile(r"^(Current|Prior1)?(YTD|Interim|Year)Duration_(?:NonConsolidatedMember_)?(.+Member)$")
 STANDARD = {"OperatingSegmentsNotIncludedInReportableSegmentsAndOtherRevenueGeneratingBusinessActivitiesMember": "その他",
             "OtherReportableSegmentsMember": "その他"}
+_CTX_PLAIN = re.compile(r"^(Current|Prior1)?(YTD|Interim|Year)Duration(?:_NonConsolidatedMember)?$")
 TOTAL = "EntityTotalMember"
 SKIP = {"ReportableSegmentsMember", "TotalOfReportableSegmentsAndOthersMember", "ReconcilingItemsMember"}
 
@@ -133,10 +134,20 @@ def parse_zip(zip_bytes: bytes) -> dict | None:
         segs.append({"name": name, "sales": s, "sales_prior": sp, "op": p, "op_prior": pp})
     if len(segs) < 2:
         return None
+    # 合計は短信の表の一番右の列の値そのまま(足し算はしない。各セグメントの端数があるので足すと1ずれる):
+    # 連結(四半期)財務諸表計上額(メンバー無しの文脈) → 無ければ合計(報告セグメント+その他) → 計
     total = None
-    if TOTAL in by_member:
-        (s, p), (sp, pp) = values(by_member[TOTAL]["cur"]), values(by_member[TOTAL]["prior"])
-        total = {"name": "合計", "sales": s, "sales_prior": sp, "op": p, "op_prior": pp}
+    plain: dict[str, dict[str, float]] = {"cur": {}, "prior": {}}
+    for (name, ctx), v in facts.items():
+        m = _CTX_PLAIN.match(ctx)
+        if m:
+            plain["prior" if m.group(1) == "Prior1" else "cur"][name] = v
+    for src in [plain] + [by_member[m] for m in (TOTAL, "TotalOfReportableSegmentsAndOthersMember",
+                                                 "ReportableSegmentsMember") if m in by_member]:
+        (s, p), (sp, pp) = values(src["cur"]), values(src["prior"])
+        if s is not None or p is not None:
+            total = {"name": "合計", "sales": s, "sales_prior": sp, "op": p, "op_prior": pp}
+            break
     out = {"segments": segs, "total": total}
     tpl = table_template(z, segs)
     if tpl:
@@ -231,6 +242,10 @@ def parse_pdf_text(text: str, tpl: dict) -> dict | None:
     if not blocks:
         return None
 
+    def total_of(block):                               # 表の一番右の列(計上額、無ければ合計)
+        sv, pv = _num(block[0][-1]), _num(block[1][-1])
+        return {"sales": None if sv is None else sv * unit, "op": None if pv is None else pv * unit}
+
     def to_segs(block):
         out = {}
         for j, sg in enumerate(cols):
@@ -247,7 +262,10 @@ def parse_pdf_text(text: str, tpl: dict) -> dict | None:
             for sg, v in cur.items()]
     if len(segs) < 2:
         return None
-    return {"segments": segs, "total": None, "src": "irbank_pdf"}
+    tc, tp = total_of(blocks[-1]), (total_of(blocks[0]) if len(blocks) >= 2 else {})
+    total = {"name": "合計", "sales": tc["sales"], "op": tc["op"],
+             "sales_prior": tp.get("sales"), "op_prior": tp.get("op")}
+    return {"segments": segs, "total": total, "src": "irbank_pdf"}
 
 
 def plausible(code: str, ym: str, n_q: int, x: dict, hist: dict) -> bool:
