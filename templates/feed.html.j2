@@ -105,6 +105,11 @@ table.fin td.lab { color: var(--warn); }
 .fincap { color: var(--teal); font-size: 12px; margin: 16px 0 3px; }   /* 表と表の間を少し空ける */
 .fincap span { color: var(--muted); margin-left: 8px; }
 .segname { color: #c5ccd6; font-size: 12px; margin: 6px 0 1px; }
+/* セグメント(単体)の下の YoY・QoQ の行と、セグメント別業績の四半期の区切り */
+.segyq { font-size: 13px; line-height: 1.35; margin: 2px 0 6px; white-space: nowrap; color: #c5ccd6;
+  font-family: "Consolas", "Menlo", "Meiryo UI", monospace; }
+.segyq .nm { color: var(--teal); } .segyq .up { color: #f07894; } .segyq .dn { color: #7dd8d4; }
+#list table.fin.segm tr.top td { border-top: 1px solid #39425e; }
 /* 行を開いたときの中身は2列: 左に業績・コンセンサス・受注の推移、右にセグメント別の受注の推移 */
 .dcols { display: flex; flex-wrap: wrap; gap: 6px 24px; align-items: flex-start; }
 #list tr.detail > td { padding-left: 40px; }   /* 行を開いたときの中身の左の余白 */
@@ -288,16 +293,36 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
   }
 
   // セグメント別: 受注高・受注残・売上・利益(すべて3か月の値)と YoY・QoQ。合計は一覧と同じ数値
-  // セグメント別の売上・利益の推移(受注の推移と同じ形): セグメントごとに期間・3か月の売上と YoY・QoQ・利益と YoY・QoQ
-  function segHistory(g) {
-    const list = ((g && g.hist) || []);
+  // セグメント(今回の四半期の単体): 横にセグメント、縦に売上・利益。その下にセグメントごとの YoY・QoQ を1行ずつ
+  function segQuarter(g) {
+    const list = ((g && g.hist) || []).filter(h => !h.total && h.rows.length);
     if (!list.length) return '';
-    const head = `<tr><th>期間</th><th>売上</th><th>YoY</th><th>QoQ</th><th>利益</th><th>YoY</th><th>QoQ</th></tr>`;
-    const cell = x => !x ? '<td>–</td>'.repeat(3) : num(x.v) + gcell(x.yoy) + gcell(x.qoq);
-    return `<div class="fincap">セグメント別の売上・利益の推移(3か月・千円)<span>売上は外部顧客への売上高。四半期ごとの3か月の値、YoYは前年の同じ四半期比、QoQは前四半期比</span></div>`
-      + list.map(h => `<div class="segname">${esc(h.name)}</div><div class="finbox"><table class="fin">${head}`
-        + h.rows.map((x, i) => `<tr class="${i === h.rows.length - 1 ? 'cur' : ''}"><td>${esc(x.label)}</td>` + cell(x.sales) + cell(x.op) + '</tr>').join('')
-        + '</table></div>').join('');
+    const label = list[0].rows[list[0].rows.length - 1].label;
+    const q = (label.match(/\dQ$/) || [''])[0];
+    const last = h => h.rows[h.rows.length - 1].label === label ? h.rows[h.rows.length - 1] : null;
+    const pct = v => v == null ? '<span class="sp">–</span>' : `<span class="${v > 0 ? 'up' : v < 0 ? 'dn' : ''}">${fmtG(v)}</span>`;
+    const val = (h, f) => { const x = last(h); return num(x && x[f] ? x[f].v : null); };
+    return `<div class="fincap">セグメント(${esc(q)}単体・千円)<span>${esc(label)}の3か月の値。YYは前年の同じ四半期比、QQは前四半期比</span></div>`
+      + '<div class="finbox"><table class="fin"><tr><th></th>' + list.map(h => `<th>${esc(h.name)}</th>`).join('') + '</tr>'
+      + '<tr><td class="lab">売上</td>' + list.map(h => val(h, 'sales')).join('') + '</tr>'
+      + '<tr><td class="lab">利益</td>' + list.map(h => val(h, 'op')).join('') + '</tr></table></div>'
+      + '<div class="segyq">' + list.map(h => { const x = last(h) || {};
+          return `<div><span class="nm">${esc(h.name)}:</span> 売YY${pct(x.sales && x.sales.yoy)} QQ${pct(x.sales && x.sales.qoq)}`
+            + ` 利益YY${pct(x.op && x.op.yoy)} QQ${pct(x.op && x.op.qoq)}</div>`; }).join('') + '</div>';
+  }
+
+  // セグメント別業績: 四半期ごとに売上・利益の2行、横にセグメント(3か月の値)
+  function segMatrix(g) {
+    const list = ((g && g.hist) || []).filter(h => !h.total && h.rows.length);
+    if (!list.length) return '';
+    const labels = [...new Set(list.flatMap(h => h.rows.map(x => x.label)))].sort();
+    const at = (h, l) => h.rows.find(x => x.label === l);
+    const cell = (h, l, f) => { const x = at(h, l); return num(x && x[f] ? x[f].v : null); };
+    return `<div class="fincap">セグメント別業績(3か月・千円)<span>四半期ごとの3か月の値</span></div>`
+      + '<div class="finbox"><table class="fin segm"><tr><th></th><th></th>' + list.map(h => `<th>${esc(h.name)}</th>`).join('') + '</tr>'
+      + labels.map((l, i) => `<tr class="top${i === labels.length - 1 ? ' cur' : ''}"><td>${esc(l)}</td><td class="lab">売上</td>` + list.map(h => cell(h, l, 'sales')).join('') + '</tr>'
+        + `<tr class="${i === labels.length - 1 ? 'cur' : ''}"><td></td><td class="lab">利益</td>` + list.map(h => cell(h, l, 'op')).join('') + '</tr>').join('')
+      + '</table></div>';
   }
 
   // セグメント別の累計(短信のセグメント情報の値そのまま)
@@ -361,7 +386,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
       <div class="dtitle">${esc(r.title)}</div>
       <div class="dlinks">${(r.pdfs || []).map(p => `<a href="${esc(p.url)}" target="_blank" rel="noopener" title="${esc(p.title || '')}">${esc(p.label === '資料' || p.label === '資料2' ? '説明資料' : p.label === '短信' ? '決算短信' : '修正の開示')}(PDF)</a>`).join('')}<a href="https://kabuyoho.jp/report?bcode=${encodeURIComponent(r.code)}" target="_blank" rel="noopener">株予報(コンセンサス)</a></div>
       <div class="dcols"><div class="dcol">${finTables(r.fin)}${consTable(r.cons)}${orderHistory(r.ord)}</div>
-      <div class="dcol">${segHistory(r.seg)}${segOrderHistory(r.ord)}${segCumTable(r.seg)}</div></div>
+      <div class="dcol">${segQuarter(r.seg)}${segMatrix(r.seg)}${segOrderHistory(r.ord)}${segCumTable(r.seg)}</div></div>
     </td></tr>`;
   }
 
