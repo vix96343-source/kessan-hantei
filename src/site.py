@@ -462,7 +462,10 @@ def segment_numbers(rec: dict | None, past: list[dict], main: dict | None, ords:
             return None
         b = seg_at(_ym_shift(ym, -3), k)
         b = None if b is None else b.get(f"{f}_prior" if prior else f)
-        return None if b is None else c - b
+        if b is None:
+            return None
+        # 3か月の売上がマイナスになるのは、セグメントの組み替えで前の四半期の表と列が合っていないとき。出さない
+        return None if f == "sales" and c - b < 0 else c - b
 
     def flow(x, k, f):
         """累計と YoY は短信のセグメント情報の表そのまま(期首からの累計・前年同期比)。
