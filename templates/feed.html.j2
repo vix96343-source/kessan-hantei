@@ -64,10 +64,10 @@ table#list td.n, table#list td.g { text-align: right; padding-left: 11px; paddin
 table#list td.n { color: #b4bbc6; }
 table#list td.n.neg { color: #b4bbc6; }                        /* 値のマイナスもほかの数値と同じ色 */
 table#list td.g { color: #5c6573; }                            /* 0%・データなし */
-table#list td.g.up1, table#list td.g.up2 { color: #3fd39b; }
-table#list tr.row td.g.up3 { color: #3fd39b; }
-table#list td.g.dn1, table#list td.g.dn2 { color: #ff5c7a; }
-table#list tr.row td.g.dn3 { color: #ff5c7a; }
+table#list td.g.up1, table#list td.g.up2 { color: #7fdcb8; }
+table#list tr.row td.g.up3 { color: #7fdcb8; }
+table#list td.g.dn1, table#list td.g.dn2 { color: #ff8fa0; }
+table#list tr.row td.g.dn3 { color: #ff8fa0; }
 /* 種別は枠なしの文字。押すとPDF */
 table#list a.pdf { background: none; border: 0; padding: 0; margin: 0 3px; font-size: inherit; font-weight: inherit;
   color: inherit; text-decoration: none; }
@@ -96,8 +96,8 @@ table.fin th:first-child, table.fin td:first-child { text-align: left; }
 table.fin td { padding: 0 6px; text-align: right; border-bottom: 1px dotted #262c40; white-space: nowrap; }
 table.fin td.neg { color: var(--red); }
 /* 行を開いたときの表: 一覧の文字色の指定より優先させる(#list を付ける)。YoY・QoQ はプラス緑・マイナス赤、マイナスの数値も赤 */
-#list table.fin td.gup { color: #3fd39b; } #list table.fin td.gdn { color: #ff5c7a; }
-#list table.fin td.neg { color: #ff5c7a; }
+#list table.fin td.gup { color: #7fdcb8; } #list table.fin td.gdn { color: #ff8fa0; }
+#list table.fin td.neg { color: #ff8fa0; }
 #list table.fin td, #list table.fin th { padding-top: 0; padding-bottom: 0; line-height: 1.15; }   /* 行を開いたときの表は縦を詰める */
 #list table.fin td, #list table.fin th { padding-left: 10px; padding-right: 10px; }   /* 行を開いたときの表の列の間隔 */
 table.fin tr.cur td { background: #21305a; color: #fff; }
@@ -115,8 +115,8 @@ table.fin td.lab { color: var(--warn); }
 #list table.sx td.l { text-align: left; color: #e6e9ee; }
 #list table.sx td.q { text-align: left; color: #f0b44c; }
 #list table.sx td.sep { color: #8a93a6; padding: 0 2px; }
-#list table.sx td.p, .sx-yq .p { color: #3fd39b; } #list table.sx td.m, .sx-yq .m { color: #ff5c7a; }
-.sx-yq { font-size: 13px; line-height: 1.35; margin: 4px 0 6px; white-space: nowrap; color: #3fd39b; font-weight: 600;
+#list table.sx td.p, .sx-yq .p { color: #7fdcb8; } #list table.sx td.m, .sx-yq .m { color: #ff8fa0; }
+.sx-yq { font-size: 13px; line-height: 1.35; margin: 4px 0 6px; white-space: nowrap; color: #7fdcb8; font-weight: 600;
   font-family: "Consolas", "Menlo", "Meiryo UI", monospace; }
 /* 行を開いたときの中身は2列: 左に業績・コンセンサス・受注の推移、右にセグメント別の受注の推移 */
 .dcols { display: flex; flex-wrap: wrap; gap: 6px 24px; align-items: flex-start; }
