@@ -415,9 +415,9 @@ def order_history(by_end: dict, upto: str, n: int = 20, seg: str | None = None, 
 
 
 def segment_numbers(rec: dict | None, past: list[dict], main: dict | None, ords: dict | None = None) -> dict | None:
-    """セグメント別の表: 受注高・受注残高(受注の表がある会社)・売上・利益を、すべて3か月(四半期単独)の値で。
-    売上・利益の3か月 = その期の累計 − 前の四半期までの累計(前年同期も同じ引き算で出して YoY)、QoQ は前の四半期の3か月と比べる。
-    前の四半期の記録が無いときだけ累計(cum=True)。合計の行は一覧と同じ数値(main)と受注の合計(ords)。
+    """セグメント別の表: 受注高・受注残高(受注の表がある会社)・売上・利益。
+    売上・利益は決算短信のセグメント情報の表そのままの累計と YoY(前年同期比)に加えて、
+    単体Q(3か月 = 累計 − 前の四半期までの累計)と QoQ・QYoY(前の四半期の記録があるとき)。合計の行は一覧と同じ数値(main)と受注の合計(ords)。
     金額は短信のセグメント情報の表と同じ単位(千円の会社は千円)で一の位まで。受注の列がある会社は受注の表に合わせて百万円。"""
     if not rec and not (ords and ords.get("segments")):
         return None
@@ -450,15 +450,21 @@ def segment_numbers(rec: dict | None, past: list[dict], main: dict | None, ords:
         return None if b is None else c - b
 
     def flow(x, k, f):
+        """累計と YoY は短信のセグメント情報の表そのまま(期首からの累計・前年同期比)。
+        単体Q は3か月(累計 − 前の四半期までの累計)、QoQ は前の四半期の3か月と、QYoY は前年の同じ四半期の3か月と比べる"""
+        c, p = x.get(f), x.get(f"{f}_prior")
+        ly = _ym_shift(end, -12) if end else None
+        if p is None and ly and nq_at(ly) == n_q:      # 短信に前年同期の表が無い会社は前年の短信の記録から
+            p = (seg_at(ly, k) or {}).get(f)
         q = single(end, k, f) if n_q and end else None
-        if q is None:
-            return {"v": sc(x.get(f)), "yoy": _growth(x.get(f), x.get(f"{f}_prior")), "qoq": None, "cum": True,
-                    "raw": (x.get(f), x.get(f"{f}_prior"), None)}
-        p = single(end, k, f, prior=True)
-        if p is None:                                   # 当期の短信に前年同期の表が無い会社は前年の短信の記録から
-            p = single(_ym_shift(end, -12), k, f)
-        b = single(_ym_shift(end, -3), k, f)
-        return {"v": sc(q), "yoy": _growth(q, p), "qoq": _growth(q, b), "raw": (q, p, b)}
+        b = single(_ym_shift(end, -3), k, f) if q is not None else None
+        qp = None
+        if q is not None:
+            qp = single(end, k, f, prior=True)
+            if qp is None:
+                qp = single(ly, k, f)
+        return {"v": sc(c), "yoy": _growth(c, p), "q": sc(q), "qoq": _growth(q, b), "qyoy": _growth(q, qp),
+                "raw": (c, p, q, b, qp)}
 
     tpl = (rec or {}).get("data", {}).get("tpl") or {}
     unit = 1e6 if ords or not tpl.get("unit") else float(tpl["unit"])
@@ -490,16 +496,14 @@ def segment_numbers(rec: dict | None, past: list[dict], main: dict | None, ords:
     if main:
         total.update(sales=main.get("sales"), op=main.get("op"))
     segs = [r for r in rows if "sales" in r]
-    if unit != 1e6 and segs:
-        # 短信1ページ目は百万円までなので、千円の会社の合計はセグメントの値を足した「計」(調整額の前)を一の位まで
+    if segs and all(r[f]["raw"][0] is not None for r in segs for f in ("sales", "op")):
+        # 合計は短信のセグメント表の「計」(セグメントの合計)。累計と単体Q の両方を出すため
         def add(vals):
             return None if not vals or any(v is None for v in vals) else sum(vals)
         for f in ("sales", "op"):
             xs = [r[f]["raw"] for r in segs]
-            q, p, b = (add([x[i] for x in xs]) for i in range(3))
-            total[f] = {"v": sc(q), "yoy": _growth(q, p), "qoq": _growth(q, b)}
-            if any(r[f].get("cum") for r in segs):
-                total[f]["cum"] = True
+            c, p, q, b, qp = (add([x[i] for x in xs]) for i in range(5))
+            total[f] = {"v": sc(c), "yoy": _growth(c, p), "q": sc(q), "qoq": _growth(q, b), "qyoy": _growth(q, qp)}
         total["name"] = "計"
     for r in segs:
         for f in ("sales", "op"):

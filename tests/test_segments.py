@@ -31,17 +31,18 @@ def _rec(n_q, end, sales, op, sales_prior, op_prior, at):
                      "total": None}}
 
 
-def test_segment_values_are_three_month_with_yoy_and_qoq():
+def test_segment_values_are_as_in_tanshin_with_qoq_of_three_months():
     q1 = _rec(1, "2026-05", 37106, 10834, 32976, 8786, "2026-07-08")
     q2 = _rec(2, "2026-08", 79388, 23969, 66000, 17000, "2026-10-08")      # 2Q 累計
     g = segment_numbers(q2, [q1], None)
     semi = g["segments"][0]
-    assert semi["sales"]["v"] == 79388 - 37106                             # 2Q の3か月 42,282
-    assert semi["sales"]["qoq"] == round((42282 - 37106) / 37106 * 100, 1)
-    assert semi["sales"]["yoy"] == round((42282 - (66000 - 32976)) / (66000 - 32976) * 100, 1)
-    assert semi["op"]["v"] == 23969 - 10834
-    # 前の四半期の記録が無ければ累計
-    assert segment_numbers(q2, [], None)["segments"][0]["sales"]["cum"] is True
+    assert semi["sales"]["v"] == 79388                                     # 短信の値(累計)そのまま
+    assert semi["sales"]["yoy"] == round((79388 - 66000) / 66000 * 100, 1) # 短信の前年同期比
+    assert semi["sales"]["qoq"] == round((42282 - 37106) / 37106 * 100, 1) # 3か月どうし
+    assert semi["op"]["v"] == 23969
+    # 前の四半期の記録が無ければ QoQ だけ空
+    s0 = segment_numbers(q2, [], None)["segments"][0]["sales"]
+    assert (s0["v"], s0["qoq"]) == (79388, None)
 
 
 def test_thousand_yen_segments_to_the_last_digit():
@@ -55,6 +56,6 @@ def test_thousand_yen_segments_to_the_last_digit():
     q2 = rec(2, "2026-08", 4242100, 1565437, "2026-10-15")
     g = segment_numbers(q2, [q1], {"sales": {"v": 10975}, "op": {"v": 764}})
     assert g["unit"] == "千円"
-    assert [s["sales"]["v"] for s in g["segments"]] == [2153713, 697240]
-    assert g["total"]["name"] == "計" and g["total"]["sales"]["v"] == 2153713 + 697240
+    assert [s["sales"]["v"] for s in g["segments"]] == [4242100, 1565437]   # 短信の千円の値そのまま
+    assert g["total"]["name"] == "計" and g["total"]["sales"]["v"] == 4242100 + 1565437
     assert "raw" not in g["segments"][0]["sales"]
