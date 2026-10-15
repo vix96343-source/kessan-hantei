@@ -1,4 +1,7 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261015551604,2026-10-15T15:35,9388,Ｑ－パパネッツ,2027年２月期　第２四半期（中間期）決算短信[日本基準]（非連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261015551604.pdf,https://www.release.tdnet.info/inbs/081220261015551604.zip,福,2026-10-15T15:35
+140120261014550465,2026-10-15T15:35,353A,エレコミ,2027年５月期第１四半期決算補足説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261014550465.pdf,,札福,2026-10-15T15:35
+140120260826526557,2026-10-15T15:35,2927,ＡＦＣ－ＨＤ,2026年8月期 決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120260826526557.pdf,https://www.release.tdnet.info/inbs/081220260826526557.zip,東,2026-10-15T15:35
 140120261015551761,2026-10-15T15:30,8887,シーラＨＤ,2027年5月期第1四半期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261015551761.pdf,,東,2026-10-15T15:30
 140120261015551735,2026-10-15T15:30,2404,鉄人化ＨＤ,2026年８月期決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261015551735.pdf,https://www.release.tdnet.info/inbs/081220261015551735.zip,東,2026-10-15T15:30
 140120261015551719,2026-10-15T15:30,9250,Ｇ－ＧＲＣＳ,2026年11月期 第３四半期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261015551719.pdf,,東,2026-10-15T15:30
