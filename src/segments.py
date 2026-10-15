@@ -133,7 +133,17 @@ def parse_zip(zip_bytes: bytes) -> dict | None:
     # 外部顧客への売上高をタグ付けしている会社は、その値だけを使う(「―」のセグメントは計に逃げず空にする)
     has_ext = any(_ext(by_member[m][w]) for m in order for w in ("cur", "prior"))
     q = [n for n in z.namelist() if n.endswith("qualitative.htm")]
-    inter = bool(q) and includes_intersegment(z.read(q[0]).decode("utf-8", errors="replace"))
+    qtext = ""
+    if q:
+        from bs4 import BeautifulSoup
+        qtext = BeautifulSoup(z.read(q[0]).decode("utf-8", errors="replace"), "html.parser").get_text("\n")
+    # 売上の基準: 短信の本文(セグメントの概況)の数値が「外部顧客への売上高」と「計(セグメント間を含む)」の
+    # どちらと合うかで決める。本文に「売上高はセグメント間の取引を含んで」とある会社も計
+    names = {m: STANDARD.get(m) or labels.get(m) for m in order if m not in SKIP and m != TOTAL}
+    ext_v = {nm: by_member[m]["cur"].get(_ext(by_member[m]["cur"]) or "") for m, nm in names.items() if nm}
+    tot_v = {nm: by_member[m]["cur"].get(_sales(by_member[m]["cur"]) or "") for m, nm in names.items() if nm}
+    narr = narrative_sales(qtext, [nm for nm in names.values() if nm]) if qtext else {}
+    inter = includes_intersegment(qtext) or choose_intersegment(narr, ext_v, tot_v)
 
     def values(f):
         # 本文がセグメント間を含む「計」で書かれている会社は計、それ以外は外部顧客への売上高
@@ -154,7 +164,7 @@ def parse_zip(zip_bytes: bytes) -> dict | None:
             continue
         segs.append({"name": name, "sales": s, "sales_prior": sp, "op": p, "op_prior": pp})
     if len(segs) < 2:
-        return parse_table_html(html)                  # 表に XBRL のタグが付いていない短信は表そのものを読む
+        return parse_table_html(html, qtext)            # 表に XBRL のタグが付いていない短信は表そのものを読む
     # 合計は短信の表の一番右の列の値そのまま(足し算はしない。各セグメントの端数があるので足すと1ずれる):
     # 連結(四半期)財務諸表計上額(メンバー無しの文脈) → 無ければ合計(報告セグメント+その他) → 計
     total = None
@@ -171,14 +181,15 @@ def parse_zip(zip_bytes: bytes) -> dict | None:
         if s is not None or p is not None:
             total = {"name": label, "sales": s, "sales_prior": sp, "op": p, "op_prior": pp}
             break
-    out = {"segments": segs, "total": total}
+    out = {"segments": segs, "total": total, "basis": "計" if inter else "外部顧客"}
     tpl = table_template(z, segs)
     if tpl:
+        tpl["basis"] = out["basis"]                    # 前の期の PDF も同じ基準で読む
         out["tpl"] = tpl                               # 前の期の短信(PDF)のセグメント表を読むための形
     return out
 
 
-def parse_table_html(html: str) -> dict | None:
+def parse_table_html(html: str, qtext: str = "") -> dict | None:
     """セグメント情報の表(HTML)をそのまま読む。XBRL のタグが付いていない短信用。
     売上は「外部顧客への売上高」(無ければ「計」)、利益は「セグメント利益(損失)」、合計は一番右の列。
     前年同期の表と当期の表があれば、前を前年同期・後ろを当期とする。"""
@@ -192,7 +203,7 @@ def parse_table_html(html: str) -> dict | None:
               if "報告セグメント" in re.sub(r"\s", "", t.get_text())
               and re.search(r"セグメント(利益|損失)", re.sub(r"\s", "", t.get_text()))]
 
-    def read(t):
+    def read(t, inter):
         grid = _grid(t)
         data = [r for r in grid if any(_num(c) is not None for c in r[1:])]
         if not data:
@@ -204,7 +215,7 @@ def parse_table_html(html: str) -> dict | None:
         ext = next((r for r in data if _EXT_ROW.search(_key(r[0]))), None)
         tot = next((r for r in data if _key(r[0]).startswith("計")), None)
         prof = next((r for r in data if re.match(r"セグメント(利益|損失)", _key(r[0]))), None)
-        sales_row = ext or tot
+        sales_row = (tot or ext) if inter else (ext or tot)
         if not sales_row or not prof:
             return None
         val = lambda row, j: None if j >= len(row) or _num(row[j]) is None else _num(row[j]) * unit
@@ -220,9 +231,16 @@ def parse_table_html(html: str) -> dict | None:
         # 前の期の短信(PDF)を同じ形で読むための形
         return segs, {"sales": val(sales_row, last), "op": val(prof, last)}, {"cols": cols, "n": len(num_cols), "unit": unit}
 
-    blocks = [b for b in (read(t) for t in tables) if b]
-    if not blocks:
+    # 売上の基準は本文(セグメントの概況)の数値と合う方(外部顧客への売上高 / 計)
+    b_ext = [b for b in (read(t, False) for t in tables) if b]
+    b_tot = [b for b in (read(t, True) for t in tables) if b]
+    if not b_ext:
         return None
+    ext_v = {nm: v["sales"] for nm, v in b_ext[-1][0].items()}
+    tot_v = {nm: v["sales"] for nm, v in b_tot[-1][0].items()} if b_tot else {}
+    inter = bool(qtext) and (includes_intersegment(qtext) or
+                             choose_intersegment(narrative_sales(qtext, list(ext_v)), ext_v, tot_v))
+    blocks = b_tot if inter and b_tot else b_ext
     cur, ctot, tpl = blocks[-1]
     prior, ptot, _ = blocks[0] if len(blocks) >= 2 else ({}, {}, None)
     segs = [{"name": nm, "sales": v["sales"], "op": v["op"],
@@ -232,7 +250,8 @@ def parse_table_html(html: str) -> dict | None:
         return None
     total = {"name": "合計", "sales": ctot["sales"], "op": ctot["op"],
              "sales_prior": ptot.get("sales"), "op_prior": ptot.get("op")}
-    return {"segments": segs, "total": total, "tpl": tpl}
+    basis = "計" if inter else "外部顧客"
+    return {"segments": segs, "total": total, "basis": basis, "tpl": {**tpl, "basis": basis}}
 
 
 # ---------------------------------------------------------------- 前の期の短信(PDF)のセグメント表
@@ -320,6 +339,41 @@ _INCL_INTER = re.compile(r"売上(高|収益)?は、?セグメント間の(内�
 
 def includes_intersegment(text: str) -> bool:
     return bool(_INCL_INTER.search(re.sub(r"\s", "", text)))
+
+
+_UNITS = {"百万円": 1e6, "千円": 1e3, "億円": 1e8}
+_NARR_NUM = r"(△|▲|-|マイナス)?([\d,]+(?:\.\d+)?)(百万円|千円|億円)"
+
+
+def narrative_sales(text: str, names: list[str]) -> dict[str, tuple[float, float]]:
+    """短信の本文(セグメントの概況)にある各セグメントの売上: {名前: (値(円), 単位)}。
+    セグメント名だけの短い行(見出し)から次の見出しまでの間で、最後の「売上高は X」(その結果…のまとめの文)を読む"""
+    lines = [unicodedata.normalize("NFKC", re.sub(r"\s", "", l)) for l in text.split("\n")]
+    lines = [l for l in lines if l]
+    keys = [(n, re.sub(r"\s|・", "", unicodedata.normalize("NFKC", n))) for n in names]
+    heads = []
+    for i, l in enumerate(lines):
+        lk = l.replace("・", "")
+        for n, k in keys:
+            core = re.sub(r"(事業|業)$", "", k)
+            if len(l) <= len(k) + 12 and (k in lk or (len(core) >= 2 and core in lk)) and not re.search(r"\d,\d{3}", l):
+                heads.append((i, n))
+                break
+    out = {}
+    for h, (i, n) in enumerate(heads):
+        end = heads[h + 1][0] if h + 1 < len(heads) else min(i + 30, len(lines))
+        ms = list(re.finditer(r"売上(?:高|収益)(?:は|が)" + _NARR_NUM, "".join(lines[i + 1:end])))
+        if ms and n not in out:
+            m = ms[-1]
+            out[n] = (float(m.group(2).replace(",", "")) * _UNITS[m.group(3)] * (-1 if m.group(1) else 1), _UNITS[m.group(3)])
+    return out
+
+
+def choose_intersegment(narr: dict, ext: dict, tot: dict) -> bool:
+    """本文の売上が「外部顧客への売上高」と「計(セグメント間を含む)」のどちらと合うか。計の方が多く合えば True"""
+    def hits(vals):
+        return sum(1 for n, (v, u) in narr.items() if vals.get(n) is not None and abs(vals[n] - v) <= u * 1.01)
+    return hits(tot) > hits(ext)
 _PDF_NUM = re.compile(r"^[△▲\-－−]?[\d,]+(\.\d+)?$|^[-－―‐]$")
 
 
@@ -351,7 +405,8 @@ def parse_pdf_text(text: str, tpl: dict) -> dict | None:
 def _parse_pdf_text(text: str, tpl: dict) -> dict | None:
     from .orders import _num
     n, unit, cols = tpl["n"], tpl["unit"], tpl["cols"]
-    inter = includes_intersegment(text)               # 本文が「計」(セグメント間を含む)で書かれている会社
+    # 本文が「計」(セグメント間を含む)で書かれている会社: 今回の短信で決めた基準(tpl)か、PDF の本文の断り書き
+    inter = tpl.get("basis") == "計" or includes_intersegment(text)
     lines = [l for l in text.splitlines() if l.strip()]
     blocks = []                                        # [(売上の行の値, 利益の行の値)]
     sales = ext = None

@@ -120,7 +120,8 @@ def test_segment_table_without_xbrl_tags():
     assert [s["name"] for s in x["segments"]] == ["放電加工・表面処理", "金型", "機械装置等"]
     assert (x["segments"][0]["sales"], x["segments"][0]["op"], x["segments"][0]["sales_prior"]) == (6173240e3, 1469509e3, 4852234e3)
     assert (x["total"]["sales"], x["total"]["op"], x["total"]["op_prior"]) == (8636492e3, 1132537e3, 616460e3)
-    assert x["tpl"] == {"cols": ["放電加工・表面処理", "金型", "機械装置等", None, None, None], "n": 6, "unit": 1e3}
+    assert x["tpl"] == {"cols": ["放電加工・表面処理", "金型", "機械装置等", None, None, None], "n": 6, "unit": 1e3,
+                        "basis": "外部顧客"}
 
 
 def test_pdf_external_sales_label_above_unlabeled_numbers():
@@ -217,3 +218,13 @@ def test_intersegment_basis_when_narrative_says_so():
     assert [s["sales"] for s in x["segments"]] == [24756e6, 21728e6]
     assert segments.includes_intersegment("売上高はセグメント間の内部売上高又は振替高を含んでおります") is True
     assert segments.includes_intersegment("外部顧客への売上高は") is False
+
+
+def test_basis_chosen_by_narrative():
+    # 本文の売上が計(セグメント間を含む)と合えば計、外部顧客と合えば外部顧客
+    narr = {"A": (24756e6, 1e6), "B": (1891e6, 1e6)}
+    assert segments.choose_intersegment(narr, {"A": 24689e6, "B": 1620e6}, {"A": 24756e6, "B": 1891e6}) is True
+    assert segments.choose_intersegment(narr, {"A": 24756e6, "B": 1891e6}, {"A": 24800e6, "B": 1900e6}) is False
+    text = "\n".join(["①再生可能エネルギー事業", "…その結果、売上高は24,756百万円(前期比24.7%減)、営業利益は2,165百万円",
+                      "②蓄電所事業", "売上高は21,728百万円"])
+    assert segments.narrative_sales(text, ["再生可能エネルギー事業", "蓄電所事業"]) == {"再生可能エネルギー事業": (24756e6, 1e6), "蓄電所事業": (21728e6, 1e6)}
