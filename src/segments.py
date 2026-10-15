@@ -23,12 +23,11 @@ log = logging.getLogger(__name__)
 
 COLUMNS = ["disclosure_id", "code", "disclosed_at", "n_q", "period_end", "status", "data"]
 
-# 売上(セグメント間を含む「計」)と利益。上から順に、あるものを使う
+# 売上は「外部顧客への売上高」(短信の本文の数値。セグメント間の取引を除く)。無ければ「計」(セグメント間を含む)。
+# 利益は上から順に、あるものを使う
+EXTERNAL = ["RevenuesFromExternalCustomers", "SalesToExternalCustomersIFRS", "RevenueFromExternalCustomersIFRS"]
 SALES = ["NetSales", "OperatingRevenue1", "NetSalesIFRS", "RevenueIFRS", "RevenueFromContractsWithCustomers",
          "Revenue", "OperatingRevenueIFRS"]
-SALES_PARTS = [("RevenuesFromExternalCustomers", "TransactionsWithOtherSegments"),
-               ("SalesToExternalCustomersIFRS", "IntersegmentSalesIFRS"),
-               ("RevenueFromExternalCustomersIFRS", "IntersegmentRevenueIFRS")]
 PROFIT = ["OperatingIncome", "OperatingProfitLossIFRS", "SegmentProfitLossIFRS", "BusinessProfitLossIFRS",
           "OrdinaryIncome", "ProfitLossBeforeTaxIFRS"]
 # 中間期は「InterimDuration」(Current が付かない)
@@ -116,8 +115,8 @@ def parse_zip(zip_bytes: bytes) -> dict | None:
         by_member[member][when][name] = v
 
     def values(f):
-        s = _pick(f, SALES)
-        sales = f[s] if s else next((f[a] + f.get(b, 0) for a, b in SALES_PARTS if a in f), None)
+        s = _pick(f, EXTERNAL) or _pick(f, SALES)
+        sales = f[s] if s else None
         p = _pick(f, PROFIT)
         return sales, (f[p] if p else None)
 
@@ -193,7 +192,7 @@ def table_template(z: zipfile.ZipFile, segs: list[dict]) -> dict | None:
     if sum(1 for c in col_seg if c) < 2:
         return None
     # 単位: 表の「計」の行と XBRL の売上の比
-    sales_row = next((r for r in data if _key(r[0]).startswith("計")), None)
+    sales_row = next((r for r in data if "外部顧客" in _key(r[0])), None) or         next((r for r in data if _key(r[0]).startswith("計")), None)
     unit = None
     if sales_row:
         for j, sg in zip(num_cols, col_seg):
@@ -223,16 +222,19 @@ def parse_pdf_text(text: str, tpl: dict) -> dict | None:
     from .orders import _num
     n, unit, cols = tpl["n"], tpl["unit"], tpl["cols"]
     lines = [l for l in text.splitlines() if l.strip()]
-    blocks = []                                        # [(計の行の値, 利益の行の値)]
-    sales = None
+    blocks = []                                        # [(売上の行の値, 利益の行の値)]
+    sales = ext = None
     for i, l in enumerate(lines):
         r = _pdf_row(l, n)
         if not r:
             continue
         label, vals = r
         lab = _key(label)
-        if lab.startswith("計") and len(lab) <= 3:
-            sales = vals
+        if "外部顧客" in lab:                           # 外部顧客への売上高(短信の本文の数値)
+            ext = vals
+        elif lab.startswith("計") and len(lab) <= 3:
+            sales = ext or vals
+            ext = None
         elif sales and (re.match(r"セグメント(利益|損失)", lab) or
                         # 見出しが折り返して数値の行に「(△)」「又は損失(△)」が残る形(前の行が「セグメント利益…」)
                         ((not re.search(r"[^\s()（）△▲]", lab) or re.match(r"(又は)?(損失|利益)", lab)) and i > 0

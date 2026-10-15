@@ -19,7 +19,8 @@ TPL = {"cols": ["半導体・ＦＰＤ関連装置事業", "ライフサイエ�
 def test_previous_quarter_segments_from_pdf():
     x = segments.parse_pdf_text(PDF, TPL)
     semi, life = x["segments"]
-    assert (semi["sales"], semi["op"], semi["sales_prior"], semi["op_prior"]) == (37106e6, 10834e6, 32976e6, 8786e6)
+    # 売上は外部顧客への売上高(当期の表にある 37,075)。前年同期の表には無いので「計」の 32,976
+    assert (semi["sales"], semi["op"], semi["sales_prior"], semi["op_prior"]) == (37075e6, 10834e6, 32976e6, 8786e6)
     assert (life["sales"], life["op"]) == (131e6, -119e6)
 
 
