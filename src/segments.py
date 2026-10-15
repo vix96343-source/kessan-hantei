@@ -379,6 +379,8 @@ _PDF_NUM = re.compile(r"^[△▲\-－−]?[\d,]+(\.\d+)?$|^[-－―‐]$")
 
 def _pdf_row(line: str, n: int):
     toks = re.sub(r"([△▲])\s+(\d)", r"\1\2", line).split()
+    # マイナスを括弧で書く会社: (99,723) → △99,723
+    toks = [re.sub(r"^[(（]([\d,]+)[)）]$", r"△\1", t) for t in toks]
     k = len(toks)
     while k > 0 and _PDF_NUM.match(toks[k - 1]):
         k -= 1
@@ -423,6 +425,13 @@ def parse_pdf_text(text: str, tpl: dict) -> dict | None:
 def _parse_pdf_text(text: str, tpl: dict) -> dict | None:
     from .orders import _num
     n, unit, cols = tpl["n"], tpl["unit"], tpl["cols"]
+    # 単位は PDF のセグメント情報の表の上の「(単位：千円)」から(今回の短信と前の期で単位を変えた会社がある)
+    seg_at = [m.start() for m in re.finditer(r"報告セグメント", text)]
+    if seg_at:
+        before = text[max(0, seg_at[-1] - 400):seg_at[-1] + 50]
+        mu = re.findall(r"単位\s*[:：]\s*(百万円|千円)", before)
+        if mu:
+            unit = {"百万円": 1e6, "千円": 1e3}[mu[-1]]
     # 本文が「計」(セグメント間を含む)で書かれている会社: 今回の短信で決めた基準(tpl)か、PDF の本文の断り書き
     inter = tpl.get("basis") == "計" or includes_intersegment(text)
     lines = [l for l in text.splitlines() if l.strip()]
@@ -449,9 +458,11 @@ def _parse_pdf_text(text: str, tpl: dict) -> dict | None:
             sales = ext or vals
             ext = None
         elif sales and (re.match(r"セグメント(利益|損失)", lab) or
-                        # 見出しが折り返して数値の行に「(△)」「又は損失(△)」「失(△)」が残る形(前の行が「セグメント利益…」)
+                        # 見出しが折り返して数値の行に「(△)」「又は損失(△)」「失(△)」「利益」が残る形、
+                        # 見出しと数値の間に「(注)1」の行がある形(上の2行に「セグメント利益…」か「…セグメント」)
                         ((not re.search(r"[^\s()（）△▲]", lab) or re.match(r"(又は)?(損失|利益)", lab) or len(lab) <= 6) and i > 0
-                         and re.search(r"セグメント(利益|損失)", _key(lines[i - 1])))):
+                         and any(re.search(r"セグメント(利益|損失)|セグメント$", _key(lines[k]))
+                                 for k in range(max(i - 2, 0), i) if not _pdf_row(lines[k], n)))):
             blocks.append((sales, vals))
             sales = None
     if not blocks:
