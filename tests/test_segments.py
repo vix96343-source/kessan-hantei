@@ -37,17 +37,17 @@ def test_segment_values_are_as_in_tanshin_with_qoq_of_three_months():
     q2 = _rec(2, "2026-08", 79388, 23969, 66000, 17000, "2026-10-08")      # 2Q 累計
     g = segment_numbers(q2, [q1], None)
     semi = g["segments"][0]
-    assert semi["sales"]["v"] == 79388000                                  # 短信の値(累計)そのまま、千円
+    assert semi["sales"]["v"] == 79388                                     # 短信の値(累計)そのまま、百万円
     assert semi["sales"]["yoy"] == round((79388 - 66000) / 66000 * 100, 1) # 短信の前年同期比
     assert semi["sales"]["qoq"] == round((42282 - 37106) / 37106 * 100, 1) # 3か月どうし
-    assert semi["op"]["v"] == 23969000
+    assert semi["op"]["v"] == 23969
     # 前の四半期の記録が無ければ QoQ だけ空
     s0 = segment_numbers(q2, [], None)["segments"][0]["sales"]
-    assert (s0["v"], s0["qoq"]) == (79388000, None)
+    assert (s0["v"], s0["qoq"]) == (79388, None)
 
 
-def test_thousand_yen_segments_to_the_last_digit():
-    """千円の短信は千円のまま一の位まで。合計はセグメントを足した「計」"""
+def test_thousand_yen_segments_in_millions():
+    """千円の短信も百万円(百万円未満は切り捨て)で出す"""
     def rec(n_q, end, a, b, at):
         return {"disclosure_id": at, "disclosed_at": at, "n_q": str(n_q), "period_end": end,
                 "data": {"segments": [{"name": "A", "sales": a * 1e3, "op": 1e3, "sales_prior": None, "op_prior": None},
@@ -56,8 +56,8 @@ def test_thousand_yen_segments_to_the_last_digit():
     q1 = rec(1, "2026-05", 2088387, 868197, "2026-07-14")
     q2 = rec(2, "2026-08", 4242100, 1565437, "2026-10-15")
     g = segment_numbers(q2, [q1], {"sales": {"v": 10975}, "op": {"v": 764}})
-    assert g["unit"] == "千円"
-    assert [s["sales"]["v"] for s in g["segments"]] == [4242100, 1565437]   # 短信の千円の値そのまま
+    assert g["unit"] == "百万円"
+    assert [s["sales"]["v"] for s in g["segments"]] == [4242, 1565]         # 4,242,100千円 → 4,242百万円
     assert g["total"] is None                                             # 短信の表の合計が無ければ合計の行は出さない(百万円の丸めた値は出さない)
     assert "raw" not in g["segments"][0]["sales"]
 
@@ -73,8 +73,8 @@ def test_total_is_the_tanshin_value_not_a_sum():
     q1 = rec(1, "2026-05", 2000000, 1000000, 3000001, "2026-07-14")
     q2 = rec(2, "2026-08", 2250022, 1056000, 3306022, "2026-10-15")
     g = segment_numbers(q2, [q1], None)
-    assert g["total"]["sales"]["v"] == 3306022
-    assert g["total"]["sales"]["q"] == 3306022 - 3000001
+    assert g["total"]["sales"]["v"] == 3306
+    assert g["total"]["sales"]["q"] == (3306022 - 3000001) // 1000
     assert g["total"]["sales"]["yoy"] == round((3306022 - 3000000) / 3000000 * 100, 1)
 
 
@@ -84,9 +84,9 @@ def test_pdf_total_is_the_last_column():
     assert (x["total"]["sales_prior"], x["total"]["op_prior"]) == (33061e6, 8441e6)
 
 
-def test_sen_truncates_below_thousand_yen():
-    from src.site import _sen
-    assert (_sen(4242100999.0), _sen(-41525999.0), _sen(1e3 * 4242100), _sen(None)) == (4242100, -41525, 4242100, None)
+def test_man_truncates_below_a_million_yen():
+    from src.site import _man
+    assert (_man(4242100999.0), _man(-41525999.0), _man(1e6 * 4242), _man(None)) == (4242, -41, 4242, None)
 
 
 def test_pdf_external_sales_label_wrapped():

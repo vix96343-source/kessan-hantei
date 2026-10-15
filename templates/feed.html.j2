@@ -295,7 +295,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
     const segs = o.segments.length ? o.segments : [];
     const line = (name, x, cls) => `<tr class="${cls}"><td>${esc(name)}</td>` + num(x.orders.v).replace('</td>', x.orders.cum ? '累</td>' : '</td>') + gcell(x.orders.yoy) + gcell(x.orders.qoq)
       + num(x.backlog.v) + gcell(x.backlog.yoy) + gcell(x.backlog.qoq) + '</tr>';
-    return `<div class="fincap">受注(千円)<span>受注高は3か月(四半期単独)の値・YoYは前年の同じ四半期比、QoQは前四半期比。受注残は期末残高。「累」は期首からの累計(前の四半期の短信が無いとき)</span></div>
+    return `<div class="fincap">受注(百万円)<span>受注高は3か月(四半期単独)の値・YoYは前年の同じ四半期比、QoQは前四半期比。受注残は期末残高。「累」は期首からの累計(前の四半期の短信が無いとき)</span></div>
       <div class="finbox"><table class="fin"><tr><th>セグメント</th><th>受注高</th><th>YoY</th><th>QoQ</th><th>受注残</th><th>YoY</th><th>QoQ</th></tr>`
       + segs.map(s => line(s.name, s, '')).join('') + line('合計', o.total, 'cur') + '</table></div>';
   }
@@ -355,7 +355,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
     if (!segs.length) return '';
     const rows = segs.map(s => [s.name, s, '']).concat(g.total && (g.total.sales || g.total.op) ? [[g.total.name || '合計', g.total, 'cur']] : []);
     const cell = x => !x ? '<td>–</td>'.repeat(2) : num(x.v) + gcell(x.yoy);
-    return `<div class="fincap">セグメント別 累計(千円)<span>決算短信のセグメント情報の値(期首からの累計)、YoYは前年同期比</span></div>`
+    return `<div class="fincap">セグメント別 累計(百万円)<span>決算短信のセグメント情報の値(期首からの累計)、YoYは前年同期比</span></div>`
       + '<div class="finbox"><table class="fin"><tr><th>セグメント</th><th>売上</th><th>YoY</th><th>利益</th><th>YoY</th></tr>'
       + rows.map(([name, x, cls]) => `<tr class="${cls}"><td>${esc(name)}</td>` + cell(x.sales) + cell(x.op) + '</tr>').join('')
       + '</table></div>';
@@ -374,7 +374,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
   function orderHistory(o) {
     const h = o && o.hist;
     if (!h || h.length < 2) return '';
-    return `<div class="fincap">受注の推移(千円)<span>受注高は期首からの累計、単体Qは3か月の値、QYoYは単体Qの前年同期比、受注残は期末残高</span></div>
+    return `<div class="fincap">受注の推移(百万円)<span>受注高は期首からの累計、単体Qは3か月の値、QYoYは単体Qの前年同期比、受注残は期末残高</span></div>
       <div class="finbox"><table class="fin"><tr><th>期間</th><th>受注高</th><th>YoY</th><th>単体Q</th><th>QoQ</th><th>QYoY</th><th>受注残</th><th>残YoY</th></tr>`
       + h.map((x, i) => `<tr class="${i === h.length - 1 ? 'cur' : ''}"><td>${esc(x.label)}</td>` + num(x.cum) + gcell(x.yoy)
         + num(x.q) + gcell(x.qoq) + gcell(x.qyoy) + num(x.backlog) + gcell(x.byoy) + '</tr>').join('') + '</table></div>';
@@ -385,7 +385,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
     const list = ((o && o.seg_hist) || []).filter(g => g.rows.some(x => x.q != null || x.backlog != null));
     if (!list.length) return '';
     const head = `<tr><th>期間</th><th>受注高</th><th>YoY</th><th>QoQ</th><th>受注残</th><th>YoY</th><th>QoQ</th></tr>`;
-    return `<div class="fincap">セグメント別の受注の推移(3か月・千円)<span>受注高は四半期ごとの3か月の値、受注残は期末残高。YoYは前年の同じ四半期比、QoQは前四半期比</span></div>`
+    return `<div class="fincap">セグメント別の受注の推移(3か月・百万円)<span>受注高は四半期ごとの3か月の値、受注残は期末残高。YoYは前年の同じ四半期比、QoQは前四半期比</span></div>`
       + list.map(g => `<div class="segname">${g.parent ? '└ ' : ''}${esc(g.name)}</div><div class="finbox"><table class="fin">${head}`
         + g.rows.map((x, i) => `<tr class="${i === g.rows.length - 1 ? 'cur' : ''}"><td>${esc(x.label)}</td>` + num(x.q) + gcell(x.qyoy) + gcell(x.qoq)
           + num(x.backlog) + gcell(x.byoy) + gcell(x.bqoq) + '</tr>').join('') + '</table></div>').join('');
@@ -395,7 +395,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
     if (!f) return '';
     let h = '';
     if (f.quarters && f.quarters.length) {
-      h += `<div class="fincap">四半期業績(単独・千円)<span>EPSは円(直近の短信の株数で換算)</span></div><div class="finbox"><table class="fin qtab">
+      h += `<div class="fincap">四半期業績(単独・百万円)<span>EPSは円(直近の短信の株数で換算)</span></div><div class="finbox"><table class="fin qtab">
         <tr><th>決算期</th><th>売上高</th><th>営業益</th><th>経常益</th><th>最終益</th><th>EPS</th></tr>`
         + f.quarters.map((q, i) => `<tr class="${i === f.quarters.length - 1 ? 'cur' : ''}"><td>${esc(q.label)}</td>`
           + num(q.sales) + num(q.op) + num(q.ordinary) + num(q.net) + epsCell(q.eps) + '</tr>').join('')
