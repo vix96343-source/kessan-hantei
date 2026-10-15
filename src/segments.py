@@ -100,7 +100,8 @@ def parse_zip(zip_bytes: bytes) -> dict | None:
     files = [n for n in z.namelist() if re.search(r"/\d{7}-\w\wsg\d\d-.*ixbrl\.htm$", n)]
     if not files:
         return None
-    facts = tdnet._scaled_facts(z.read(files[0]).decode("utf-8", errors="replace"))
+    html = z.read(files[0]).decode("utf-8", errors="replace")
+    facts = tdnet._scaled_facts(html)
     labels = _labels(z)
     by_member: dict[str, dict[str, dict[str, float]]] = {}       # member -> cur/prior -> name -> 値
     order = []
@@ -132,7 +133,7 @@ def parse_zip(zip_bytes: bytes) -> dict | None:
             continue
         segs.append({"name": name, "sales": s, "sales_prior": sp, "op": p, "op_prior": pp})
     if len(segs) < 2:
-        return None
+        return parse_table_html(html)                  # 表に XBRL のタグが付いていない短信は表そのものを読む
     # 合計は短信の表の一番右の列の値そのまま(足し算はしない。各セグメントの端数があるので足すと1ずれる):
     # 連結(四半期)財務諸表計上額(メンバー無しの文脈) → 無ければ合計(報告セグメント+その他) → 計
     total = None
@@ -152,6 +153,60 @@ def parse_zip(zip_bytes: bytes) -> dict | None:
     if tpl:
         out["tpl"] = tpl                               # 前の期の短信(PDF)のセグメント表を読むための形
     return out
+
+
+def parse_table_html(html: str) -> dict | None:
+    """セグメント情報の表(HTML)をそのまま読む。XBRL のタグが付いていない短信用。
+    売上は「外部顧客への売上高」(無ければ「計」)、利益は「セグメント利益(損失)」、合計は一番右の列。
+    前年同期の表と当期の表があれば、前を前年同期・後ろを当期とする。"""
+    from bs4 import BeautifulSoup
+    from .orders import _grid, _num
+    soup = BeautifulSoup(html, "html.parser")
+    text = re.sub(r"\s", "", soup.get_text())
+    m = re.search(r"単位[:：](千円|百万円|円)", text)
+    unit = {"千円": 1e3, "百万円": 1e6, "円": 1.0}[m.group(1)] if m else 1e6
+    tables = [t for t in soup.find_all("table")
+              if "報告セグメント" in re.sub(r"\s", "", t.get_text())
+              and re.search(r"セグメント(利益|損失)", re.sub(r"\s", "", t.get_text()))]
+
+    def read(t):
+        grid = _grid(t)
+        data = [r for r in grid if any(_num(c) is not None for c in r[1:])]
+        if not data:
+            return None
+        num_cols = sorted({j for r in data for j, c in enumerate(r) if j > 0 and _num(c) is not None})
+        head = grid[:grid.index(data[0])]
+        names = [re.sub(r"\s", "", unicodedata.normalize("NFKC", "".join(dict.fromkeys(r[j] for r in head if j < len(r) and r[j]))))
+                 for j in num_cols]
+        ext = next((r for r in data if "外部顧客" in _key(r[0])), None)
+        tot = next((r for r in data if _key(r[0]).startswith("計")), None)
+        prof = next((r for r in data if re.match(r"セグメント(利益|損失)", _key(r[0]))), None)
+        sales_row = ext or tot
+        if not sales_row or not prof:
+            return None
+        val = lambda row, j: None if j >= len(row) or _num(row[j]) is None else _num(row[j]) * unit
+        segs = {}
+        for j, nm in zip(num_cols, names):
+            nm = re.sub(r"報告セグメント|\(注\)\d*", "", nm)
+            if not nm or re.search(r"^(計|合計)$|調整|計上額", nm):
+                continue
+            segs[nm] = {"sales": val(sales_row, j), "op": val(prof, j)}
+        last = num_cols[-1]
+        return segs, {"sales": val(sales_row, last), "op": val(prof, last)}
+
+    blocks = [b for b in (read(t) for t in tables) if b]
+    if not blocks:
+        return None
+    cur, ctot = blocks[-1]
+    prior, ptot = blocks[0] if len(blocks) >= 2 else ({}, {})
+    segs = [{"name": nm, "sales": v["sales"], "op": v["op"],
+             "sales_prior": (prior.get(nm) or {}).get("sales"), "op_prior": (prior.get(nm) or {}).get("op")}
+            for nm, v in cur.items()]
+    if len(segs) < 2:
+        return None
+    total = {"name": "合計", "sales": ctot["sales"], "op": ctot["op"],
+             "sales_prior": ptot.get("sales"), "op_prior": ptot.get("op")}
+    return {"segments": segs, "total": total}
 
 
 # ---------------------------------------------------------------- 前の期の短信(PDF)のセグメント表

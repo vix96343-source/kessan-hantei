@@ -104,3 +104,19 @@ def test_pdf_external_sales_label_wrapped():
     x = segments.parse_pdf_text(text, tpl)
     assert [s["sales"] for s in x["segments"]] == [38779e6, 8782e6, 7797e6, 3411e6]
     assert x["total"]["sales"] == 58771e6 and x["total"]["op"] == 2544e6
+
+
+def test_segment_table_without_xbrl_tags():
+    # 放電精密: セグメント情報の表に XBRL のタグが無い(単位は千円)
+    def table(a, b, tot, pa, pb, ptot):
+        return f"""<table><tr><td></td><td colspan="3">報告セグメント</td><td>計</td><td>調整額（注）１</td><td>連結財務諸表計上額（注）２</td></tr>
+        <tr><td></td><td>放電加工・ 表面処理</td><td>金型</td><td>機械装置等</td><td></td><td></td><td></td></tr>
+        <tr><td>外部顧客への売上高</td><td>{a}</td><td>{b}</td><td>669,313</td><td>8,636,492</td><td>―</td><td>{tot}</td></tr>
+        <tr><td>計</td><td>6,173,428</td><td>{b}</td><td>707,563</td><td>8,674,929</td><td>△38,436</td><td>{tot}</td></tr>
+        <tr><td>セグメント利益</td><td>{pa}</td><td>{pb}</td><td>152,944</td><td>1,833,809</td><td>△701,272</td><td>{ptot}</td></tr></table>"""
+    html = "(単位：千円)" + table("4,852,234", "1,646,433", "7,101,295", "1,002,043", "152,208", "616,460") \
+        + table("6,173,240", "1,793,937", "8,636,492", "1,469,509", "211,355", "1,132,537")
+    x = segments.parse_table_html(html)
+    assert [s["name"] for s in x["segments"]] == ["放電加工・表面処理", "金型", "機械装置等"]
+    assert (x["segments"][0]["sales"], x["segments"][0]["op"], x["segments"][0]["sales_prior"]) == (6173240e3, 1469509e3, 4852234e3)
+    assert (x["total"]["sales"], x["total"]["op"], x["total"]["op_prior"]) == (8636492e3, 1132537e3, 616460e3)
