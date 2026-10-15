@@ -173,3 +173,33 @@ def test_consistent_rejects_misaligned_columns_but_keeps_subtotals():
     assert segments.consistent(x([176, 7692, None], 7692)) is False          # 組み替え前の表(列ずれ)
     assert segments.consistent(x([42463, 8822, 1090, 9912], 52375)) is True  # 海外 = アセアン + 中国 の小計列
     assert segments.consistent(x([100, 50], 150)) is True
+
+
+def test_pdf_profit_label_wrapped_mid_word():
+    # IGポート: 「セグメント利益又は損」「失（△） △1,341,582 …」と語の途中で折り返し
+    text = """外部顧客への売上高 8,105,517 2,313,462 10,418,979 265,360 10,684,339
+計 8,105,517 2,313,462 10,418,979 265,360 10,684,339
+セグメント利益又は損
+失（△） △1,341,582 256,555 △1,085,027 228 △1,084,799
+"""
+    tpl = {"cols": ["映像制作事業", "出版事業", None, "その他", None], "n": 5, "unit": 1e3}
+    x = segments.parse_pdf_text(text, tpl)
+    assert [s["op"] for s in x["segments"]] == [-1341582e3, 256555e3, 228e3]
+
+
+def test_pdf_extra_trailing_column_and_ifrs_total_row():
+    # 245A: 今回の表(4列)では空欄の調整額が、前の期の PDF では「－」で5列
+    text = """外部顧客への売上高 3,763,027 3,163,921 6,926,948 － 6,926,948
+計 3,763,027 3,163,921 6,926,948 － 6,926,948
+セグメント利益 359,052 121,519 480,571 － 480,571
+"""
+    x = segments.parse_pdf_text(text, {"cols": ["ラーメン事業", "レストラン事業", None, None], "n": 4, "unit": 1e3})
+    assert [s["sales"] for s in x["segments"]] == [3763027e3, 3163921e3]
+    # コメダ(IFRS): 計の行が「合計」
+    ifrs = """外部顧客からの売上収益 13,766 1,647 15,413 － 15,413
+セグメント間の売上収益 3 － 3 △3 －
+合計 13,769 1,647 15,416 △3 15,413
+セグメント利益 3,138 108 3,246 △600 2,646
+"""
+    x = segments.parse_pdf_text(ifrs, {"cols": ["国内事業", "海外事業", None, None, None], "n": 5, "unit": 1e6})
+    assert [s["sales"] for s in x["segments"]] == [13766e6, 1647e6] and x["total"]["sales"] == 15413e6

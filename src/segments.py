@@ -243,32 +243,58 @@ def table_template(z: zipfile.ZipFile, segs: list[dict]) -> dict | None:
     当期の表は前年同期の表の後ろにある(最後の表を使う)。"""
     from bs4 import BeautifulSoup
     from .orders import _grid, _num
-    names = [n for n in z.namelist() if n.endswith("qualitative.htm")]
-    if not names:
-        return None
-    soup = BeautifulSoup(z.read(names[0]).decode("utf-8", errors="replace"), "html.parser")
-    tables = [t for t in soup.find_all("table")
-              if "報告セグメント" in re.sub(r"\s", "", t.get_text())
-              and re.search(r"セグメント(利益|損失)", re.sub(r"\s", "", t.get_text()))]
+    # 表は短信本文(qualitative.htm)にある会社と、セグメント情報の注記のファイル(…sg…ixbrl.htm)にある会社がある
+    names = [n for n in z.namelist() if n.endswith("qualitative.htm")] + \
+        [n for n in z.namelist() if re.search(r"/\d{7}-\w\wsg\d\d-.*ixbrl\.htm$", n)]
+    def is_seg_table(t):
+        """セグメント情報の数値の表: セグメント利益の行と、売上(外部顧客・計)の行に数値がある"""
+        txt = re.sub(r"\s", "", t.get_text())
+        if not re.search(r"セグメント(利益|損失)", txt):
+            return False
+        rows = [r for r in _grid(t) if r and any(_num(c) is not None for c in r[1:])]
+        return any(_EXT_ROW.search(_key(r[0])) or _key(r[0]).startswith("計") for r in rows)
+
+    tables = []
+    for name in names:
+        soup = BeautifulSoup(z.read(name).decode("utf-8", errors="replace"), "html.parser")
+        tables = [t for t in soup.find_all("table") if is_seg_table(t)]
+        if tables:
+            break
     if not tables:
         return None
     grid = _grid(tables[-1])
-    data = [r for r in grid if any(_num(c) is not None for c in r)]
+    data = [r for r in grid if any(_num(c) is not None for c in r[1:])]
     if not data:
         return None
-    width = len(grid[0])
-    num_cols = sorted({j for r in data for j, c in enumerate(r) if _num(c) is not None})
+    width = max(len(r) for r in grid)
+    num_cols = sorted({j for r in data for j, c in enumerate(r) if j > 0 and _num(c) is not None})
     head_rows = grid[:grid.index(data[0])]
     header = [" ".join(dict.fromkeys(r[j] for r in head_rows if j < len(r) and r[j])) for j in range(width)]
     cols = [header[j] for j in num_cols]
     # 列 → セグメント名(XBRL のラベルと空白を除いて照合)
     seg_keys = {_key(sg["name"]): sg["name"] for sg in segs}
+    core = lambda k: re.sub(r"(事業|業)$", "", k)
     col_seg = []
     for h in cols:
         hk = _key(h)
-        col_seg.append(next((v for kk, v in seg_keys.items() if kk and kk in hk), None))
+        # XBRL の名前と表の見出しは「百貨店業」「百貨店 事業」のように末尾が違うことがあるので、末尾の「事業・業」を除いても照合
+        col_seg.append(next((v for kk, v in seg_keys.items() if kk and (kk in hk or (len(core(kk)) >= 2 and core(kk) in hk))), None))
     if sum(1 for c in col_seg if c) < 2:
-        return None
+        # 名前が XBRL と表で違う会社(例: 住宅建材事業 / 木質建材事業)は、左から順に並んでいるとみなす
+        # (「計」「合計」「調整」「計上」「その他」の列の手前までの列数がセグメントの数と同じときだけ)
+        lead = 0
+        for h in cols:
+            if re.search(r"計|調整|その他", _key(h)):
+                break
+            lead += 1
+        named = [sg["name"] for sg in segs if sg["name"] != "その他"]
+        if lead != len(named) or lead < 2:
+            return None
+        col_seg = named + [None] * (len(cols) - lead)
+        if "その他" in [sg["name"] for sg in segs]:
+            k = next((i for i, h in enumerate(cols) if "その他" in _key(h)), None)
+            if k is not None:
+                col_seg[k] = "その他"
     # 単位: 表の「計」の行と XBRL の売上の比
     sales_row = next((r for r in data if _EXT_ROW.search(_key(r[0]))), None) or \
         next((r for r in data if _key(r[0]).startswith("計")), None)
@@ -298,8 +324,22 @@ def _pdf_row(line: str, n: int):
 
 
 def parse_pdf_text(text: str, tpl: dict) -> dict | None:
-    """前の期の短信 PDF の文字から、セグメントごとの売上(計の行)・利益(セグメント利益の行)を読む。
-    前年同期の表と当期の表があれば、前を前年同期・後ろを当期とする。"""
+    """前の期の短信 PDF の文字から、セグメントごとの売上(外部顧客の行)・利益(セグメント利益の行)を読む。
+    前年同期の表と当期の表があれば、前を前年同期・後ろを当期とする。
+    今回の短信の表で空欄だった右側の列(調整額など)が PDF では「－」で埋まっていることがあるので、
+    右に1〜2列多い形・1列少ない形も試す(セグメントの列は左から同じ並び)。"""
+    n, cols = tpl["n"], tpl["cols"]
+    tries = [(n, cols), (n + 1, cols + [None]), (n + 2, cols + [None, None])]
+    if n > 2 and cols[-1] is None:
+        tries.append((n - 1, cols[:-1]))
+    for n2, c2 in tries:
+        x = _parse_pdf_text(text, {**tpl, "n": n2, "cols": c2})
+        if x:
+            return x
+    return None
+
+
+def _parse_pdf_text(text: str, tpl: dict) -> dict | None:
     from .orders import _num
     n, unit, cols = tpl["n"], tpl["unit"], tpl["cols"]
     lines = [l for l in text.splitlines() if l.strip()]
@@ -321,12 +361,12 @@ def parse_pdf_text(text: str, tpl: dict) -> dict | None:
         if _EXT_ROW.search(lab) or (_EXT_ROW.search(above) and
                                    (not lab or (re.search(r"売上|収益", lab) and not re.search(r"内部|セグメント間|振替", lab)))):
             ext = vals
-        elif lab.startswith("計") and len(lab) <= 3:
+        elif (lab.startswith("計") and len(lab) <= 3) or lab == "合計":   # IFRS は「合計」の行
             sales = ext or vals
             ext = None
         elif sales and (re.match(r"セグメント(利益|損失)", lab) or
-                        # 見出しが折り返して数値の行に「(△)」「又は損失(△)」が残る形(前の行が「セグメント利益…」)
-                        ((not re.search(r"[^\s()（）△▲]", lab) or re.match(r"(又は)?(損失|利益)", lab)) and i > 0
+                        # 見出しが折り返して数値の行に「(△)」「又は損失(△)」「失(△)」が残る形(前の行が「セグメント利益…」)
+                        ((not re.search(r"[^\s()（）△▲]", lab) or re.match(r"(又は)?(損失|利益)", lab) or len(lab) <= 6) and i > 0
                          and re.search(r"セグメント(利益|損失)", _key(lines[i - 1])))):
             blocks.append((sales, vals))
             sales = None
