@@ -142,3 +142,26 @@ def test_pdf_external_sales_label_above_unlabeled_numbers():
     x = segments.parse_pdf_text(text, tpl)
     assert [s["sales"] for s in x["segments"]][3:5] == [75651e3, 19749e3]
     assert x["total"]["sales"] == 4124386e3
+
+
+def test_pdf_external_row_variants():
+    tpl = {"cols": ["A", "B", None, None, None], "n": 5, "unit": 1e6}
+    # わらべや: 「外部顧客に対す」「る売上高」と折り返し
+    wrapped = """売上高
+外部顧客に対す
+る売上高 159,641 9,510 169,151 － 169,151
+セグメント間の
+内部売上高又は
+振替高
+－ 5,226 5,226 △5,226 －
+計 159,641 14,736 174,377 △5,226 169,151
+セグメント利益 6,951 890 7,841 △728 7,113
+"""
+    # Jフロント(IFRS): 「外部収益」
+    ifrs = """外部収益 63,269 13,027 76,296 1 76,297
+セグメント間収益 113 6,092 6,205 △6,205 －
+計 63,383 19,120 82,503 △6,204 76,297
+セグメント利益 8,506 1,764 10,270 △642 9,628
+"""
+    assert [s["sales"] for s in segments.parse_pdf_text(wrapped, tpl)["segments"]] == [159641e6, 9510e6]
+    assert [s["sales"] for s in segments.parse_pdf_text(ifrs, tpl)["segments"]] == [63269e6, 13027e6]

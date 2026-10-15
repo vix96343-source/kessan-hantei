@@ -183,7 +183,7 @@ def parse_table_html(html: str) -> dict | None:
         head = grid[:grid.index(data[0])]
         names = [re.sub(r"\s", "", unicodedata.normalize("NFKC", "".join(dict.fromkeys(r[j] for r in head if j < len(r) and r[j]))))
                  for j in num_cols]
-        ext = next((r for r in data if "外部顧客" in _key(r[0])), None)
+        ext = next((r for r in data if _EXT_ROW.search(_key(r[0]))), None)
         tot = next((r for r in data if _key(r[0]).startswith("計")), None)
         prof = next((r for r in data if re.match(r"セグメント(利益|損失)", _key(r[0]))), None)
         sales_row = ext or tot
@@ -255,7 +255,8 @@ def table_template(z: zipfile.ZipFile, segs: list[dict]) -> dict | None:
     if sum(1 for c in col_seg if c) < 2:
         return None
     # 単位: 表の「計」の行と XBRL の売上の比
-    sales_row = next((r for r in data if "外部顧客" in _key(r[0])), None) or         next((r for r in data if _key(r[0]).startswith("計")), None)
+    sales_row = next((r for r in data if _EXT_ROW.search(_key(r[0]))), None) or \
+        next((r for r in data if _key(r[0]).startswith("計")), None)
     unit = None
     if sales_row:
         for j, sg in zip(num_cols, col_seg):
@@ -267,6 +268,8 @@ def table_template(z: zipfile.ZipFile, segs: list[dict]) -> dict | None:
     return {"cols": col_seg, "n": len(num_cols), "unit": unit or 1e6}
 
 
+# 外部顧客への売上高の行(日本基準「外部顧客への売上高」「外部顧客に対する売上高」、IFRS「外部収益」「外部売上収益」)
+_EXT_ROW = re.compile(r"外部(顧客|収益|売上)")
 _PDF_NUM = re.compile(r"^[△▲\-－−]?[\d,]+(\.\d+)?$|^[-－―‐]$")
 
 
@@ -300,7 +303,8 @@ def parse_pdf_text(text: str, tpl: dict) -> dict | None:
             if _pdf_row(lines[k], n) or re.search(r"\d,\d{3}", lines[k]):
                 break
             above = _key(lines[k]) + above
-        if "外部顧客" in lab or ("外部顧客" in above and (not lab or re.match(r"(売上|営業収益)", lab))):
+        if _EXT_ROW.search(lab) or (_EXT_ROW.search(above) and
+                                   (not lab or (re.search(r"売上|収益", lab) and not re.search(r"内部|セグメント間|振替", lab)))):
             ext = vals
         elif lab.startswith("計") and len(lab) <= 3:
             sales = ext or vals
