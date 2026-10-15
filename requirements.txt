@@ -9,3 +9,4 @@ yfinance>=1.0
 pytest>=8.0
 playwright>=1.44
 pypdf>=4.0
+cryptography>=3.1        # 暗号化(AES)された短信 PDF を開くのに pypdf が使う
