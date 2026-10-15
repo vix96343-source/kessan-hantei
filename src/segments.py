@@ -462,7 +462,7 @@ def _parse_pdf_text(text: str, tpl: dict) -> dict | None:
     tc, tp = total_of(blocks[-1]), (total_of(blocks[0]) if len(blocks) >= 2 else {})
     total = {"name": "合計", "sales": tc["sales"], "op": tc["op"],
              "sales_prior": tp.get("sales"), "op_prior": tp.get("op")}
-    return {"segments": segs, "total": total, "src": "irbank_pdf"}
+    return {"segments": segs, "total": total, "src": "irbank_pdf", "basis": "計" if inter else "外部顧客"}
 
 
 def plausible(code: str, ym: str, n_q: int, x: dict, hist: dict) -> bool:
@@ -484,6 +484,9 @@ def consistent(x: dict) -> bool:
     vals = [sg["sales"] for sg in x["segments"] if sg.get("sales") is not None]
     if not t or not vals:
         return True
+    if x.get("basis") == "計":
+        # 計(セグメント間を含む)は和が合計を超えるのが普通。1つの列だけで合計を超える(列ずれ)ときだけ合っていないとみなす
+        return all(v <= t * 1.01 for v in vals)
     total = sum(vals)
     if total <= t * 1.01:
         return True

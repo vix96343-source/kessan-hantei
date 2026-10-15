@@ -228,3 +228,9 @@ def test_basis_chosen_by_narrative():
     text = "\n".join(["①再生可能エネルギー事業", "…その結果、売上高は24,756百万円(前期比24.7%減)、営業利益は2,165百万円",
                       "②蓄電所事業", "売上高は21,728百万円"])
     assert segments.narrative_sales(text, ["再生可能エネルギー事業", "蓄電所事業"]) == {"再生可能エネルギー事業": (24756e6, 1e6), "蓄電所事業": (21728e6, 1e6)}
+
+
+def test_consistent_allows_intersegment_basis():
+    x = {"segments": [{"name": "A", "sales": 24756}, {"name": "B", "sales": 21728}], "total": {"sales": 46417}, "basis": "計"}
+    assert segments.consistent(x) is True                                   # 計はセグメント間を含むので和が合計を超える
+    assert segments.consistent({**x, "segments": [{"name": "A", "sales": 99999}]}) is False
