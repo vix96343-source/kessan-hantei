@@ -1,4 +1,5 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261014550461,2026-10-15T11:00,9932,杉本商事,2027年3月期第2四半期（累計）業績予想の修正に関するお知らせ,forecast_revision,False,up,OperatingIncome,86.7,CurrentAccumulatedQ2Duration,"{""NetSales"": 8.7, ""OperatingIncome"": 86.7, ""OrdinaryIncome"": 61.9, ""ProfitAttributableToOwnersOfParent"": 51.5}",https://www.release.tdnet.info/inbs/140120261014550461.pdf,https://www.release.tdnet.info/inbs/091220261014550461.zip,東,2026-10-15T11:00
 140120261014550930,2026-10-15T10:00,3608,ＴＳＩ　ＨＤ,2027年２月期上期決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261014550930.pdf,,東,2026-10-15T10:00
 140120261014550893,2026-10-15T10:00,1407,ウエストＨＤ,2026年８月期決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261014550893.pdf,https://www.release.tdnet.info/inbs/081220261014550893.zip,東,2026-10-15T10:00
 140120261014550647,2026-10-15T08:50,4728,トーセ,2026年８月期　決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261014550647.pdf,,東,2026-10-15T08:50
