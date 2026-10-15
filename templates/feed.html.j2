@@ -288,25 +288,29 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
   }
 
   // セグメント別: 受注高・受注残・売上・利益(すべて3か月の値)と YoY・QoQ。合計は一覧と同じ数値
-  // セグメント別: 単体Q(3か月)の表と、その下に累計の表(短信のセグメント情報の値そのまま)
-  function segTable(g) {
-    if (!g || !g.segments.length) return '';
-    const NAMES = { orders: '受注高', backlog: '受注残', sales: '売上', op: '利益' };
-    const FLOW = { sales: 1, op: 1 };
-    const rows = g.segments.map(s => [s.name, s, '']).concat(g.total ? [[g.total.name || '合計', g.total, 'cur']] : []);
-    const table = (cols, head, cell) => '<div class="finbox"><table class="fin"><tr><th>セグメント</th>' + cols.map(head).join('') + '</tr>'
-      + rows.map(([name, x, cls]) => `<tr class="${cls}"><td>${x.child ? '　└ ' : ''}${esc(name)}</td>` + cols.map(c => cell(c, x[c])).join('') + '</tr>').join('')
+  // セグメント別の売上・利益の推移(受注の推移と同じ形): セグメントごとに期間・3か月の売上と YoY・QoQ・利益と YoY・QoQ
+  function segHistory(g) {
+    const list = ((g && g.hist) || []);
+    if (!list.length) return '';
+    const head = `<tr><th>期間</th><th>売上</th><th>YoY</th><th>QoQ</th><th>利益</th><th>YoY</th><th>QoQ</th></tr>`;
+    const cell = x => !x ? '<td>–</td>'.repeat(3) : num(x.v) + gcell(x.yoy) + gcell(x.qoq);
+    return `<div class="fincap">セグメント別の売上・利益の推移(3か月・千円)<span>売上は外部顧客への売上高。四半期ごとの3か月の値、YoYは前年の同じ四半期比、QoQは前四半期比</span></div>`
+      + list.map(h => `<div class="segname">${esc(h.name)}</div><div class="finbox"><table class="fin">${head}`
+        + h.rows.map((x, i) => `<tr class="${i === h.rows.length - 1 ? 'cur' : ''}"><td>${esc(x.label)}</td>` + cell(x.sales) + cell(x.op) + '</tr>').join('')
+        + '</table></div>').join('');
+  }
+
+  // セグメント別の累計(短信のセグメント情報の値そのまま)
+  function segCumTable(g) {
+    if (!g || !g.segments.length || !g.cols.some(c => c === 'sales' || c === 'op')) return '';
+    const segs = g.segments.filter(s => s.sales || s.op);
+    if (!segs.length) return '';
+    const rows = segs.map(s => [s.name, s, '']).concat(g.total && (g.total.sales || g.total.op) ? [[g.total.name || '合計', g.total, 'cur']] : []);
+    const cell = x => !x ? '<td>–</td>'.repeat(2) : num(x.v) + gcell(x.yoy);
+    return `<div class="fincap">セグメント別 累計(千円)<span>決算短信のセグメント情報の値(期首からの累計)、YoYは前年同期比</span></div>`
+      + '<div class="finbox"><table class="fin"><tr><th>セグメント</th><th>売上</th><th>YoY</th><th>利益</th><th>YoY</th></tr>'
+      + rows.map(([name, x, cls]) => `<tr class="${cls}"><td>${esc(name)}</td>` + cell(x.sales) + cell(x.op) + '</tr>').join('')
       + '</table></div>';
-    const fcols = g.cols.filter(c => FLOW[c]);
-    // 累計: 売上・利益の累計と YoY(前年同期比)
-    const cum = fcols.length ? `<div class="fincap">セグメント別 累計(千円)<span>決算短信のセグメント情報の値(期首からの累計)、YoYは前年同期比</span></div>`
-      + table(fcols, c => `<th>${NAMES[c]}</th><th>YoY</th>`, (c, x) => !x ? '<td>–</td>'.repeat(2) : num(x.v) + gcell(x.yoy)) : '';
-    // 単体Q: 売上・利益の3か月の値と QoQ・QYoY(受注の列がある会社は受注高・受注残も)
-    const sq = `<div class="fincap">セグメント別 単体Q(3か月・千円)<span>QoQは前四半期比、QYoYは前年の同じ四半期比${g.cols.some(c => !FLOW[c]) ? '。受注残は期末残高' : ''}</span></div>`
-      + table(g.cols, c => FLOW[c] ? `<th>${NAMES[c]}</th><th>QoQ</th><th>QYoY</th>` : `<th>${NAMES[c]}</th><th>YoY</th><th>QoQ</th>`,
-        (c, x) => FLOW[c] ? (!x ? '<td>–</td>'.repeat(3) : num(x.q) + gcell(x.qoq) + gcell(x.qyoy))
-                          : (!x ? '<td>–</td>'.repeat(3) : num(x.v) + gcell(x.yoy) + gcell(x.qoq)));
-    return sq + cum;                                   // 単体Qが上、累計が下
   }
 
   // アナリスト予想の平均(四半期2つと今期・来期の通期)
@@ -357,7 +361,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
       <div class="dtitle">${esc(r.title)}</div>
       <div class="dlinks">${(r.pdfs || []).map(p => `<a href="${esc(p.url)}" target="_blank" rel="noopener" title="${esc(p.title || '')}">${esc(p.label === '資料' || p.label === '資料2' ? '説明資料' : p.label === '短信' ? '決算短信' : '修正の開示')}(PDF)</a>`).join('')}<a href="https://kabuyoho.jp/report?bcode=${encodeURIComponent(r.code)}" target="_blank" rel="noopener">株予報(コンセンサス)</a></div>
       <div class="dcols"><div class="dcol">${finTables(r.fin)}${consTable(r.cons)}${orderHistory(r.ord)}</div>
-      <div class="dcol">${r.ord ? '' : segTable(r.seg)}${segOrderHistory(r.ord)}</div></div>
+      <div class="dcol">${segHistory(r.seg)}${segOrderHistory(r.ord)}${segCumTable(r.seg)}</div></div>
     </td></tr>`;
   }
 

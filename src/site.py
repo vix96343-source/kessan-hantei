@@ -519,7 +519,37 @@ def segment_numbers(rec: dict | None, past: list[dict], main: dict | None, ords:
     if len(rows) < 2 and not ords:
         return None
     cols = [c for c in ("orders", "backlog", "sales", "op") if any(c in r for r in rows) or c in total]
-    return {"cols": cols, "segments": rows, "total": total or None, "unit": "千円"}
+
+    def history(k, n=8):
+        """そのセグメント(k)の四半期ごとの3か月の売上・利益と YoY(前年の同じ四半期比)・QoQ(前四半期比)。古い順に最大 n 四半期"""
+        out = []
+        for ym in sorted(y for y in by_end if y and y <= end)[-n:]:
+            q = nq_at(ym)
+            if q is None or seg_at(ym, k) is None:
+                continue
+            fy = _ym_shift(ym, 3 * (4 - q))
+            row = {"label": f"{fy[2:4]}/{int(fy[5:7])} {q}Q"}
+            for f in ("sales", "op"):
+                v = single(ym, k, f)
+                p = single(ym, k, f, prior=True)
+                if p is None:
+                    p = single(_ym_shift(ym, -12), k, f)
+                row[f] = {"v": sc(v), "yoy": _growth(v, p), "qoq": _growth(v, single(_ym_shift(ym, -3), k, f))}
+            if row["sales"]["v"] is not None or row["op"]["v"] is not None:
+                out.append(row)
+        return out
+
+    hist = []
+    if rec and end:
+        for x in rec["data"]["segments"]:
+            h = history(key(x["name"]))
+            if h:
+                hist.append({"name": x["name"], "rows": h})
+        if total.get("name") == "合計":
+            h = history(TOT)
+            if h:
+                hist.append({"name": "合計", "rows": h, "total": True})
+    return {"cols": cols, "segments": rows, "total": total or None, "unit": "千円", "hist": hist}
 
 
 def consensus_panel(snap: dict | None, arch: dict | None) -> dict | None:
