@@ -509,7 +509,7 @@ def segment_numbers(rec: dict | None, past: list[dict], main: dict | None, ords:
     t = (rec or {}).get("data", {}).get("total") if rec else None
     if t and (t.get("sales") is not None or t.get("op") is not None):
         # 合計は短信のセグメント表の一番右の列の値そのまま(計上額、無ければ合計)。足し算はしない
-        total.update(sales=flow(t, TOT, "sales"), op=flow(t, TOT, "op"), name="合計")
+        total.update(sales=flow(t, TOT, "sales"), op=flow(t, TOT, "op"), name=t.get("name") or "合計")
     for r in rows + [total]:
         for f in ("sales", "op"):
             if isinstance(r.get(f), dict):
@@ -545,10 +545,10 @@ def segment_numbers(rec: dict | None, past: list[dict], main: dict | None, ords:
             h = history(key(x["name"]))
             if h:
                 hist.append({"name": x["name"], "rows": h})
-        if total.get("name") == "合計":
+        if total.get("name"):
             h = history(TOT)
             if h:
-                hist.append({"name": "合計", "rows": h, "total": True})
+                hist.append({"name": total["name"], "rows": h, "total": True})
     return {"cols": cols, "segments": rows, "total": total or None, "unit": "千円", "hist": hist}
 
 

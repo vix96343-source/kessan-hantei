@@ -121,3 +121,24 @@ def test_segment_table_without_xbrl_tags():
     assert (x["segments"][0]["sales"], x["segments"][0]["op"], x["segments"][0]["sales_prior"]) == (6173240e3, 1469509e3, 4852234e3)
     assert (x["total"]["sales"], x["total"]["op"], x["total"]["op_prior"]) == (8636492e3, 1132537e3, 616460e3)
     assert x["tpl"] == {"cols": ["放電加工・表面処理", "金型", "機械装置等", None, None, None], "n": 6, "unit": 1e3}
+
+
+def test_pdf_external_sales_label_above_unlabeled_numbers():
+    # 大和 1Q: 「(1）外部顧客への」「売上高」が上の行にあり、数値の行に見出しが無い。セグメント間の行も同じ形
+    text = """計
+売上高
+(1）外部顧客への
+売上高
+3,475,289 310,059 154,039 75,651 19,749 4,034,789 89,596 4,124,386 － 4,124,386
+(2）セグメント間
+の内部売上高又は
+振替高
+604 8,852 － 67,897 68,671 146,025 - 146,025 △146,025 －
+計 3,475,893 318,911 154,039 143,549 88,420 4,180,815 89,596 4,270,412 △146,025 4,124,386
+セグメント利益 115,198 11,774 15,152 29,887 6,660 178,674 5,274 183,949 △3,015 180,933
+"""
+    tpl = {"cols": ["百貨店業", "ホテル業", "出版業", "印刷業", "人材サービス業", None, "その他", None, None, None],
+           "n": 10, "unit": 1e3}
+    x = segments.parse_pdf_text(text, tpl)
+    assert [s["sales"] for s in x["segments"]][3:5] == [75651e3, 19749e3]
+    assert x["total"]["sales"] == 4124386e3

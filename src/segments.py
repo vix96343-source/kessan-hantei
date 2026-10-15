@@ -115,8 +115,11 @@ def parse_zip(zip_bytes: bytes) -> dict | None:
             order.append(member)
         by_member[member][when][name] = v
 
+    # 外部顧客への売上高をタグ付けしている会社は、その値だけを使う(「―」のセグメントは計に逃げず空にする)
+    has_ext = any(_pick(by_member[m][w], EXTERNAL) for m in order for w in ("cur", "prior"))
+
     def values(f):
-        s = _pick(f, EXTERNAL) or _pick(f, SALES)
+        s = _pick(f, EXTERNAL) or (None if has_ext else _pick(f, SALES))
         sales = f[s] if s else None
         p = _pick(f, PROFIT)
         return sales, (f[p] if p else None)
@@ -142,11 +145,13 @@ def parse_zip(zip_bytes: bytes) -> dict | None:
         m = _CTX_PLAIN.match(ctx)
         if m:
             plain["prior" if m.group(1) == "Prior1" else "cur"][name] = v
-    for src in [plain] + [by_member[m] for m in (TOTAL, "TotalOfReportableSegmentsAndOthersMember",
-                                                 "ReportableSegmentsMember") if m in by_member]:
+    # 連結の計上額でない(調整額を引く前の)合計は名前で分かるようにする(短信1ページ目の営業利益とは違う)
+    for src, label in [(plain, "合計")] + [(by_member[m], lb) for m, lb in
+                                           ((TOTAL, "合計"), ("TotalOfReportableSegmentsAndOthersMember", "合計(調整前)"),
+                                            ("ReportableSegmentsMember", "計(調整前)")) if m in by_member]:
         (s, p), (sp, pp) = values(src["cur"]), values(src["prior"])
         if s is not None or p is not None:
-            total = {"name": "合計", "sales": s, "sales_prior": sp, "op": p, "op_prior": pp}
+            total = {"name": label, "sales": s, "sales_prior": sp, "op": p, "op_prior": pp}
             break
     out = {"segments": segs, "total": total}
     tpl = table_template(z, segs)
@@ -288,8 +293,14 @@ def parse_pdf_text(text: str, tpl: dict) -> dict | None:
             continue
         label, vals = r
         lab = _key(label)
-        # 外部顧客への売上高(短信の本文の数値)。見出しが折り返して「外部顧客への」だけ前の行にある形も
-        if "外部顧客" in lab or (i > 0 and "外部顧客" in _key(lines[i - 1]) and re.match(r"(売上|営業収益)", lab)):
+        # 外部顧客への売上高(短信の本文の数値)。見出しが折り返して「外部顧客への」「売上高」が上の行にあり、
+        # 数値の行に見出しが無い形も(上の数値の無い行を3行まで見る)
+        above = ""
+        for k in range(i - 1, max(i - 4, -1), -1):
+            if _pdf_row(lines[k], n) or re.search(r"\d,\d{3}", lines[k]):
+                break
+            above = _key(lines[k]) + above
+        if "外部顧客" in lab or ("外部顧客" in above and (not lab or re.match(r"(売上|営業収益)", lab))):
             ext = vals
         elif lab.startswith("計") and len(lab) <= 3:
             sales = ext or vals
