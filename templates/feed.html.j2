@@ -288,7 +288,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
   }
 
   // セグメント別: 受注高・受注残・売上・利益(すべて3か月の値)と YoY・QoQ。合計は一覧と同じ数値
-  // セグメント別: 累計の表(短信のセグメント情報の値そのまま)と単体Q(3か月)の表に分けて出す
+  // セグメント別: 単体Q(3か月)の表と、その下に累計の表(短信のセグメント情報の値そのまま)
   function segTable(g) {
     if (!g || !g.segments.length) return '';
     const NAMES = { orders: '受注高', backlog: '受注残', sales: '売上', op: '利益' };
@@ -306,7 +306,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
       + table(g.cols, c => FLOW[c] ? `<th>${NAMES[c]}</th><th>QoQ</th><th>QYoY</th>` : `<th>${NAMES[c]}</th><th>YoY</th><th>QoQ</th>`,
         (c, x) => FLOW[c] ? (!x ? '<td>–</td>'.repeat(3) : num(x.q) + gcell(x.qoq) + gcell(x.qyoy))
                           : (!x ? '<td>–</td>'.repeat(3) : num(x.v) + gcell(x.yoy) + gcell(x.qoq)));
-    return cum + sq;
+    return sq + cum;                                   // 単体Qが上、累計が下
   }
 
   // アナリスト予想の平均(四半期2つと今期・来期の通期)
