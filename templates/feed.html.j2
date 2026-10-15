@@ -450,7 +450,8 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
       const raw = c('kjCode').textContent.trim(), code = raw.length === 5 && raw.endsWith('0') ? raw.slice(0, 4) : raw;
       const earn = kind === 'earnings_report';
       live.set(id, { id, date: d, time: c('kjTime').textContent.trim(), code, live: true,
-        name: (c('kjName')?.textContent.trim() || '').normalize('NFKC'), group: earn ? '決算' : '修正', label: LABEL[kind],
+        name: (c('kjName')?.textContent.trim() || '').normalize('NFKC').replace(/^[GPQAFSN]-(?=\D)/, ''),   // 市場の印(G-等)を外す(src/site.py の company_name と同じ)
+        group: earn ? '決算' : '修正', label: LABEL[kind],
         period: '', url: TDNET + href, title, nums: null,
         pdfs: [{ label: earn ? '短信' : '修正', url: TDNET + href, title }] });
     }

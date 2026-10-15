@@ -562,6 +562,15 @@ def consensus_panel(snap: dict | None, arch: dict | None) -> dict | None:
             "next_fy": f"{next_fy[:4]}/{next_fy[5:7]}" if next_fy else "", "cols": [c for c, _ in cols], "rows": rows}
 
 
+_MARKET_MARK = re.compile(r"^[GPQAFSN]-(?=[^\d])")
+
+
+def company_name(name: str) -> str:
+    """一覧に出す会社名: 全角英数を半角に(幅を詰める)し、TDnet が頭に付ける市場の印(G-=グロース、P-=TOKYO PRO Market、
+    Q-=福証Q-Board、A-=札証アンビシャス など)を外す。U-NEXT・G-7HD のように社名そのものの場合は外さない"""
+    return _MARKET_MARK.sub("", unicodedata.normalize("NFKC", name))
+
+
 def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:
     """取り込み済みの全期間の決算・修正(新しい順)。"""
     all_disc = disclosures.load(data_dir)
@@ -626,7 +635,7 @@ def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:
         p = score_of(r, stats, cfg, feats)
         f = feats.get(r["disclosure_id"])
         rows.append({"id": r["disclosure_id"], "date": r["disclosed_at"][:10], "time": r["disclosed_at"][11:16],
-                     "code": r["code"], "name": unicodedata.normalize("NFKC", r["name"]),   # 全角英数を半角に(幅を詰める)
+                     "code": r["code"], "name": company_name(r["name"]),
                      "kind": kind_label(r, f),
                      "group": "決算" if r["kind"] == "earnings_report" else "修正",
                      # 種別に出す文字: 決算 / 業績(業績予想の修正) / 配当(配当予想の修正) / 業績 配当(両方を横に並べる)

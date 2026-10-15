@@ -157,3 +157,8 @@ def test_quarter_numbers_single_quarter_yoy_qoq_and_eps():
     assert n["eps"] == {"v": 32.0, "yoy": 33.3, "qoq": n["net"]["qoq"]}
     # 前の四半期が無ければ QoQ だけ空
     assert site.quarter_numbers(arch, [])["sales"] == {"v": 230, "yoy": 15.0, "qoq": None}
+
+
+def test_company_name_drops_tdnet_market_mark():
+    assert [site.company_name(x) for x in ["Ｇ－グロースエクスペ", "Ｐ－山八商事", "U-NEXT", "G-7HD", "MORESCO"]] \
+        == ["グロースエクスペ", "山八商事", "U-NEXT", "G-7HD", "MORESCO"]
