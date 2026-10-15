@@ -120,3 +120,4 @@ def test_segment_table_without_xbrl_tags():
     assert [s["name"] for s in x["segments"]] == ["放電加工・表面処理", "金型", "機械装置等"]
     assert (x["segments"][0]["sales"], x["segments"][0]["op"], x["segments"][0]["sales_prior"]) == (6173240e3, 1469509e3, 4852234e3)
     assert (x["total"]["sales"], x["total"]["op"], x["total"]["op_prior"]) == (8636492e3, 1132537e3, 616460e3)
+    assert x["tpl"] == {"cols": ["放電加工・表面処理", "金型", "機械装置等", None, None, None], "n": 6, "unit": 1e3}

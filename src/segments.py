@@ -185,20 +185,23 @@ def parse_table_html(html: str) -> dict | None:
         if not sales_row or not prof:
             return None
         val = lambda row, j: None if j >= len(row) or _num(row[j]) is None else _num(row[j]) * unit
-        segs = {}
+        segs, cols = {}, []
         for j, nm in zip(num_cols, names):
             nm = re.sub(r"報告セグメント|\(注\)\d*", "", nm)
             if not nm or re.search(r"^(計|合計)$|調整|計上額", nm):
+                cols.append(None)
                 continue
+            cols.append(nm)
             segs[nm] = {"sales": val(sales_row, j), "op": val(prof, j)}
         last = num_cols[-1]
-        return segs, {"sales": val(sales_row, last), "op": val(prof, last)}
+        # 前の期の短信(PDF)を同じ形で読むための形
+        return segs, {"sales": val(sales_row, last), "op": val(prof, last)}, {"cols": cols, "n": len(num_cols), "unit": unit}
 
     blocks = [b for b in (read(t) for t in tables) if b]
     if not blocks:
         return None
-    cur, ctot = blocks[-1]
-    prior, ptot = blocks[0] if len(blocks) >= 2 else ({}, {})
+    cur, ctot, tpl = blocks[-1]
+    prior, ptot, _ = blocks[0] if len(blocks) >= 2 else ({}, {}, None)
     segs = [{"name": nm, "sales": v["sales"], "op": v["op"],
              "sales_prior": (prior.get(nm) or {}).get("sales"), "op_prior": (prior.get(nm) or {}).get("op")}
             for nm, v in cur.items()]
@@ -206,7 +209,7 @@ def parse_table_html(html: str) -> dict | None:
         return None
     total = {"name": "合計", "sales": ctot["sales"], "op": ctot["op"],
              "sales_prior": ptot.get("sales"), "op_prior": ptot.get("op")}
-    return {"segments": segs, "total": total}
+    return {"segments": segs, "total": total, "tpl": tpl}
 
 
 # ---------------------------------------------------------------- 前の期の短信(PDF)のセグメント表
