@@ -417,7 +417,8 @@ def order_history(by_end: dict, upto: str, n: int = 20, seg: str | None = None, 
 def segment_numbers(rec: dict | None, past: list[dict], main: dict | None, ords: dict | None = None) -> dict | None:
     """セグメント別の表: 受注高・受注残高(受注の表がある会社)・売上・利益を、すべて3か月(四半期単独)の値で。
     売上・利益の3か月 = その期の累計 − 前の四半期までの累計(前年同期も同じ引き算で出して YoY)、QoQ は前の四半期の3か月と比べる。
-    前の四半期の記録が無いときだけ累計(cum=True)。合計の行は一覧と同じ数値(main)と受注の合計(ords)。"""
+    前の四半期の記録が無いときだけ累計(cum=True)。合計の行は一覧と同じ数値(main)と受注の合計(ords)。
+    金額は短信のセグメント情報の表と同じ単位(千円の会社は千円)で一の位まで。受注の列がある会社は受注の表に合わせて百万円。"""
     if not rec and not (ords and ords.get("segments")):
         return None
     key = lambda n: re.sub(r"\s|・", "", unicodedata.normalize("NFKC", n))
@@ -451,11 +452,17 @@ def segment_numbers(rec: dict | None, past: list[dict], main: dict | None, ords:
     def flow(x, k, f):
         q = single(end, k, f) if n_q and end else None
         if q is None:
-            return {"v": _mil(x.get(f)), "yoy": _growth(x.get(f), x.get(f"{f}_prior")), "qoq": None, "cum": True}
+            return {"v": sc(x.get(f)), "yoy": _growth(x.get(f), x.get(f"{f}_prior")), "qoq": None, "cum": True,
+                    "raw": (x.get(f), x.get(f"{f}_prior"), None)}
         p = single(end, k, f, prior=True)
         if p is None:                                   # 当期の短信に前年同期の表が無い会社は前年の短信の記録から
             p = single(_ym_shift(end, -12), k, f)
-        return {"v": _mil(q), "yoy": _growth(q, p), "qoq": _growth(q, single(_ym_shift(end, -3), k, f))}
+        b = single(_ym_shift(end, -3), k, f)
+        return {"v": sc(q), "yoy": _growth(q, p), "qoq": _growth(q, b), "raw": (q, p, b)}
+
+    tpl = (rec or {}).get("data", {}).get("tpl") or {}
+    unit = 1e6 if ords or not tpl.get("unit") else float(tpl["unit"])
+    sc = lambda v: None if v is None or v != v else round(float(v) / unit)
 
     rows, index = [], {}
     for x in (rec["data"]["segments"] if rec else []):
@@ -482,12 +489,27 @@ def segment_numbers(rec: dict | None, past: list[dict], main: dict | None, ords:
     total = {}
     if main:
         total.update(sales=main.get("sales"), op=main.get("op"))
+    segs = [r for r in rows if "sales" in r]
+    if unit != 1e6 and segs:
+        # 短信1ページ目は百万円までなので、千円の会社の合計はセグメントの値を足した「計」(調整額の前)を一の位まで
+        def add(vals):
+            return None if not vals or any(v is None for v in vals) else sum(vals)
+        for f in ("sales", "op"):
+            xs = [r[f]["raw"] for r in segs]
+            q, p, b = (add([x[i] for x in xs]) for i in range(3))
+            total[f] = {"v": sc(q), "yoy": _growth(q, p), "qoq": _growth(q, b)}
+            if any(r[f].get("cum") for r in segs):
+                total[f]["cum"] = True
+        total["name"] = "計"
+    for r in segs:
+        for f in ("sales", "op"):
+            r[f].pop("raw", None)
     if ords:
         total.update(orders=ords["total"]["orders"], backlog=ords["total"]["backlog"])
     if len(rows) < 2 and not ords:
         return None
     cols = [c for c in ("orders", "backlog", "sales", "op") if any(c in r for r in rows) or c in total]
-    return {"cols": cols, "segments": rows, "total": total or None}
+    return {"cols": cols, "segments": rows, "total": total or None, "unit": "千円" if unit == 1e3 else "百万円"}
 
 
 def consensus_panel(snap: dict | None, arch: dict | None) -> dict | None:

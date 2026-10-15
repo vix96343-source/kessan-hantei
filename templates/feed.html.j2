@@ -294,9 +294,9 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
     const cell = x => !x ? '<td>–</td><td>–</td><td>–</td>'
       : num(x.v).replace('</td>', x.cum ? '累</td>' : '</td>') + gcell(x.yoy) + gcell(x.qoq);
     const line = (name, x, cls) => `<tr class="${cls}"><td>${x.child ? '　└ ' : ''}${esc(name)}</td>` + g.cols.map(c => cell(x[c])).join('') + '</tr>';
-    return `<div class="fincap">セグメント別(3か月・百万円)<span>YoYは前年の同じ四半期比、QoQは前四半期比。受注残は期末残高。「累」は前の四半期の記録が無く期首からの累計</span></div>
+    return `<div class="fincap">セグメント別(3か月・${g.unit || '百万円'})<span>YoYは前年の同じ四半期比、QoQは前四半期比。受注残は期末残高。「累」は前の四半期の記録が無く期首からの累計</span></div>
       <div class="finbox"><table class="fin"><tr><th>セグメント</th>${g.cols.map(c => `<th>${NAMES[c]}</th><th>YoY</th><th>QoQ</th>`).join('')}</tr>`
-      + g.segments.map(s => line(s.name, s, '')).join('') + (g.total ? line('合計', g.total, 'cur') : '') + '</table></div>';
+      + g.segments.map(s => line(s.name, s, '')).join('') + (g.total ? line(g.total.name || '合計', g.total, 'cur') : '') + '</table></div>';
   }
 
   // アナリスト予想の平均(四半期2つと今期・来期の通期)

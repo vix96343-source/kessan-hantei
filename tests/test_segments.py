@@ -42,3 +42,19 @@ def test_segment_values_are_three_month_with_yoy_and_qoq():
     assert semi["op"]["v"] == 23969 - 10834
     # 前の四半期の記録が無ければ累計
     assert segment_numbers(q2, [], None)["segments"][0]["sales"]["cum"] is True
+
+
+def test_thousand_yen_segments_to_the_last_digit():
+    """千円の短信は千円のまま一の位まで。合計はセグメントを足した「計」"""
+    def rec(n_q, end, a, b, at):
+        return {"disclosure_id": at, "disclosed_at": at, "n_q": str(n_q), "period_end": end,
+                "data": {"segments": [{"name": "A", "sales": a * 1e3, "op": 1e3, "sales_prior": None, "op_prior": None},
+                                      {"name": "B", "sales": b * 1e3, "op": 2e3, "sales_prior": None, "op_prior": None}],
+                         "tpl": {"cols": ["A", "B"], "n": 2, "unit": 1000}}}
+    q1 = rec(1, "2026-05", 2088387, 868197, "2026-07-14")
+    q2 = rec(2, "2026-08", 4242100, 1565437, "2026-10-15")
+    g = segment_numbers(q2, [q1], {"sales": {"v": 10975}, "op": {"v": 764}})
+    assert g["unit"] == "千円"
+    assert [s["sales"]["v"] for s in g["segments"]] == [2153713, 697240]
+    assert g["total"]["name"] == "計" and g["total"]["sales"]["v"] == 2153713 + 697240
+    assert "raw" not in g["segments"][0]["sales"]
