@@ -249,3 +249,34 @@ def test_pdf_segment_missing_in_old_table_is_skipped_by_name():
            "unit": 1e6, "basis": "計"}
     x = segments.parse_pdf_text(text, tpl)
     assert [(s["name"], s["sales"]) for s in x["segments"]] == [("再生可能エネルギー事業", 16198e6), ("省エネルギー事業", 883e6), ("電力事業", 3854e6)]
+
+
+def test_pdf_ifrs_single_revenue_row_and_operating_profit():
+    # ファーストリテイリング: 「売上収益」の1行と「営業利益」の行(計・外部顧客の行が無い)
+    text = """売上収益 867,690 1,834,026 265,668 96,313 3,063,698 1,483 － 3,065,182
+営業利益 173,346 351,934 33,210 3,014 561,506 154 52,728 614,389
+セグメント利益
+(税引前四半期利益) 176,851 354,409 33,203 2,612 567,077 154 91,005 658,237
+"""
+    tpl = {"cols": ["国内ユニクロ事業", "海外ユニクロ事業", "ジーユー事業", "グローバルブランド事業", None, "その他", None, None],
+           "n": 8, "unit": 1e6}
+    x = segments.parse_pdf_text(text, tpl)
+    assert [s["sales"] for s in x["segments"]][:2] == [867690e6, 1834026e6]
+    assert [s["op"] for s in x["segments"]][:2] == [173346e6, 351934e6]
+
+
+def test_pdf_fewer_right_columns_and_no_total_row():
+    # カワサキ: 前の期の表は「計上額」の1列だけ(今回の表は計・調整額・計上額の3列)
+    text = """外部顧客への売上高 425,867 1,042,247 264,372 1,732,487
+計 425,867 1,042,247 264,372 1,732,487
+セグメント利益又は
+損失（△） 6,755 434,747 △32,209 409,293
+"""
+    x = segments.parse_pdf_text(text, {"cols": ["服飾事業", "賃貸・倉庫事業", "ホテル事業", None, None, None], "n": 6, "unit": 1e3})
+    assert [s["op"] for s in x["segments"]] == [6755e3, 434747e3, -32209e3]
+    # 東武住販: 計の行が無い(外部顧客の行の次が利益の行)
+    text = """外部顧客への売上高 7,405,200 222,985 33,600 7,661,786 83,323 7,745,109 － 7,745,109
+セグメント利益又は損失(△) 1,049,691 60,401 15,633 1,125,726 △627 1,125,098 △537,175 587,923
+"""
+    x = segments.parse_pdf_text(text, {"cols": ["不動産売買事業", "不動産賃貸事業", "不動産関連事業", None, "その他", None, None, None], "n": 8, "unit": 1e3})
+    assert [s["sales"] for s in x["segments"]] == [7405200e3, 222985e3, 33600e3, 83323e3]

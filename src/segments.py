@@ -413,8 +413,11 @@ def parse_pdf_text(text: str, tpl: dict) -> dict | None:
             c2 = [c for c in cols if c not in missing]
             n2 = n - len(missing)
             tries = [(n2, c2), (n2 + 1, c2 + [None]), (n2 + 2, c2 + [None, None])] + tries
-    if n > 2 and cols[-1] is None:
-        tries.append((n - 1, cols[:-1]))
+    # 右側の空欄でない列(計・調整額など)が前の期の表に無い形: 右端の None の列を1つずつ減らして試す
+    k = 1
+    while k < n and cols[-k] is None and sum(1 for c in cols[:-k] if c) >= 2:
+        tries.append((n - k, cols[:-k]))
+        k += 1
     for n2, c2 in tries:
         x = _parse_pdf_text(text, {**tpl, "n": n2, "cols": c2})
         if x:
@@ -454,17 +457,18 @@ def _parse_pdf_text(text: str, tpl: dict) -> dict | None:
         if not inter and (_EXT_ROW.search(lab) or (_EXT_ROW.search(above) and
                           (not lab or (re.search(r"売上|収益", lab) and not re.search(r"内部|セグメント間|振替", lab))))):
             ext = vals
-        elif (lab.startswith("計") and len(lab) <= 3) or lab == "合計":   # IFRS は「合計」の行
+        # 計の行(IFRS は「合計」)。「計」が無く「売上収益」「売上高」の1行だけの表(ファーストリテイリング等)はその行
+        elif (lab.startswith("計") and len(lab) <= 3) or lab == "合計" or                 (re.fullmatch(r"売上(高|収益)|営業収益", lab) and not sales):
             sales = ext or vals
             ext = None
-        elif sales and (re.match(r"セグメント(利益|損失)", lab) or
+        elif (sales or ext) and (re.match(r"セグメント(利益|損失)|営業(利益|損失)", lab) or
                         # 見出しが折り返して数値の行に「(△)」「又は損失(△)」「失(△)」「利益」が残る形、
                         # 見出しと数値の間に「(注)1」の行がある形(上の2行に「セグメント利益…」か「…セグメント」)
                         ((not re.search(r"[^\s()（）△▲]", lab) or re.match(r"(又は)?(損失|利益)", lab) or len(lab) <= 6) and i > 0
                          and any(re.search(r"セグメント(利益|損失)|セグメント$", _key(lines[k]))
                                  for k in range(max(i - 2, 0), i) if not _pdf_row(lines[k], n)))):
-            blocks.append((sales, vals))
-            sales = None
+            blocks.append((sales or ext, vals))         # 計の行が無い表は外部顧客の行
+            sales = ext = None
     if not blocks:
         return None
 
