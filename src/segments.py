@@ -274,7 +274,8 @@ def table_template(z: zipfile.ZipFile, segs: list[dict]) -> dict | None:
         if not re.search(r"セグメント(利益|損失)", txt):
             return False
         rows = [r for r in _grid(t) if r and any(_num(c) is not None for c in r[1:])]
-        return any(_EXT_ROW.search(_key(r[0])) or _key(r[0]).startswith("計") for r in rows)
+        return any(_EXT_ROW.search(_key(r[0])) or _key(r[0]).startswith("計") or
+                   re.fullmatch(r"売上(高|収益)|営業収益", _key(r[0])) for r in rows)
 
     tables = []
     for name in names:
@@ -300,7 +301,16 @@ def table_template(z: zipfile.ZipFile, segs: list[dict]) -> dict | None:
     for h in cols:
         hk = _key(h)
         # XBRL の名前と表の見出しは「百貨店業」「百貨店 事業」のように末尾が違うことがあるので、末尾の「事業・業」を除いても照合
-        col_seg.append(next((v for kk, v in seg_keys.items() if kk and (kk in hk or (len(core(kk)) >= 2 and core(kk) in hk))), None))
+        hits = [(kk, v) for kk, v in seg_keys.items() if kk and (kk in hk or (len(core(kk)) >= 2 and core(kk) in hk))]
+        # 完全一致を先に、無ければ長い名前から(「小売」が「小売周辺」の列に付かないように)
+        hits.sort(key=lambda kv: (kv[0] != hk and core(kv[0]) != core(hk), -len(kv[0])))
+        col_seg.append(hits[0][1] if hits else None)
+    seen = set()
+    for i, c in enumerate(col_seg):
+        if c in seen:
+            col_seg[i] = None
+        elif c:
+            seen.add(c)
     if sum(1 for c in col_seg if c) < 2:
         # 名前が XBRL と表で違う会社(例: 住宅建材事業 / 木質建材事業)は、左から順に並んでいるとみなす
         # (「計」「合計」「調整」「計上」「その他」の列の手前までの列数がセグメントの数と同じときだけ)
@@ -319,7 +329,8 @@ def table_template(z: zipfile.ZipFile, segs: list[dict]) -> dict | None:
                 col_seg[k] = "その他"
     # 単位: 表の「計」の行と XBRL の売上の比
     sales_row = next((r for r in data if _EXT_ROW.search(_key(r[0]))), None) or \
-        next((r for r in data if _key(r[0]).startswith("計")), None)
+        next((r for r in data if _key(r[0]).startswith("計")), None) or \
+        next((r for r in data if re.fullmatch(r"売上(高|収益)|営業収益", _key(r[0]))), None)
     unit = None
     if sales_row:
         for j, sg in zip(num_cols, col_seg):
@@ -428,19 +439,16 @@ def parse_pdf_text(text: str, tpl: dict) -> dict | None:
 def _parse_pdf_text(text: str, tpl: dict) -> dict | None:
     from .orders import _num
     n, unit, cols = tpl["n"], tpl["unit"], tpl["cols"]
-    # 単位は PDF のセグメント情報の表の上の「(単位：千円)」から(今回の短信と前の期で単位を変えた会社がある)
-    seg_at = [m.start() for m in re.finditer(r"報告セグメント", text)]
-    if seg_at:
-        before = text[max(0, seg_at[-1] - 400):seg_at[-1] + 50]
-        mu = re.findall(r"単位\s*[:：]\s*(百万円|千円)", before)
-        if mu:
-            unit = {"百万円": 1e6, "千円": 1e3}[mu[-1]]
     # 本文が「計」(セグメント間を含む)で書かれている会社: 今回の短信で決めた基準(tpl)か、PDF の本文の断り書き
     inter = tpl.get("basis") == "計" or includes_intersegment(text)
     lines = [l for l in text.splitlines() if l.strip()]
-    blocks = []                                        # [(売上の行の値, 利益の行の値)]
+    blocks = []                                        # [(売上の行の値, 利益の行の値, 単位)]
     sales = ext = None
+    cur_unit = unit
     for i, l in enumerate(lines):
+        mu = re.search(r"単位\s*[:：]\s*(百万円|千円)", l)
+        if mu:                                         # 表のすぐ上の「(単位：千円)」(前の期で単位を変えた会社がある)
+            cur_unit = {"百万円": 1e6, "千円": 1e3}[mu.group(1)]
         r = _pdf_row(l, n)
         if not r:
             continue
@@ -467,22 +475,22 @@ def _parse_pdf_text(text: str, tpl: dict) -> dict | None:
                         ((not re.search(r"[^\s()（）△▲]", lab) or re.match(r"(又は)?(損失|利益)", lab) or len(lab) <= 6) and i > 0
                          and any(re.search(r"セグメント(利益|損失)|セグメント$", _key(lines[k]))
                                  for k in range(max(i - 2, 0), i) if not _pdf_row(lines[k], n)))):
-            blocks.append((sales or ext, vals))         # 計の行が無い表は外部顧客の行
+            blocks.append((sales or ext, vals, cur_unit))   # 計の行が無い表は外部顧客の行
             sales = ext = None
     if not blocks:
         return None
 
     def total_of(block):                               # 表の一番右の列(計上額、無ければ合計)
-        sv, pv = _num(block[0][-1]), _num(block[1][-1])
-        return {"sales": None if sv is None else sv * unit, "op": None if pv is None else pv * unit}
+        sv, pv, u = _num(block[0][-1]), _num(block[1][-1]), block[2]
+        return {"sales": None if sv is None else sv * u, "op": None if pv is None else pv * u}
 
     def to_segs(block):
         out = {}
         for j, sg in enumerate(cols):
             if not sg:
                 continue
-            sv, pv = _num(block[0][j]), _num(block[1][j])
-            out[sg] = {"sales": None if sv is None else sv * unit, "op": None if pv is None else pv * unit}
+            sv, pv, u = _num(block[0][j]), _num(block[1][j]), block[2]
+            out[sg] = {"sales": None if sv is None else sv * u, "op": None if pv is None else pv * u}
         return out
 
     cur = to_segs(blocks[-1])
