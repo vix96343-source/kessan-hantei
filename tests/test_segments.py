@@ -234,3 +234,18 @@ def test_consistent_allows_intersegment_basis():
     x = {"segments": [{"name": "A", "sales": 24756}, {"name": "B", "sales": 21728}], "total": {"sales": 46417}, "basis": "計"}
     assert segments.consistent(x) is True                                   # 計はセグメント間を含むので和が合計を超える
     assert segments.consistent({**x, "segments": [{"name": "A", "sales": 99999}]}) is False
+
+
+def test_pdf_segment_missing_in_old_table_is_skipped_by_name():
+    # ウエストHD 前の年: 蓄電所事業がまだ無い表。見出しに名前の無いセグメントを除いて読む
+    text = """報告セグメント
+再生可能エネ
+ルギー事業 省エネルギー事業 電力事業 計
+外部顧客への売上高 16,000 880 3,850 20,730 － 20,730
+計 16,198 883 3,854 20,935 △205 20,730
+セグメント利益 573 276 656 1,505 △300 1,205
+"""
+    tpl = {"cols": ["再生可能エネルギー事業", "蓄電所事業", "省エネルギー事業", "電力事業", None, None, None], "n": 7,
+           "unit": 1e6, "basis": "計"}
+    x = segments.parse_pdf_text(text, tpl)
+    assert [(s["name"], s["sales"]) for s in x["segments"]] == [("再生可能エネルギー事業", 16198e6), ("省エネルギー事業", 883e6), ("電力事業", 3854e6)]

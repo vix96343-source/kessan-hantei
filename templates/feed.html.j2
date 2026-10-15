@@ -333,7 +333,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
   function segMatrix(g) {
     const list = segList(g);
     if (!list.length) return '';
-    const ends = [...new Set(list.flatMap(h => h.rows.map(x => x.end)))].sort().slice(-4);    // 直近4四半期(古い順)
+    const ends = [...new Set(list.flatMap(h => h.rows.map(x => x.end)))].sort().slice(-5);    // 1年前(前年の同じ四半期)から今回まで(古い順)
     const at = (h, e) => h.rows.find(x => x.end === e);
     const last = ends[ends.length - 1];
     const sorted = list;                                 // 短信のセグメント情報と同じ順番

@@ -393,6 +393,24 @@ def parse_pdf_text(text: str, tpl: dict) -> dict | None:
     右に1〜2列多い形・1列少ない形も試す(セグメントの列は左から同じ並び)。"""
     n, cols = tpl["n"], tpl["cols"]
     tries = [(n, cols), (n + 1, cols + [None]), (n + 2, cols + [None, None])]
+    # 前の期の表に無いセグメント(その後に新しくできた事業)は、表の見出しに名前が無い。その列を除いた形を先に試す
+    lines = [l for l in text.splitlines() if l.strip()]
+    heads = []
+    for i, l in enumerate(lines):
+        if "報告セグメント" in _key(l):
+            h = []
+            for l2 in lines[i:i + 15]:
+                if len(re.findall(r"\d,\d{3}", l2)) >= 2:
+                    break
+                h.append(_key(l2))
+            heads.append("".join(h))
+    if heads:
+        core = lambda c: re.sub(r"(事業|業)$", "", _key(c))
+        missing = [c for c in cols if c and c != "その他" and not any(core(c) in h for h in heads)]
+        if missing and len(missing) < sum(1 for c in cols if c):
+            c2 = [c for c in cols if c not in missing]
+            n2 = n - len(missing)
+            tries = [(n2, c2), (n2 + 1, c2 + [None]), (n2 + 2, c2 + [None, None])] + tries
     if n > 2 and cols[-1] is None:
         tries.append((n - 1, cols[:-1]))
     for n2, c2 in tries:
