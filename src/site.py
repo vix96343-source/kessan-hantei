@@ -531,7 +531,7 @@ def segment_numbers(rec: dict | None, past: list[dict], main: dict | None, ords:
             if q is None or seg_at(ym, k) is None:
                 continue
             fy = _ym_shift(ym, 3 * (4 - q))
-            row = {"label": f"{fy[2:4]}/{int(fy[5:7])} {q}Q"}
+            row = {"label": f"{fy[2:4]}/{int(fy[5:7])} {q}Q", "end": ym, "q": q}
             for f in ("sales", "op"):
                 v = single(ym, k, f)
                 p = single(ym, k, f, prior=True)
