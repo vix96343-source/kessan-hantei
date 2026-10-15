@@ -1,4 +1,7 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261015551650,2026-10-15T16:10,6555,ＭＳコンサル,2027年２月期第２四半期（中間期）決算短信〔ＩＦＲＳ〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261015551650.pdf,https://www.release.tdnet.info/inbs/081220261015551650.zip,東,2026-10-15T16:10
+140120261015551645,2026-10-15T16:10,6555,ＭＳコンサル,2027年２月期第２四半期累計期間の連結業績予想と実績との差異に関するお知らせ,actual_vs_forecast,False,,,,,,https://www.release.tdnet.info/inbs/140120261015551645.pdf,,東,2026-10-15T16:10
+140120261015551272,2026-10-15T16:10,6555,ＭＳコンサル,2027年２月期第２四半期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261015551272.pdf,,東,2026-10-15T16:10
 140120261015551805,2026-10-15T16:05,244A,Ｇ－グロースエクスパ,2026年８月期 通期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261015551805.pdf,,東,2026-10-15T16:05
 140120261015551765,2026-10-15T16:05,244A,Ｇ－グロースエクスパ,2026年８月期 決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261015551765.pdf,https://www.release.tdnet.info/inbs/081220261015551765.zip,東,2026-10-15T16:05
 140120261015551772,2026-10-15T16:00,9241,Ｇ－ＦＬＮ,2026年8月期通期_決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261015551772.pdf,,東,2026-10-15T16:00
