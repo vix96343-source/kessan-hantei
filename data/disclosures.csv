@@ -1,4 +1,11 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261015551320,2026-10-15T15:00,6177,Ｇ－ＡｐｐＢａｎｋ,中長期経営戦略説明資料～27/12期、12期ぶりの通期黒字化へ,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261015551320.pdf,,東,2026-10-15T15:00
+140120261015551011,2026-10-15T15:00,1887,日本国土開発,2027年５月期第１四半期決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261015551011.pdf,https://www.release.tdnet.info/inbs/081220261015551011.zip,東,2026-10-15T15:00
+140120261014550740,2026-10-15T15:00,8167,リテールパートナーズ,2027年２月期　第２四半期（中間期）決算参考資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261014550740.pdf,,東,2026-10-15T15:00
+140120261014550727,2026-10-15T15:00,8167,リテールパートナーズ,2027年２月期　第２四半期（中間期）決算短信［日本基準］（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261014550727.pdf,https://www.release.tdnet.info/inbs/081220261014550727.zip,東,2026-10-15T15:00
+140120261013549798,2026-10-15T15:00,6150,タケダ機械,2027年５月期　第１四半期決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261013549798.pdf,https://www.release.tdnet.info/inbs/081220261013549798.zip,東,2026-10-15T15:00
+140120261009548878,2026-10-15T15:00,1452,Ｐ－横浜ライト工業,2027年２月期 中間決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261009548878.pdf,,東,2026-10-15T15:00
+140120260930543473,2026-10-15T15:00,9778,昴,2027年2月期 第2四半期（中間期）決算短信〔日本基準〕（非連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120260930543473.pdf,https://www.release.tdnet.info/inbs/081220260930543473.zip,東,2026-10-15T15:00
 140120261015551002,2026-10-15T14:00,5817,ＪＭＡＣＳ,2027年２月期 通期業績予想の修正に関するお知らせ,forecast_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261015551002.pdf,,東,2026-10-15T14:00
 140120261015550973,2026-10-15T14:00,5817,ＪＭＡＣＳ,2027年２月期 第２四半期（中間期）決算短信〔日本基準〕（非連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261015550973.pdf,https://www.release.tdnet.info/inbs/081220261015550973.zip,東,2026-10-15T14:00
 140120260918538843,2026-10-15T14:00,5078,セレコーポレーション,2027年２月期　第２四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120260918538843.pdf,https://www.release.tdnet.info/inbs/081220260918538843.zip,東,2026-10-15T14:00
