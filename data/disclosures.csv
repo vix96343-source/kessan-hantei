@@ -1,4 +1,6 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261015551825,2026-10-15T17:45,3189,ＡＮＡＰ,連結業績及び個別業績の前期実績値との差異に関するお知らせ,actual_vs_forecast,False,,,,,,https://www.release.tdnet.info/inbs/140120261015551825.pdf,,東,2026-10-15T17:45
+140120261014550787,2026-10-15T17:45,3189,ＡＮＡＰ,2026年8月期決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261014550787.pdf,https://www.release.tdnet.info/inbs/081220261014550787.zip,東,2026-10-15T17:45
 140120261015551348,2026-10-15T17:30,8254,さいか屋,2026年８月期　決算短信［日本基準］（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261015551348.pdf,https://www.release.tdnet.info/inbs/081220261015551348.zip,東,2026-10-15T17:30
 140120261015551730,2026-10-15T17:15,8783,ａｂｃ,個別業績における営業外費用及び特別利益、特別損失計上並びに個別業績の前期実績値との差異に関するお知らせ,actual_vs_forecast,False,,,,,,https://www.release.tdnet.info/inbs/140120261015551730.pdf,,東,2026-10-15T17:15
 140120261015551729,2026-10-15T17:15,8783,ａｂｃ,連結業績における営業損失、営業外費用及び特別損失の計上並びに連結業績の当期予想値との差異に関するお知らせ,actual_vs_forecast,False,,,,,,https://www.release.tdnet.info/inbs/140120261015551729.pdf,,東,2026-10-15T17:15
