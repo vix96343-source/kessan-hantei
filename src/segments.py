@@ -31,12 +31,17 @@ SALES = ["NetSales", "OperatingRevenue1", "NetSalesIFRS", "RevenueIFRS", "Revenu
 PROFIT = ["OperatingIncome", "OperatingProfitLossIFRS", "SegmentProfitLossIFRS", "BusinessProfitLossIFRS",
           "OrdinaryIncome", "ProfitLossBeforeTaxIFRS"]
 # 中間期は「InterimDuration」(Current が付かない)
-_CTX = re.compile(r"^(Current|Prior1)?(YTD|Interim|Year)Duration_(?:NonConsolidatedMember_)?(.+Member)$")
+# セグメントの名前の末尾は普通 Member だが、会社独自で Segment などのこともある
+_CTX = re.compile(r"^(Current|Prior1)?(YTD|Interim|Year)Duration_(?:NonConsolidatedMember_)?(.+)$")
 STANDARD = {"OperatingSegmentsNotIncludedInReportableSegmentsAndOtherRevenueGeneratingBusinessActivitiesMember": "その他",
             "OtherReportableSegmentsMember": "その他"}
 _CTX_PLAIN = re.compile(r"^(Current|Prior1)?(YTD|Interim|Year)Duration(?:_NonConsolidatedMember)?$")
 TOTAL = "EntityTotalMember"
-SKIP = {"ReportableSegmentsMember", "TotalOfReportableSegmentsAndOthersMember", "ReconcilingItemsMember"}
+SKIP = {"ReportableSegmentsMember", "TotalOfReportableSegmentsAndOthersMember", "ReconcilingItemsMember",
+        "NonConsolidatedMember"}
+# 会社独自の要素名(例: OperatingIncomeFromExternalCustomer, NetSalesDisclosureOf…)も名前で拾う
+_EXT_NAME = re.compile(r"ExternalCustomer", re.I)
+_SALES_NAME = re.compile(r"^(NetSales|Revenue|OperatingRevenue|Sales)", re.I)
 
 
 def path(data_dir: Path = DATA_DIR) -> Path:
@@ -91,6 +96,16 @@ def _pick(f: dict, names: list[str]) -> str | None:
     return next((n for n in names if n in f), None)
 
 
+def _ext(f: dict) -> str | None:
+    """外部顧客への売上高の要素名"""
+    return _pick(f, EXTERNAL) or next((n for n in f if _EXT_NAME.search(n) and not re.search(r"Inter|Elimin", n)), None)
+
+
+def _sales(f: dict) -> str | None:
+    """売上(計)の要素名"""
+    return _pick(f, SALES) or next((n for n in f if _SALES_NAME.search(n) and not re.search(r"Inter|Cost", n)), None)
+
+
 def parse_zip(zip_bytes: bytes) -> dict | None:
     """{segments: [{name, sales, sales_prior, op, op_prior}], total: {...}}(円・累計)。セグメントが2つ未満なら None。"""
     try:
@@ -116,10 +131,10 @@ def parse_zip(zip_bytes: bytes) -> dict | None:
         by_member[member][when][name] = v
 
     # 外部顧客への売上高をタグ付けしている会社は、その値だけを使う(「―」のセグメントは計に逃げず空にする)
-    has_ext = any(_pick(by_member[m][w], EXTERNAL) for m in order for w in ("cur", "prior"))
+    has_ext = any(_ext(by_member[m][w]) for m in order for w in ("cur", "prior"))
 
     def values(f):
-        s = _pick(f, EXTERNAL) or (None if has_ext else _pick(f, SALES))
+        s = _ext(f) or (None if has_ext else _sales(f))
         sales = f[s] if s else None
         p = _pick(f, PROFIT)
         return sales, (f[p] if p else None)
@@ -353,7 +368,23 @@ def plausible(code: str, ym: str, n_q: int, x: dict, hist: dict) -> bool:
         return True
     cons = sum(q["sales"] for q in qs)
     seg = sum(sg.get("sales") or 0 for sg in x["segments"])
-    return bool(cons) and 0.85 <= seg / cons <= 1.25
+    return bool(cons) and 0.85 <= seg / cons <= 1.25 and consistent(x)
+
+
+def consistent(x: dict) -> bool:
+    """セグメントの売上(外部顧客)の和が表の合計を超えていないか。超えるのは列が合っていない(セグメントの組み替え前の表を
+    今の形で読んだ)とき。ただし表に小計の列がある会社(例: 海外 = アセアン + 中国)は、その列を除けば合計に合う"""
+    t = (x.get("total") or {}).get("sales")
+    vals = [sg["sales"] for sg in x["segments"] if sg.get("sales") is not None]
+    if not t or not vals:
+        return True
+    total = sum(vals)
+    if total <= t * 1.01:
+        return True
+    for i, v in enumerate(vals):                      # 小計の列 = すぐ前の2つ以上の列の和、かつ除けば合計に合う
+        if abs(total - v - t) <= abs(t) * 0.01 and                 any(abs(sum(vals[j:i]) - v) <= max(abs(v) * 0.01, 1) for j in range(0, i - 1)):
+            return True
+    return False
 
 
 def backfill_history(cfg: dict, depth: int = 6, data_dir: Path = DATA_DIR,

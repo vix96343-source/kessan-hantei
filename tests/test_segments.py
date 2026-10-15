@@ -165,3 +165,11 @@ def test_pdf_external_row_variants():
 """
     assert [s["sales"] for s in segments.parse_pdf_text(wrapped, tpl)["segments"]] == [159641e6, 9510e6]
     assert [s["sales"] for s in segments.parse_pdf_text(ifrs, tpl)["segments"]] == [63269e6, 13027e6]
+
+
+def test_consistent_rejects_misaligned_columns_but_keeps_subtotals():
+    def x(vals, tot):
+        return {"segments": [{"name": str(i), "sales": v} for i, v in enumerate(vals)], "total": {"sales": tot}}
+    assert segments.consistent(x([176, 7692, None], 7692)) is False          # 組み替え前の表(列ずれ)
+    assert segments.consistent(x([42463, 8822, 1090, 9912], 52375)) is True  # 海外 = アセアン + 中国 の小計列
+    assert segments.consistent(x([100, 50], 150)) is True
