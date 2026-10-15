@@ -1,4 +1,18 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261015551689,2026-10-15T17:00,5534,Ｐ－エンゼルグループ,連結業績予想値と実績値との差異及び個別業績の前期実績値との差異に関するお知らせ,actual_vs_forecast,False,,,,,,https://www.release.tdnet.info/inbs/140120261015551689.pdf,,東,2026-10-15T17:00
+140120261015551687,2026-10-15T17:00,5534,Ｐ－エンゼルグループ,2026年８月期 決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261015551687.pdf,,東,2026-10-15T17:00
+140120261015551490,2026-10-15T17:00,293A,Ｐ－ＢＡＢＹ　ＪＯＢ,2027年２月期 第２四半期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261015551490.pdf,,東福,2026-10-15T17:00
+140120261015551307,2026-10-15T17:00,5130,Ｐ－ヒロＨＤ,通期連結業績予想と実績の差異に関するお知らせ,actual_vs_forecast,False,,,,,,https://www.release.tdnet.info/inbs/140120261015551307.pdf,,東,2026-10-15T17:00
+140120261015551284,2026-10-15T17:00,5130,Ｐ－ヒロＨＤ,2026年８月期 決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261015551284.pdf,,東,2026-10-15T17:00
+140120261015551255,2026-10-15T17:00,589A,Ｇ－ネイス,2026年８月期　決算短信〔日本基準]（非連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261015551255.pdf,https://www.release.tdnet.info/inbs/081220261015551255.zip,東,2026-10-15T17:00
+140120261015551094,2026-10-15T17:00,3547,ユニシアＨＤ,2026年11月期　第3四半期決算補足説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261015551094.pdf,,東,2026-10-15T17:00
+140120261015551083,2026-10-15T17:00,3547,ユニシアＨＤ,2026年11月期第３四半期決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261015551083.pdf,https://www.release.tdnet.info/inbs/081220261015551083.zip,東,2026-10-15T17:00
+140120261015551073,2026-10-15T17:00,144A,Ｐ－エネルギーパワー,2026年８月期  決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261015551073.pdf,,東,2026-10-15T17:00
+140120261015551015,2026-10-15T17:00,589A,Ｇ－ネイス,2026年8月期 通期決算補足説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261015551015.pdf,,東,2026-10-15T17:00
+140120261013549983,2026-10-15T17:00,9215,Ｇ－ＣａＳｙ,2026年11月期 第３四半期 決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261013549983.pdf,,東,2026-10-15T17:00
+140120261013549806,2026-10-15T17:00,9215,Ｇ－ＣａＳｙ,2026年11月期 第３四半期決算説明,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261013549806.pdf,,東,2026-10-15T17:00
+140120261008548131,2026-10-15T17:00,9215,Ｇ－ＣａＳｙ,業績予想の修正に関するお知らせ,forecast_revision,False,up,OperatingIncome,62.4,CurrentYearDuration,"{""NetSales"": 1.2, ""OperatingIncome"": 62.4, ""OrdinaryIncome"": 65.5, ""ProfitAttributableToOwnersOfParent"": 63.3}",https://www.release.tdnet.info/inbs/140120261008548131.pdf,https://www.release.tdnet.info/inbs/091220261008548131.zip,東,2026-10-15T17:00
+140120261008548125,2026-10-15T17:00,9215,Ｇ－ＣａＳｙ,2026年11月期  第３四半期決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261008548125.pdf,https://www.release.tdnet.info/inbs/081220261008548125.zip,東,2026-10-15T17:00
 140120261015551821,2026-10-15T16:45,3557,Ｇ－Ｕ＆Ｃ,通期業績予想の修正に関するお知らせ,forecast_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261015551821.pdf,,東,2026-10-15T16:45
 140120261015551814,2026-10-15T16:45,3557,Ｇ－Ｕ＆Ｃ,2027年２月期　第２四半期（中間期）決算短信［日本基準］（非連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261015551814.pdf,https://www.release.tdnet.info/inbs/081220261015551814.zip,東,2026-10-15T16:45
 140120261015551759,2026-10-15T16:30,7815,東京ボード工業,2027年2月期 第2四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261015551759.pdf,https://www.release.tdnet.info/inbs/081220261015551759.zip,東,2026-10-15T16:30
