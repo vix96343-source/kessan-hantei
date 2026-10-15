@@ -562,13 +562,14 @@ def consensus_panel(snap: dict | None, arch: dict | None) -> dict | None:
             "next_fy": f"{next_fy[:4]}/{next_fy[5:7]}" if next_fy else "", "cols": [c for c, _ in cols], "rows": rows}
 
 
-_MARKET_MARK = re.compile(r"^[GPQAFSN]-(?=[^\d])")
+_MARKET_MARK = re.compile(r"^[GPQAFSN]-")
 
 
-def company_name(name: str) -> str:
+def company_name(name: str, listed: bool = False) -> str:
     """一覧に出す会社名: 全角英数を半角に(幅を詰める)し、TDnet が頭に付ける市場の印(G-=グロース、P-=TOKYO PRO Market、
-    Q-=福証Q-Board、A-=札証アンビシャス など)を外す。U-NEXT・G-7HD のように社名そのものの場合は外さない"""
-    return _MARKET_MARK.sub("", unicodedata.normalize("NFKC", name))
+    Q-=福証Q-Board、A-=札証アンビシャス など)を外す。プライム・スタンダード(listed)の会社は社名そのものなので外さない"""
+    n = unicodedata.normalize("NFKC", name)
+    return n if listed else _MARKET_MARK.sub("", n)
 
 
 def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:
@@ -631,11 +632,12 @@ def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:
                 (str(o.get("period_end") or "")[:7] < e if e and o.get("period_end") else o["disclosed_at"] < r["disclosed_at"])]
 
     rows = []
+    listed = set(universe.load(data_dir)["code"])     # プライム・スタンダード
     for r in disc.sort_values(["disclosed_at", "code"], ascending=[False, True]).to_dict("records"):
         p = score_of(r, stats, cfg, feats)
         f = feats.get(r["disclosure_id"])
         rows.append({"id": r["disclosure_id"], "date": r["disclosed_at"][:10], "time": r["disclosed_at"][11:16],
-                     "code": r["code"], "name": company_name(r["name"]),
+                     "code": r["code"], "name": company_name(r["name"], r["code"] in listed),
                      "kind": kind_label(r, f),
                      "group": "決算" if r["kind"] == "earnings_report" else "修正",
                      # 種別に出す文字: 決算 / 業績(業績予想の修正) / 配当(配当予想の修正) / 業績 配当(両方を横に並べる)
