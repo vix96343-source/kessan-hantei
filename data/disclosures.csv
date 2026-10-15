@@ -1,4 +1,6 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261014550253,2026-10-15T12:30,7065,ユーピーアール,2026年８月期（第48期）決算補足説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261014550253.pdf,,東,2026-10-15T12:30
+140120261014550239,2026-10-15T12:30,7065,ユーピーアール,2026年８月期  決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261014550239.pdf,https://www.release.tdnet.info/inbs/081220261014550239.zip,東,2026-10-15T12:30
 140120261015551099,2026-10-15T12:20,5869,早稲田学習研究会,2027年５月期　第１四半期決算短信〔日本基準〕（非連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261015551099.pdf,https://www.release.tdnet.info/inbs/081220261015551099.zip,東,2026-10-15T12:20
 140120261014550911,2026-10-15T12:00,6521,Ｇ－オキサイド,通期連結業績予想の修正に関するお知らせ,forecast_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261014550911.pdf,,東,2026-10-15T12:00
 140120261014550907,2026-10-15T12:00,6521,Ｇ－オキサイド,2027年２月期 第２四半期決算補足説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261014550907.pdf,,東,2026-10-15T12:00
