@@ -1,4 +1,8 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261015551871,2026-10-15T18:00,351A,Ｐ－アクシスＩＴＰ,2026年８月期決算短信〔日本基準〕(非連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261015551871.pdf,,東,2026-10-15T18:00
+140120261015551548,2026-10-15T18:00,3627,テクミラ,2027年２月期 第２四半期 決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261015551548.pdf,,東,2026-10-15T18:00
+140120261014550916,2026-10-15T18:00,361A,Ｐ－リビングハウス,2027年２月期 中間決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261014550916.pdf,,東,2026-10-15T18:00
+140120261014550756,2026-10-15T18:00,1445,Ｐ－ひかりＨＤ,2026年８月期 決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261014550756.pdf,,東,2026-10-15T18:00
 140120261015551825,2026-10-15T17:45,3189,ＡＮＡＰ,連結業績及び個別業績の前期実績値との差異に関するお知らせ,actual_vs_forecast,False,,,,,,https://www.release.tdnet.info/inbs/140120261015551825.pdf,,東,2026-10-15T17:45
 140120261014550787,2026-10-15T17:45,3189,ＡＮＡＰ,2026年8月期決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261014550787.pdf,https://www.release.tdnet.info/inbs/081220261014550787.zip,東,2026-10-15T17:45
 140120261015551348,2026-10-15T17:30,8254,さいか屋,2026年８月期　決算短信［日本基準］（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261015551348.pdf,https://www.release.tdnet.info/inbs/081220261015551348.zip,東,2026-10-15T17:30
