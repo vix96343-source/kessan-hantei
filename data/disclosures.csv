@@ -1,4 +1,6 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261015551821,2026-10-15T16:45,3557,Ｇ－Ｕ＆Ｃ,通期業績予想の修正に関するお知らせ,forecast_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261015551821.pdf,,東,2026-10-15T16:45
+140120261015551814,2026-10-15T16:45,3557,Ｇ－Ｕ＆Ｃ,2027年２月期　第２四半期（中間期）決算短信［日本基準］（非連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261015551814.pdf,https://www.release.tdnet.info/inbs/081220261015551814.zip,東,2026-10-15T16:45
 140120261015551759,2026-10-15T16:30,7815,東京ボード工業,2027年2月期 第2四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261015551759.pdf,https://www.release.tdnet.info/inbs/081220261015551759.zip,東,2026-10-15T16:30
 140120261015551582,2026-10-15T16:30,7049,Ｇ－識学,2027年2月期　 第2四半期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261015551582.pdf,,東,2026-10-15T16:30
 140120261015551556,2026-10-15T16:30,5527,Ｇ－ｐｒｏｐｅｔｅｃ,配当予想の修正（増配）並びに株主優待制度の変更及び拡充に関するお知らせ,dividend_revision,False,up,,,,,https://www.release.tdnet.info/inbs/140120261015551556.pdf,,東,2026-10-15T16:30
