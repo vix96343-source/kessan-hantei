@@ -580,6 +580,16 @@ def fix_scale_to(x: dict, anchor_total: dict) -> dict:
     return x
 
 
+def _read_past_pdf(text: str, cur: dict) -> dict | None:
+    """前の期の短信 PDF を今回と同じやり方で読む: 表の会社は表の形(tpl)で、本文の文から読んだ会社は本文から"""
+    if cur.get("src") == "narrative":
+        x = parse_narrative_text(text, [s["name"] for s in cur.get("segments", [])])
+        if x and cur.get("segments") and not x["segments"]:
+            return None                                # セグメントの文が見つからない期は使わない
+        return x
+    return parse_pdf_text(text, cur["tpl"], cur.get("unit"))
+
+
 def backfill_history(cfg: dict, depth: int = 20, data_dir: Path = DATA_DIR,
                      session: RateLimitedSession | None = None) -> dict:
     """受注の表がある会社について、過去 depth 四半期(既定5年)の決算短信 PDF を IRBANK から読み、
@@ -599,7 +609,7 @@ def backfill_history(cfg: dict, depth: int = 20, data_dir: Path = DATA_DIR,
         if a and not r["period_end"]:
             r["n_q"], r["period_end"] = a["n_q"], a["period_end"]
         d = json.loads(r["data"])
-        if d.get("tpl") and r["period_end"]:
+        if (d.get("tpl") or d.get("src") == "narrative") and r["period_end"]:
             latest[r["code"]] = {**r, "data": d}
     rows, stats = [], {"codes": 0, "pdfs": 0, "ok": 0}
     for code, cur in latest.items():
@@ -623,7 +633,7 @@ def backfill_history(cfg: dict, depth: int = 20, data_dir: Path = DATA_DIR,
                 stats["pdfs"] += 1
                 if resp is not None:
                     text = "\n".join(p.extract_text() or "" for p in PdfReader(io.BytesIO(resp.content)).pages)
-                    x = parse_pdf_text(text, cur["data"]["tpl"], cur["data"].get("unit"))
+                    x = _read_past_pdf(text, cur["data"])
                     if x:
                         x = fix_scale(code, ym, q, x, hist)
                         x = fix_scale_to(x, cur["data"].get("total") or {})
@@ -662,7 +672,7 @@ def backfill(cfg: dict, data_dir: Path = DATA_DIR, session: RateLimitedSession |
         if a and not r["period_end"]:
             r["n_q"], r["period_end"] = a["n_q"], a["period_end"]
         d = json.loads(r["data"])
-        if d.get("tpl") and r["period_end"] and r["n_q"]:
+        if (d.get("tpl") or d.get("src") == "narrative") and r["period_end"] and r["n_q"]:
             latest[r["code"]] = {**r, "data": d}
 
     rows, stats = [], {"codes": 0, "pdfs": 0, "ok": 0}
@@ -692,7 +702,7 @@ def backfill(cfg: dict, data_dir: Path = DATA_DIR, session: RateLimitedSession |
                 stats["pdfs"] += 1
                 if resp is not None:
                     text = "\n".join(p.extract_text() or "" for p in PdfReader(io.BytesIO(resp.content)).pages)
-                    x = parse_pdf_text(text, cur["data"]["tpl"], cur["data"].get("unit"))
+                    x = _read_past_pdf(text, cur["data"])
             except Exception as e:
                 log.warning("受注の補完: PDF の読み取り失敗 %s %s: %s", code, did, e)
             if x:
@@ -752,10 +762,14 @@ def _narr_value(text: str, words: str) -> tuple[float | None, float | None]:
 
 
 def parse_narrative(html: str, names: list[str]) -> dict | None:
-    """受注の表が無い短信の本文から、全体とセグメントごとの受注高・受注残高(繰越工事高)を読む。
+    """受注の表が無い短信の本文から、全体とセグメントごとの受注高・受注残高(繰越工事高)を読む。"""
+    return parse_narrative_text(BeautifulSoup(html, "html.parser").get_text("\n"), names)
+
+
+def parse_narrative_text(text: str, names: list[str]) -> dict | None:
+    """短信の本文の文字(HTML または PDF)から受注高・受注残高を読む。
     セグメントは見出し(セグメント名だけの短い行)から次の見出しまで、全体は最初の見出しより前。"""
     import unicodedata
-    text = BeautifulSoup(html, "html.parser").get_text("\n")
     lines = [unicodedata.normalize("NFKC", re.sub(r"\s", "", l)) for l in text.split("\n")]
     lines = [l for l in lines if l]
     keys = [(n, re.sub(r"\s|・", "", unicodedata.normalize("NFKC", n))) for n in names]
