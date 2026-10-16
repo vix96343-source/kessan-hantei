@@ -119,7 +119,7 @@ table.fin td.lab { color: var(--warn); }
 .sx-yq { font-size: 13px; line-height: 1.35; margin: 4px 0 6px; white-space: nowrap; color: #7fdcb8; font-weight: 600;
   font-family: "Consolas", "Menlo", "Meiryo UI", monospace; }
 /* 行を開いたときの中身は3列: 四半期業績(コンセンサス・受注の推移) | セグメント別業績(受注の推移) | セグメント(単体) */
-.dcols { display: flex; flex-wrap: wrap; gap: 6px 24px; align-items: flex-start; }
+.dcols { display: flex; flex-wrap: nowrap; gap: 6px 24px; align-items: flex-start; overflow-x: auto; }   /* 3列はいつも横並び(狭い画面は横にスクロール) */
 #list tr.detail > td { padding-left: 40px; }   /* 行を開いたときの中身の左の余白 */
 /* 列の幅は表の幅に合わせる(長い注記は折り返す) */
 .dcol { width: min-content; }
