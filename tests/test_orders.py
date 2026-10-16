@@ -163,3 +163,14 @@ def test_one_off_rounding_fixed_from_presentation_page():
             "分析装置": {"2025-08": 664, "2025-11": 483, "2026-08": 1346}}
     adj = order_adjust.adjust_from_pages(pages, names, vals)
     assert adj == {"半導体関連装置": {"2025-11": 22958, "2026-08": 78509}, "分析装置": {"2025-08": 663}}
+
+
+def test_orders_from_narrative_sentences():
+    from src.orders import parse_narrative
+    html = """<p>この結果、全体の受注高は前年同期比50.4%増加の37,270百万円となり、受注残高は23,359百万円(前年同期比76.6%増加)となりました。</p>
+    <p>(繊維機械事業)</p><p>この結果、受注高は31,796百万円(前年同期比52.2%増加)、売上高は20,565百万円となりました。</p>
+    <p>〔工作機械関連事業〕</p><p>受注高は5,474百万円(前年同期比41.1%増加)。なお、繰越工事高につきましては、4,221百万円(前年同期比41.0%増)となりました。</p>"""
+    x = parse_narrative(html, ["繊維機械事業", "工作機械関連事業"])
+    assert (x["total"]["orders"], x["total"]["orders_yoy"], x["total"]["backlog"]) == (37270e6, 50.4, 23359e6)
+    assert [(s["name"], s["orders"], s["orders_yoy"], s["backlog"]) for s in x["segments"]] == \
+        [("繊維機械事業", 31796e6, 52.2, None), ("工作機械関連事業", 5474e6, 41.1, 4221e6)]

@@ -723,6 +723,73 @@ def _guess_unit(facts: list[dict], cum_sales: float | None) -> float:
     return 1e6
 
 
+_N_UNITS = {"百万円": 1e6, "千円": 1e3, "億円": 1e8}
+_N_NUM = r"(△|▲|-)?([\d,]+(?:\.\d+)?)(百万円|千円|億円)"
+_N_YOY = r"(?:前年同期比|前期比|同)([\d.]+)%(増加|減少|増|減)"
+
+
+def _narr_value(text: str, words: str) -> tuple[float | None, float | None]:
+    """「受注高は31,796百万円(前年同期比52.2%増加)」「受注高は前年同期比50.4%増加の37,270百万円」→ (値(円), 増減率)。
+    最初に出てくる文(内訳の文より前)を使う"""
+    pats = [words + r"(?:は|が|につきましては)、?" + _N_NUM + r"(?:\(" + _N_YOY + r")?",
+            words + r"(?:は|が)、?" + _N_YOY + r"の" + _N_NUM]
+    best = None
+    for k, pat in enumerate(pats):
+        m = re.search(pat, text)
+        if m and (best is None or m.start() < best[0].start()):
+            best = (m, k)
+    if not best:
+        return None, None
+    m, k = best
+    g = m.groups()
+    if k == 0:
+        sign, num, unit, yv, yd = g[0], g[1], g[2], g[3], g[4]
+    else:
+        yv, yd, sign, num, unit = g[0], g[1], g[2], g[3], g[4]
+    v = float(num.replace(",", "")) * _N_UNITS[unit] * (-1 if sign else 1)
+    y = None if yv is None else float(yv) * (-1 if yd.startswith("減") else 1)
+    return v, y
+
+
+def parse_narrative(html: str, names: list[str]) -> dict | None:
+    """受注の表が無い短信の本文から、全体とセグメントごとの受注高・受注残高(繰越工事高)を読む。
+    セグメントは見出し(セグメント名だけの短い行)から次の見出しまで、全体は最初の見出しより前。"""
+    import unicodedata
+    text = BeautifulSoup(html, "html.parser").get_text("\n")
+    lines = [unicodedata.normalize("NFKC", re.sub(r"\s", "", l)) for l in text.split("\n")]
+    lines = [l for l in lines if l]
+    keys = [(n, re.sub(r"\s|・", "", unicodedata.normalize("NFKC", n))) for n in names]
+    heads = []
+    for i, l in enumerate(lines):
+        lk = l.replace("・", "")
+        for n, k in keys:
+            core = re.sub(r"(事業|業)$", "", k)
+            if len(l) <= len(k) + 12 and (k in lk or (len(core) >= 2 and core in lk)) and not re.search(r"\d,\d{3}", l):
+                heads.append((i, n))
+                break
+    ORD, BL = r"受注(?:高|額)", r"(?:受注残高?|繰越工事高|手持受注高?)"
+
+    def read(block):
+        o, oy = _narr_value(block, ORD)
+        b, by = _narr_value(block, BL)
+        return {"orders": o, "orders_yoy": oy, "backlog": b, "backlog_yoy": by, "backlog_fy": None}
+
+    first = heads[0][0] if heads else len(lines)
+    total = {"name": "合計", **read("".join(lines[:first]))}
+    segs, seen = [], set()
+    for h, (i, n) in enumerate(heads):
+        if n in seen:
+            continue
+        end = heads[h + 1][0] if h + 1 < len(heads) else min(i + 40, len(lines))
+        x = read("".join(lines[i + 1:end]))
+        if x["orders"] is not None or x["backlog"] is not None:
+            segs.append({"name": n, **x})
+            seen.add(n)
+    if not segs and total["orders"] is None and total["backlog"] is None:
+        return None
+    return {"total": total, "segments": segs, "src": "narrative"}
+
+
 def parse_zip(zip_bytes: bytes, cum_sales: float | None = None) -> dict | None:
     try:
         z = zipfile.ZipFile(io.BytesIO(zip_bytes))
@@ -734,7 +801,13 @@ def parse_zip(zip_bytes: bytes, cum_sales: float | None = None) -> dict | None:
     html = z.read(names[0]).decode("utf-8", errors="replace")
     if not _TABLE_HINT.search(html):                  # 受注の言葉が無ければ表を探さない(大半の短信)
         return None
-    return parse_qualitative(html, cum_sales)
+    x = parse_qualitative(html, cum_sales)
+    if x:
+        return x
+    # 受注の表が無い短信は本文の文(「受注高は X 百万円(前年同期比 Y% 増)」)から。セグメント名は短信のセグメント情報
+    from . import segments
+    sg = segments.parse_zip(zip_bytes)
+    return parse_narrative(html, [g["name"] for g in sg["segments"]] if sg else [])
 
 
 # ---------------------------------------------------------------- 取り込み
