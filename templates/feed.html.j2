@@ -358,25 +358,21 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
   }
 
   // 受注の推移(期間・受注高(累計)・YoY・単体Q・QoQ・QYoY・受注残・残YoY)
+  // 受注の推移: 全社とセグメント(品目)ごとを1つにまとめ、同じ列(期間・受注高(累計)・YoY・単体Q・QoQ・QYoY・受注残・残YoY)で
   function orderHistory(o) {
-    const h = o && o.hist;
-    if (!h || h.length < 2) return '';
-    return `<div class="fincap">受注の推移(百万円)<span>受注高は期首からの累計、単体Qは3か月の値、QYoYは単体Qの前年同期比、受注残は期末残高</span></div>
-      <div class="finbox"><table class="fin"><tr><th>期間</th><th>受注高</th><th>YoY</th><th>単体Q</th><th>QoQ</th><th>QYoY</th><th>受注残</th><th>残YoY</th></tr>`
-      + h.map((x, i) => `<tr class="${i === h.length - 1 ? 'cur' : ''}"><td>${esc(x.label)}</td>` + num(x.cum) + gcell(x.yoy)
+    const head = '<tr><th>期間</th><th>受注高</th><th>YoY</th><th>単体Q</th><th>QoQ</th><th>QYoY</th><th>受注残</th><th>残YoY</th></tr>';
+    const table = rows => '<div class="finbox"><table class="fin">' + head
+      + rows.map((x, i) => `<tr class="${i === rows.length - 1 ? 'cur' : ''}"><td>${esc(x.label)}</td>` + num(x.cum) + gcell(x.yoy)
         + num(x.q) + gcell(x.qoq) + gcell(x.qyoy) + num(x.backlog) + gcell(x.byoy) + '</tr>').join('') + '</table></div>';
+    const has = rows => rows && rows.some(x => x.cum != null || x.q != null || x.backlog != null);
+    const total = o && o.hist && o.hist.length && has(o.hist) ? o.hist : null;
+    const segs = ((o && o.seg_hist) || []).filter(g => has(g.rows));
+    if (!total && !segs.length) return '';
+    return `<div class="fincap">受注の推移(百万円)<span>受注高は期首からの累計、単体Qは3か月の値、QYoYは単体Qの前年同期比、受注残は期末残高</span></div>`
+      + (total ? (segs.length ? '<div class="segname">全社</div>' : '') + table(total) : '')
+      + segs.map(g => `<div class="segname">${g.parent ? '└ ' : ''}${esc(g.name)}</div>` + table(g.rows)).join('');
   }
 
-  // セグメント(品目)ごとの受注の推移: 四半期ごとの受注高(3か月)・受注残と YoY・QoQ
-  function segOrderHistory(o) {
-    const list = ((o && o.seg_hist) || []).filter(g => g.rows.some(x => x.q != null || x.backlog != null));
-    if (!list.length) return '';
-    const head = `<tr><th>期間</th><th>受注高</th><th>YoY</th><th>QoQ</th><th>受注残</th><th>YoY</th><th>QoQ</th></tr>`;
-    return `<div class="fincap">セグメント別の受注の推移(3か月・百万円)<span>受注高は四半期ごとの3か月の値、受注残は期末残高。YoYは前年の同じ四半期比、QoQは前四半期比</span></div>`
-      + list.map(g => `<div class="segname">${g.parent ? '└ ' : ''}${esc(g.name)}</div><div class="finbox"><table class="fin">${head}`
-        + g.rows.map((x, i) => `<tr class="${i === g.rows.length - 1 ? 'cur' : ''}"><td>${esc(x.label)}</td>` + num(x.q) + gcell(x.qyoy) + gcell(x.qoq)
-          + num(x.backlog) + gcell(x.byoy) + gcell(x.bqoq) + '</tr>').join('') + '</table></div>').join('');
-  }
 
   function finTables(f) {
     if (!f) return '';
@@ -396,7 +392,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
       <div class="dtitle">${esc(r.title)}</div>
       <div class="dlinks">${(r.pdfs || []).map(p => `<a href="${esc(p.url)}" target="_blank" rel="noopener" title="${esc(p.title || '')}">${esc(p.label === '資料' || p.label === '資料2' ? '説明資料' : p.label === '短信' ? '決算短信' : '修正の開示')}(PDF)</a>`).join('')}<a href="https://kabuyoho.jp/report?bcode=${encodeURIComponent(r.code)}" target="_blank" rel="noopener">株予報(コンセンサス)</a></div>
       <div class="dcols"><div class="dcol">${finTables(r.fin)}${consTable(r.cons)}${orderHistory(r.ord)}</div>
-      ${[segMatrix(r.seg) + segOrderHistory(r.ord), segQuarter(r.seg)].filter(h => h).map(h => `<div class="dcol">${h}</div>`).join('')}</div>
+      ${[segMatrix(r.seg), segQuarter(r.seg)].filter(h => h).map(h => `<div class="dcol">${h}</div>`).join('')}</div>
     </td></tr>`;
   }
 
