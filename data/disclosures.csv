@@ -1,4 +1,5 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261016552388,2026-10-16T16:30,3189,ＡＮＡＰ,(訂正)「連結業績及び個別業績の前期実績値との差異に関するお知らせ」の一部訂正について,actual_vs_forecast,True,,,,,,https://www.release.tdnet.info/inbs/140120261016552388.pdf,,東,2026-10-16T16:30
 140120261016552366,2026-10-16T16:10,7725,インターアクション,2027年5月期第1四半期決算説明会資料（スピーチ原稿付き）,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261016552366.pdf,,東,2026-10-16T16:10
 140120261016552197,2026-10-16T16:00,6384,昭和真空,2027年３月期第２四半期（中間期）連結業績予想の修正に関するお知らせ,forecast_revision,False,down,OperatingIncome,-406.2,CurrentAccumulatedQ2Duration,"{""NetSales"": -32.3, ""OperatingIncome"": -406.2, ""OrdinaryIncome"": -355.8, ""ProfitAttributableToOwnersOfParent"": -490.4}",https://www.release.tdnet.info/inbs/140120261016552197.pdf,https://www.release.tdnet.info/inbs/091220261016552197.zip,東,2026-10-16T16:00
 140120261015551174,2026-10-16T16:00,7865,ピープル,ピープル株式会社 2027年1月期９月度 月次業績ハイライト,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261015551174.pdf,,東,2026-10-16T16:00
