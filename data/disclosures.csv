@@ -1,4 +1,5 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261019552624,2026-10-19T11:00,7811,中本パックス,2027年２月期中間期　決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261019552624.pdf,,東,2026-10-19T11:00
 140120261016552477,2026-10-19T08:00,6521,Ｇ－オキサイド,2027年２月期 第２四半期決算補足説明資料(スクリプト付),earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261016552477.pdf,,東,2026-10-19T08:00
 140120261016552511,2026-10-16T18:15,3189,ＡＮＡＰ,(訂正)「(訂正)連結業績及び個別業績の前期実績値との差異に関するお知らせ」の一部訂正について,actual_vs_forecast,True,,,,,,https://www.release.tdnet.info/inbs/140120261016552511.pdf,,東,2026-10-16T18:15
 140120261016552323,2026-10-16T17:00,4728,トーセ,2026年８月期　決算説明資料（解説付）,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261016552323.pdf,,東,2026-10-16T17:00
