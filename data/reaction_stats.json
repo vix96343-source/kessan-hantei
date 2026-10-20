@@ -1,5 +1,5 @@
 {
-  "base_rate": 0.438,
+  "base_rate": 0.4385,
   "buckets": {
     "div_down": {
       "mean_ret_pct": 15.07,
@@ -7,8 +7,8 @@
       "wins": 9
     },
     "div_other": {
-      "mean_ret_pct": 0.08,
-      "n": 30,
+      "mean_ret_pct": 0.0,
+      "n": 31,
       "wins": 18
     },
     "div_up": {
@@ -57,8 +57,8 @@
       "wins": 3
     },
     "rev_unknown": {
-      "mean_ret_pct": 0.65,
-      "n": 84,
+      "mean_ret_pct": 0.52,
+      "n": 86,
       "wins": 36
     },
     "rev_up": {
@@ -67,17 +67,17 @@
       "wins": 7
     },
     "rev_up_large": {
-      "mean_ret_pct": 6.05,
-      "n": 65,
-      "wins": 55
+      "mean_ret_pct": 6.07,
+      "n": 69,
+      "wins": 58
     },
     "rev_up_small": {
-      "mean_ret_pct": 2.21,
-      "n": 22,
-      "wins": 16
+      "mean_ret_pct": 2.25,
+      "n": 23,
+      "wins": 17
     }
   },
-  "n": 1016,
+  "n": 1024,
   "types": {
     "①": {
       "mean_ret_pct": 0.06,
