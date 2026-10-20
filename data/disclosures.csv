@@ -1,4 +1,5 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261020553697,2026-10-20T18:15,2901,ウェルディッシュ,剰余金の配当（無配）に関するお知らせ,dividend_revision,False,down,,,,,https://www.release.tdnet.info/inbs/140120261020553697.pdf,,東,2026-10-20T18:15
 140120261020553641,2026-10-20T17:00,304A,Ｇ－フォルシア,2027年2月期第2四半期（中間期） 個人投資家向け決算説明会 補足資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261020553641.pdf,,東,2026-10-20T17:00
 140120261020553281,2026-10-20T16:00,7918,ヴィアＨＤ,2027年３月期第２四半期（中間期）及び通期連結業績予想の修正に関するお知らせ,forecast_revision,False,up,OperatingIncome,40.5,CurrentYearDuration,"{""NetSales"": -1.7, ""OperatingIncome"": 40.5, ""OrdinaryIncome"": 61.5, ""ProfitAttributableToOwnersOfParent"": 800.0}",https://www.release.tdnet.info/inbs/140120261020553281.pdf,https://www.release.tdnet.info/inbs/091220261020553281.zip,東,2026-10-20T16:00
 140120261017552565,2026-10-20T15:40,5990,スーパーツール,2027年３月期 第２四半期（連結・個別） 業績予想と実績値との差異に関するお知らせ,actual_vs_forecast,False,,,,,,https://www.release.tdnet.info/inbs/140120261017552565.pdf,,東,2026-10-20T15:40
