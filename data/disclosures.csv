@@ -1,4 +1,6 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261020553510,2026-10-21T11:30,296A,Ｇ－令和ＡＨ,2027年３月期第２四半期決算補足説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261020553510.pdf,,東,2026-10-21T11:30
+140120261020553509,2026-10-21T11:30,296A,Ｇ－令和ＡＨ,2027年３月期　第２四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261020553509.pdf,https://www.release.tdnet.info/inbs/081220261020553509.zip,東,2026-10-21T11:30
 140120261020553697,2026-10-20T18:15,2901,ウェルディッシュ,剰余金の配当（無配）に関するお知らせ,dividend_revision,False,down,,,,,https://www.release.tdnet.info/inbs/140120261020553697.pdf,,東,2026-10-20T18:15
 140120261020553641,2026-10-20T17:00,304A,Ｇ－フォルシア,2027年2月期第2四半期（中間期） 個人投資家向け決算説明会 補足資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261020553641.pdf,,東,2026-10-20T17:00
 140120261020553281,2026-10-20T16:00,7918,ヴィアＨＤ,2027年３月期第２四半期（中間期）及び通期連結業績予想の修正に関するお知らせ,forecast_revision,False,up,OperatingIncome,40.5,CurrentYearDuration,"{""NetSales"": -1.7, ""OperatingIncome"": 40.5, ""OrdinaryIncome"": 61.5, ""ProfitAttributableToOwnersOfParent"": 800.0}",https://www.release.tdnet.info/inbs/140120261020553281.pdf,https://www.release.tdnet.info/inbs/091220261020553281.zip,東,2026-10-20T16:00
