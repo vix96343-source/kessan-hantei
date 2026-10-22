@@ -575,7 +575,7 @@ def backfill_history(cfg: dict, depth: int = 6, data_dir: Path = DATA_DIR,
         end = str(cur["period_end"])[:7]
         floor = _ym_shift(end, -3 * depth)
         try:
-            items = [(i, q, ym) for i, q, ym in _irbank_earnings(session, code)
+            items = [(i, q, ym) for i, q, ym in _irbank_earnings(session, code, fresh_after=str(cur["disclosed_at"])[:10])
                      if ym and floor <= ym < end and (code, ym) not in have]
         except Exception as e:
             log.warning("セグメントの推移: IRBANK 一覧の取得失敗 %s: %s", code, e)
@@ -646,7 +646,7 @@ def backfill(cfg: dict, data_dir: Path = DATA_DIR, session: RateLimitedSession |
         stats["codes"] += 1
         try:
             floor = f"1401{int(cur['disclosure_id'][4:8]) - 1}{cur['disclosure_id'][8:]}"
-            ids = [x for x in _irbank_earnings_ids(session, code) if floor < x[0] < cur["disclosure_id"]]
+            ids = [x for x in _irbank_earnings_ids(session, code, fresh_after=str(cur["disclosed_at"])[:10]) if floor < x[0] < cur["disclosure_id"]]
         except Exception as e:
             log.warning("セグメントの補完: IRBANK 一覧の取得失敗 %s: %s", code, e)
             continue

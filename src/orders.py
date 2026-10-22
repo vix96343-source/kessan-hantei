@@ -519,13 +519,25 @@ def period_end_of_title(title: str) -> str | None:
     return _ym_shift(f"{int(m.group(1)):04d}-{int(m.group(2)):02d}", -3 * (4 - _quarter_of_title(title)))
 
 
-def _irbank_earnings_ids(session: RateLimitedSession, code: str) -> list[tuple[str, int]]:
-    """IRBANK の会社別適時開示一覧から、決算短信(訂正を除く)の (開示ID, 四半期) 新しい順"""
-    return [(d, q) for d, q, _ in _irbank_earnings(session, code)]
+def _irbank_earnings_ids(session: RateLimitedSession, code: str, fresh_after: str = "") -> list[tuple[str, int]]:
+    """決算短信(訂正を除く)の (開示ID, 四半期) 新しい順"""
+    return [(d, q) for d, q, _ in _irbank_earnings(session, code, fresh_after)]
 
 
-def _irbank_earnings(session: RateLimitedSession, code: str) -> list[tuple[str, int, str | None]]:
-    """IRBANK の会社別適時開示一覧から、決算短信(訂正を除く)の (開示ID, 四半期, 期末の年月) 新しい順"""
+def _irbank_earnings(session: RateLimitedSession, code: str, fresh_after: str = "") -> list[tuple[str, int, str | None]]:
+    """決算短信(訂正を除く)の (開示ID, 四半期, 期末の年月) 新しい順。
+    IRBANK Connect の API(手元の .env にキーがあるとき。索引 data/cache/irbank_index.csv に保存)から。
+    無ければ IRBANK の会社別適時開示一覧のページから(2026-10-21 からメンテナンスで止まっている)"""
+    from .datasources import irbank_api
+    rows = irbank_api.earnings_reports(code, fresh_after=fresh_after) if irbank_api.api_key() else None
+    if rows is not None:
+        ids = []
+        for x in rows:
+            c = tdnet.classify_title(x["title"])
+            did = "1401" + x["doc_id"]
+            if c["kind"] == "earnings_report" and not c["is_correction"] and did not in {i[0] for i in ids}:
+                ids.append((did, _quarter_of_title(x["title"]), period_end_of_title(x["title"])))
+        return sorted(ids, reverse=True)
     r = session.get(IRBANK_IR.format(code=code))
     if r is None:
         return []
@@ -616,7 +628,7 @@ def backfill_history(cfg: dict, depth: int = 20, data_dir: Path = DATA_DIR,
         end = str(cur["period_end"])[:7]
         floor = _ym_shift(end, -3 * depth)
         try:
-            items = [(i, q, ym) for i, q, ym in _irbank_earnings(session, code)
+            items = [(i, q, ym) for i, q, ym in _irbank_earnings(session, code, fresh_after=str(cur["disclosed_at"])[:10])
                      if ym and floor <= ym < end and (code, ym) not in have]
         except Exception as e:
             log.warning("受注の推移: IRBANK 一覧の取得失敗 %s: %s", code, e)
@@ -688,7 +700,7 @@ def backfill(cfg: dict, data_dir: Path = DATA_DIR, session: RateLimitedSession |
         try:
             # 今回より前の1年以内の短信
             floor = f"1401{int(cur['disclosure_id'][4:8]) - 1}{cur['disclosure_id'][8:]}"
-            ids = [x for x in _irbank_earnings_ids(session, code) if floor < x[0] < cur["disclosure_id"]]
+            ids = [x for x in _irbank_earnings_ids(session, code, fresh_after=str(cur["disclosed_at"])[:10]) if floor < x[0] < cur["disclosure_id"]]
         except Exception as e:
             log.warning("受注の補完: IRBANK 一覧の取得失敗 %s: %s", code, e)
             continue
