@@ -1,4 +1,5 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261022554320,2026-10-22T14:30,3181,買取王国,2027年２月期　第２四半期　決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261022554320.pdf,,東,2026-10-22T14:30
 140120261022554346,2026-10-22T14:00,9888,ＵＥＸ,業績予想の修正に関するお知らせ,forecast_revision,False,up,OperatingIncome,34.45,CurrentYearDuration,"{""NetIncome"": 15.3, ""NetSales"": 1.7999999999999998, ""OperatingIncome"": 34.45, ""OrdinaryIncome"": 38.75}",https://www.release.tdnet.info/inbs/140120261022554346.pdf,https://www.release.tdnet.info/inbs/091220261022554346.zip,東,2026-10-22T14:00
 140120261021554066,2026-10-22T14:00,8617,光世証,2027年３月期　第２四半期（中間期）決算短信〔日本基準〕（非連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261021554066.pdf,https://www.release.tdnet.info/inbs/081220261021554066.zip,東,2026-10-22T14:00
 140120261021554172,2026-10-22T13:00,5204,石塚硝,2027年３月期第２四半期の業績説明及び2027年３月期通期の業績予想,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261021554172.pdf,,東名,2026-10-22T13:00
