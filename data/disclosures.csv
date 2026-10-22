@@ -1,4 +1,6 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261022554396,2026-10-22T11:30,549A,ヒトトヒトＨＤ,2027年3月期通期業績予想の修正に関するお知らせ　補足説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261022554396.pdf,,東,2026-10-22T11:30
+140120261022554360,2026-10-22T11:30,549A,ヒトトヒトＨＤ,2027年3月期通期業績予想の修正に関するお知らせ,forecast_revision,False,up,NetSales,29.3,CurrentYearDuration,"{""NetSales"": 29.3}",https://www.release.tdnet.info/inbs/140120261022554360.pdf,https://www.release.tdnet.info/inbs/091220261022554360.zip,東,2026-10-22T11:30
 140120261021554193,2026-10-22T10:00,5078,セレコーポレーション,2027年２月期　上期決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261021554193.pdf,,東,2026-10-22T10:00
 140120261021554145,2026-10-21T16:00,6025,日本ＰＣサービス,2026年８月期 決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261021554145.pdf,,名,2026-10-21T16:00
 140120261020553507,2026-10-21T16:00,5576,オービーシステム,2027年３月期 第２四半期決算補足説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261020553507.pdf,,東,2026-10-21T16:00
