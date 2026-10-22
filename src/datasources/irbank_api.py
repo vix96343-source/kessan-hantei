@@ -1,6 +1,6 @@
 """IRBANK Connect の REST API(https://api.irbank.net/v1)。手元でのみ使う(キーは .env の IRBANK_API_KEY)。
 
-会社ごとの開示一覧(決算短信・決算説明資料の書類番号と PDF の URL)を取り、~/kessan-pdfs/irbank_index.csv にためる。
+会社ごとの開示一覧(決算短信・決算説明資料の書類番号と PDF の URL)を取り、~/kessan-pdfs/index/{コード}.csv にためる。
 上限は 1 分 60 回・1 日 4,000 回(MCP と合算、毎日 0:00 JST にリセット)なので、1.1 秒おきに呼び、
 その日の回数を ~/kessan-pdfs/irbank_quota.json に数えて 3,900 回で止める。PDF の取得(api.irbank.net/api/market-files)は
 認証が要らず、この回数には入らない。
@@ -114,34 +114,44 @@ class Client:
 
 # ---------------------------------------------------------------- 開示一覧の索引(手元)
 
-def index_path(data_dir: Path = DATA_DIR) -> Path:
-    return SHARED / "irbank_index.csv"
+def index_dir() -> Path:
+    """銘柄ごとの索引ファイルの置き場(作業用の repo・自動補完の clone・一括取得が同時に書いても壊れないよう1銘柄1ファイル)"""
+    return SHARED / "index"
 
 
-def load_index(data_dir: Path = DATA_DIR) -> pd.DataFrame:
-    p = index_path(data_dir)
-    if not p.exists():
+def _code_path(code: str) -> Path:
+    return index_dir() / f"{code}.csv"
+
+
+def load_index(data_dir: Path = DATA_DIR, code: str | None = None) -> pd.DataFrame:
+    """索引(code を渡すとその銘柄だけ)"""
+    files = [_code_path(code)] if code else sorted(index_dir().glob("*.csv"))
+    frames = [pd.read_csv(f, dtype=str, keep_default_na=False) for f in files if f.exists()]
+    if not frames:
         return pd.DataFrame(columns=INDEX_COLUMNS)
-    return pd.read_csv(p, dtype=str, keep_default_na=False)
+    return pd.concat(frames).reindex(columns=INDEX_COLUMNS).fillna("")
+
+
+def indexed_codes() -> set[str]:
+    return {f.stem for f in index_dir().glob("*.csv")}
 
 
 def append_index(code: str, rows: list[dict], data_dir: Path = DATA_DIR) -> None:
-    """その銘柄の行を入れ替えて保存(空でも「取った」印として1行残す)"""
-    df = load_index(data_dir)
+    """その銘柄の索引を書き直す(空でも「取った」印として1行残す)。一時ファイルに書いてから置き換える"""
     at = now_jst().strftime("%Y-%m-%dT%H:%M")
     new = pd.DataFrame([{**{k: r.get(k) or "" for k in INDEX_COLUMNS}, "code": code, "fetched_at": at} for r in rows]
                        or [{"code": code, "fetched_at": at}]).reindex(columns=INDEX_COLUMNS).fillna("")
-    out = pd.concat([df[df["code"] != code], new])
-    index_path(data_dir).parent.mkdir(parents=True, exist_ok=True)
-    out.to_csv(index_path(data_dir), index=False, encoding="utf-8")
+    index_dir().mkdir(parents=True, exist_ok=True)
+    tmp = index_dir() / f".{code}.{os.getpid()}.tmp"
+    new.to_csv(tmp, index=False, encoding="utf-8")
+    os.replace(tmp, _code_path(code))
 
 
 def earnings_reports(code: str, data_dir: Path = DATA_DIR, fetch: bool = True,
                      since: str = "2024-01-01", fresh_after: str = "") -> list[dict] | None:
     """その銘柄の TDnet の開示(索引から。無い・fresh_after より前に取った索引なら API で取り直して索引に足す)。
     キーが無い・上限なら索引のまま(無ければ None)"""
-    df = load_index(data_dir)
-    rows = df[df["code"] == code]
+    rows = load_index(data_dir, code)
     stale = not rows.empty and fresh_after and rows["fetched_at"].max() < fresh_after
     if rows.empty or stale:
         if not fetch:
@@ -154,6 +164,5 @@ def earnings_reports(code: str, data_dir: Path = DATA_DIR, fetch: bool = True,
                 return None
             return [r for r in rows.to_dict("records") if r["doc_id"] and r["source"] == "tdnet"]
         append_index(code, got, data_dir)
-        rows = load_index(data_dir)
-        rows = rows[rows["code"] == code]
+        rows = load_index(data_dir, code)
     return [r for r in rows.to_dict("records") if r["doc_id"] and r["source"] == "tdnet"]

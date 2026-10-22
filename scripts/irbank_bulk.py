@@ -1,7 +1,7 @@
 """IRBANK Connect の API で、上場企業の過去約2年分の決算短信・決算説明資料を手元に集める(続きから再開できる)。
 
 1. 上場銘柄の一覧(ETF・REIT などを除く)
-2. 銘柄ごとの開示一覧(2024-07-01 以降)を ~/kessan-pdfs/irbank_index.csv に(1 日 3,900 回まで。超えたら翌日に続き)
+2. 銘柄ごとの開示一覧(2024-07-01 以降)を ~/kessan-pdfs/index/{コード}.csv に(1 日 3,900 回まで。超えたら翌日に続き)
 3. 決算短信(訂正を除く)と決算説明資料の PDF を ~/kessan-pdfs/{コード}/{書類番号}.pdf に(認証不要・1 秒に 1 件)
 
 Windows のタスク スケジューラから 1 時間ごとに動かす(終わっていれば何もしない)。ログは ~/kessan-pdfs/irbank_bulk.log。
@@ -45,7 +45,7 @@ def securities(client: irbank_api.Client) -> list[str]:
 def build_index(client: irbank_api.Client) -> bool:
     """開示一覧を集める。全部終われば True"""
     codes = securities(client)
-    done = set(irbank_api.load_index()["code"])
+    done = irbank_api.indexed_codes()
     todo = [c for c in codes if c not in done]
     log.info("索引: 全 %d 銘柄、残り %d", len(codes), len(todo))
     for i, code in enumerate(todo):
