@@ -1,5 +1,5 @@
 {
-  "base_rate": 0.4391,
+  "base_rate": 0.4373,
   "buckets": {
     "div_down": {
       "mean_ret_pct": 11.84,
@@ -12,9 +12,9 @@
       "wins": 18
     },
     "div_up": {
-      "mean_ret_pct": 3.36,
-      "n": 33,
-      "wins": 21
+      "mean_ret_pct": 3.28,
+      "n": 34,
+      "wins": 22
     },
     "earnings_nodata": {
       "mean_ret_pct": -0.08,
@@ -22,23 +22,23 @@
       "wins": 1
     },
     "earnings_t0": {
-      "mean_ret_pct": -0.88,
-      "n": 491,
+      "mean_ret_pct": -0.89,
+      "n": 494,
       "wins": 167
     },
     "earnings_t1": {
-      "mean_ret_pct": -0.31,
-      "n": 161,
-      "wins": 73
+      "mean_ret_pct": -0.29,
+      "n": 167,
+      "wins": 76
     },
     "earnings_t2": {
-      "mean_ret_pct": 0.3,
-      "n": 50,
+      "mean_ret_pct": 0.27,
+      "n": 51,
       "wins": 23
     },
     "forecast_initial": {
-      "mean_ret_pct": 2.33,
-      "n": 15,
+      "mean_ret_pct": 1.95,
+      "n": 16,
       "wins": 8
     },
     "rev_down": {
@@ -47,9 +47,9 @@
       "wins": 0
     },
     "rev_down_large": {
-      "mean_ret_pct": -2.19,
-      "n": 39,
-      "wins": 8
+      "mean_ret_pct": -2.2,
+      "n": 43,
+      "wins": 9
     },
     "rev_down_small": {
       "mean_ret_pct": -0.34,
@@ -57,37 +57,37 @@
       "wins": 3
     },
     "rev_unknown": {
-      "mean_ret_pct": 0.52,
-      "n": 86,
+      "mean_ret_pct": 0.48,
+      "n": 88,
       "wins": 36
     },
     "rev_up": {
-      "mean_ret_pct": 3.92,
-      "n": 10,
+      "mean_ret_pct": 3.48,
+      "n": 11,
       "wins": 7
     },
     "rev_up_large": {
-      "mean_ret_pct": 6.13,
-      "n": 78,
-      "wins": 66
+      "mean_ret_pct": 6.04,
+      "n": 83,
+      "wins": 70
     },
     "rev_up_small": {
-      "mean_ret_pct": 2.28,
-      "n": 24,
+      "mean_ret_pct": 2.04,
+      "n": 25,
       "wins": 18
     }
   },
-  "n": 1043,
+  "n": 1068,
   "types": {
     "①": {
-      "mean_ret_pct": -0.04,
-      "n": 157,
-      "wins": 74
+      "mean_ret_pct": -0.08,
+      "n": 162,
+      "wins": 75
     },
     "③": {
-      "mean_ret_pct": -0.12,
-      "n": 104,
-      "wins": 45
+      "mean_ret_pct": -0.07,
+      "n": 107,
+      "wins": 47
     }
   }
 }
