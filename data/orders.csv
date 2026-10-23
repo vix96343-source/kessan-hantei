@@ -1,4 +1,10 @@
 disclosure_id,code,disclosed_at,n_q,period_end,status,data
+140120261023554949,2531,2026-10-23T15:30,1,2026-06-30,none,
+140120261022554582,6999,2026-10-23T15:30,2,2026-09-30,ok,"{""segments"": [{""name"": ""日本"", ""orders"": 16819000000.0, ""orders_prior"": null, ""orders_fy"": null, ""backlog"": 9225000000.0, ""backlog_prior"": null, ""backlog_fy"": null, ""orders_yoy"": 51.1, ""backlog_yoy"": 85.3}, {""name"": ""アジア"", ""orders"": 20763000000.0, ""orders_prior"": null, ""orders_fy"": null, ""backlog"": 9471000000.0, ""backlog_prior"": null, ""backlog_fy"": null, ""orders_yoy"": 71.6, ""backlog_yoy"": 147.0}, {""name"": ""アメリカ"", ""orders"": 7582000000.0, ""orders_prior"": null, ""orders_fy"": null, ""backlog"": 3129000000.0, ""backlog_prior"": null, ""backlog_fy"": null, ""orders_yoy"": 34.8, ""backlog_yoy"": 89.3}, {""name"": ""ヨーロッパ"", ""orders"": 8041000000.0, ""orders_prior"": null, ""orders_fy"": null, ""backlog"": 1415000000.0, ""backlog_prior"": null, ""backlog_fy"": null, ""orders_yoy"": 18.0, ""backlog_yoy"": 31.6}], ""total"": {""name"": ""合計"", ""orders"": 53206000000.0, ""orders_prior"": null, ""orders_fy"": null, ""backlog"": 23241000000.0, ""backlog_prior"": null, ""backlog_fy"": null, ""orders_yoy"": 49.1, ""backlog_yoy"": 101.4}, ""unit"": 1000000.0, ""tpl"": [{""header"": [[""セグメントの名称"", ""受注高(百万円)"", ""前年同期比(％)"", ""受注残高(百万円)"", ""前年同期比(％)""]], ""width"": 5, ""numeric_cols"": [1, 2, 3, 4], ""unit"": 1000000.0, ""rows"": [[""日本""], [""アジア""], [""アメリカ""], [""ヨーロッパ""], [""合計""]], ""parents"": [null, null, null, null, null]}]}"
+140120261022554556,7422,2026-10-23T15:30,3,2026-09-20,none,
+140120261022554549,9029,2026-10-23T15:30,2,2026-09-30,none,
+140120261021553848,6954,2026-10-23T15:30,2,2026-09-30,none,
+140120261017552562,2268,2026-10-23T15:30,3,2026-09-30,none,
 140120261022554879,2804,2026-10-23T15:00,2,2026-09-30,none,
 140120261022554820,8707,2026-10-23T15:00,2,2026-09-30,none,
 140120261022554660,7931,2026-10-23T15:00,2,2026-09-20,none,
