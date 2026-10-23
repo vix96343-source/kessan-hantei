@@ -374,6 +374,18 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
   }
 
 
+  // 業績予想の修正の中身: 期(中間期・通期など)ごとに 前回予想・今回予想・増減率・前期実績
+  function revTable(rv) {
+    if (!rv || !rv.length) return '';
+    const head = '<tr><th></th><th>売上高</th><th>営業益</th><th>経常益</th><th>最終益</th><th>EPS</th></tr>';
+    const line = (lab, vals, cls) => `<tr class="${cls || ''}"><td class="lab">${lab}</td>` + vals.map((v, i) => i === 4 ? epsCell(v) : num(v)).join('') + '</tr>';
+    const pct = (lab, vals) => `<tr><td class="lab">${lab}</td>` + vals.map(v => gcell(v)).join('') + '</tr>';
+    return `<div class="fincap">業績予想の修正(百万円)<span>EPSは円。一覧には修正率の大きい期を表示</span></div>`
+      + rv.map(p => `<div class="segname">${esc(p.period)}${p.main ? '(一覧に表示)' : ''}</div><div class="finbox"><table class="fin">${head}`
+        + line('前回予想', p.prev) + line('今回予想', p.cur, 'cur') + pct('増減率', p.chg) + line('前期実績', p.prior) + pct('前期比', p.yoy)
+        + '</table></div>').join('');
+  }
+
   function finTables(f) {
     if (!f) return '';
     let h = '';
@@ -391,7 +403,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
     return `<tr class="detail"><td colspan="20">
       <div class="dtitle">${esc(r.title)}</div>
       <div class="dlinks">${(r.pdfs || []).map(p => `<a href="${esc(p.url)}" target="_blank" rel="noopener" title="${esc(p.title || '')}">${esc(p.label === '資料' || p.label === '資料2' ? '説明資料' : p.label === '短信' ? '決算短信' : '修正の開示')}(PDF)</a>`).join('')}<a href="https://kabuyoho.jp/report?bcode=${encodeURIComponent(r.code)}" target="_blank" rel="noopener">株予報(コンセンサス)</a></div>
-      <div class="dcols"><div class="dcol">${finTables(r.fin)}${consTable(r.cons)}${orderHistory(r.ord)}</div>
+      <div class="dcols"><div class="dcol">${revTable(r.rev)}${finTables(r.fin)}${consTable(r.cons)}${orderHistory(r.ord)}</div>
       ${[segMatrix(r.seg), segQuarter(r.seg)].filter(h => h).map(h => `<div class="dcol">${h}</div>`).join('')}</div>
     </td></tr>`;
   }

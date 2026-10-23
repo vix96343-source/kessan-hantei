@@ -162,3 +162,17 @@ def test_quarter_numbers_single_quarter_yoy_qoq_and_eps():
 def test_company_name_drops_tdnet_market_mark():
     assert [site.company_name(x) for x in ["Ｇ－グロースエクスペ", "Ｐ－山八商事", "G-247HD", "U-NEXT", "MORESCO"]]         == ["グロースエクスペ", "山八商事", "247HD", "U-NEXT", "MORESCO"]
     assert site.company_name("G-7HD", listed=True) == "G-7HD"              # プライムの社名はそのまま
+
+
+def test_revision_table_shows_all_periods():
+    import json as _j
+    rv = {"period": "CurrentAccumulatedQ2Duration", "periods": _j.dumps({
+        "CurrentAccumulatedQ2Duration": {"cur": {"sales": 24180e6, "op": 1132e6, "ordinary": -141e6, "net": -91e6, "eps": -2.37},
+                                         "prev": {"sales": 34500e6, "op": 3600e6, "ordinary": 2650e6, "net": 1961e6, "eps": 51.22},
+                                         "prior": {"sales": 25193e6, "op": 2861e6, "ordinary": 2060e6, "net": 1413e6, "eps": 37.26}},
+        "CurrentYearDuration": {"cur": {"sales": 97000e6, "op": 16000e6, "ordinary": 14000e6, "net": 10360e6, "eps": 269.7},
+                                "prev": {"sales": 97000e6, "op": 16000e6, "ordinary": 15000e6, "net": 11100e6, "eps": 289.9},
+                                "prior": {"sales": 56245e6, "op": 6667e6, "ordinary": 5629e6, "net": 3818e6, "eps": 100.36}}})}
+    t = site.revision_table(rv)
+    assert [(x["period"], x["main"]) for x in t] == [("中間期", True), ("通期", False)]
+    assert t[0]["cur"][:2] == [24180, 1132] and t[0]["chg"][0] == -29.9

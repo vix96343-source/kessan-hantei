@@ -476,11 +476,26 @@ def parse_revision_values(zip_bytes: bytes) -> dict:
     if not htm:
         return {}
     facts = _scaled_facts(z.read(htm[0]).decode("utf-8", errors="replace"))
-    periods = {c.split("_")[0] for (_, c) in facts if "_CurrentMember_" in c and c.endswith("ForecastMember")}
-    period = next((p for p in ("CurrentYearDuration", "NextYearDuration", "CurrentAccumulatedQ2Duration")
-                   if p in periods), None)
-    if period is None:
+    periods = {c.split("_")[0] for (_, c) in facts if "_CurrentMember_" in c and
+               (c.endswith("ForecastMember") or c.endswith("UpperMember"))}
+    order = ("CurrentAccumulatedQ1Duration", "CurrentAccumulatedQ2Duration", "CurrentAccumulatedQ3Duration",
+             "CurrentYearDuration", "NextYearDuration")
+    found = [p for p in order if p in periods]
+    if not found:
         return {}
+    # 中間期と通期を両方修正した開示は、修正率の大きい期を一覧に出す(同じなら通期)。全部の期は periods に
+    allp = {p: _revision_period(facts, p) for p in found}
+
+    def size(b):
+        rates = [abs(b["cur"][k] / b["prev"][k] - 1) for k in METRIC_PATTERNS
+                 if b["cur"].get(k) is not None and b["prev"].get(k) not in (None, 0)]
+        return max(rates, default=0)
+    main = max(found, key=lambda p: (round(size(allp[p]), 4), p in ("CurrentYearDuration", "NextYearDuration")))
+    return {"period": main, **allp[main], "periods": allp}
+
+
+def _revision_period(facts: dict, period: str) -> dict:
+    """1つの期(中間期・通期など)の修正後の予想・前回予想・前期実績"""
     scope = "ConsolidatedMember" if any(c.startswith(f"{period}_ConsolidatedMember_") for (_, c) in facts)         else "NonConsolidatedMember"
     base = f"{period}_{scope}"
     prior_ctx = f"{period.replace('Current', 'Prior', 1).replace('NextYear', 'CurrentYear')}_{scope}_CurrentMember_ResultMember"
@@ -500,7 +515,7 @@ def parse_revision_values(zip_bytes: bytes) -> dict:
 
     prior = {k: _metric(facts, prior_ctx, k) for k in METRIC_PATTERNS}
     prior["eps"] = _eps(facts, prior_ctx)
-    return {"period": period, "cur": block("CurrentMember"), "prev": block("PreviousMember"), "prior": prior}
+    return {"cur": block("CurrentMember"), "prev": block("PreviousMember"), "prior": prior}
 
 
 # ---------------------------------------------------------------- XBRL の無い決算短信(PDF の1ページ目)

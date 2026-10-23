@@ -262,6 +262,35 @@ def revision_numbers(rv: dict | None) -> dict | None:
     return out
 
 
+REV_PERIOD = {"CurrentAccumulatedQ1Duration": "第1四半期(累計)", "CurrentAccumulatedQ2Duration": "中間期",
+              "CurrentAccumulatedQ3Duration": "第3四半期(累計)", "CurrentYearDuration": "通期", "NextYearDuration": "来期通期"}
+
+
+def revision_table(rv: dict | None) -> list[dict] | None:
+    """業績予想の修正の中身: 期(中間期・通期など)ごとに 前回予想・今回予想・増減率・前期実績(百万円、EPS は円)"""
+    if not rv:
+        return None
+    try:
+        periods = json.loads(rv.get("periods") or "{}")
+    except ValueError:
+        periods = {}
+    if not periods:
+        return None
+    ms = ["sales", "op", "ordinary", "net", "eps"]
+    fmt = lambda m, v: None if v is None else (round(v, 2) if m == "eps" else _mil(v))
+    out = []
+    for p, b in periods.items():
+        cur, prev, prior = b.get("cur") or {}, b.get("prev") or {}, b.get("prior") or {}
+        if all(cur.get(m) is None for m in ms):
+            continue
+        out.append({"period": REV_PERIOD.get(p, p), "main": p == rv.get("period"),
+                    "prev": [fmt(m, prev.get(m)) for m in ms], "cur": [fmt(m, cur.get(m)) for m in ms],
+                    "chg": [_growth(cur.get(m), prev.get(m)) for m in ms],
+                    "prior": [fmt(m, prior.get(m)) for m in ms],
+                    "yoy": [_growth(cur.get(m), prior.get(m)) for m in ms]})
+    return out or None
+
+
 def quarter_numbers(arch: dict | None, hist: list[dict]) -> dict | None:
     """一覧に出す数値。値と YoY は決算短信1ページ目の連結経営成績(期首からの累計・前年同期比)。
     QoQ は3か月(四半期単独)の値どうしの前四半期比(EPS は純利の QoQ)。売上〜純利は百万円、EPS は円。"""
@@ -680,6 +709,7 @@ def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:
                      "title": r["title"],
                      "nums": quarter_numbers(arch.get(r["disclosure_id"]), before(r, hist.get(r["code"], [])))
                      if r["kind"] == "earnings_report" else revision_numbers(revs.get(r["disclosure_id"])),
+                     "rev": None if r["kind"] == "earnings_report" else revision_table(revs.get(r["disclosure_id"])),
                      "ord": order_numbers(ord_by_id.get(r["disclosure_id"]), earlier(r, ords.get(r["code"], [])),
                                           ord_adj.get(r["code"])),
                      "fin": fin_panel(r, arch.get(r["disclosure_id"]) if r["kind"] == "earnings_report" else None,
