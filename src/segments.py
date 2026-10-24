@@ -451,7 +451,7 @@ def _parse_pdf_text(text: str, tpl: dict) -> dict | None:
     from .orders import _num
     n, unit, cols = tpl["n"], tpl["unit"], tpl["cols"]
     # 本文が「計」(セグメント間を含む)で書かれている会社: 今回の短信で決めた基準(tpl)か、PDF の本文の断り書き
-    inter = tpl.get("basis") == "計" or includes_intersegment(text)
+    inter = (tpl["basis"] == "計") if tpl.get("basis") else includes_intersegment(text)   # 今回の短信で決めた基準を優先
     lines = [l for l in text.splitlines() if l.strip()]
     blocks = []                                        # [(売上の行の値, 利益の行の値, 単位)]
     sales = ext = None
