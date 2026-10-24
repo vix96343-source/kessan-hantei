@@ -13,7 +13,7 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "scripts"))
 
 import local_backfill as lb  # noqa: E402
-from src import orders, segments, site  # noqa: E402
+from src import orders, pres_orders, segments, site  # noqa: E402
 from src.config import DATA_DIR, load_config  # noqa: E402
 
 log = logging.getLogger("history_fill")
@@ -32,6 +32,7 @@ def main() -> int:
         print(m.__name__, "読み直し", int(drop.sum()), flush=True)
     print("セグメント 前の四半期", segments.backfill(cfg), flush=True)
     print("セグメント 推移", segments.backfill_history(cfg, depth=11), flush=True)
+    print("受注 説明資料", pres_orders.build_from_local(), flush=True)
     print("受注 前の四半期", orders.backfill(cfg), flush=True)
     print("受注 推移", orders.backfill_history(cfg, depth=11), flush=True)
     rows = lb.added_rows(before, lb.snapshot())

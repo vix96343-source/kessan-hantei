@@ -5,7 +5,7 @@ import logging
 import sys
 from datetime import date, timedelta
 
-from . import calendar_fetch, consensus, disclosures, earnings, irdocs, order_adjust, orders, reaction, revisions, segments, site, universe
+from . import calendar_fetch, consensus, disclosures, earnings, irdocs, order_adjust, orders, pres_orders, reaction, revisions, segments, site, universe
 from .config import load_config, now_jst
 
 
@@ -15,6 +15,7 @@ def cmd_disclosures(args, cfg):
     stats["earnings"] = earnings.update(cfg)
     stats["revisions"] = revisions.update(cfg)    # 修正の行に出す修正後の予想など
     stats["orders"] = orders.update(cfg)          # 短信の受注高・受注残高の表
+    stats["orders"] += pres_orders.update(cfg)   # 短信に受注が無い会社は説明資料の「前年/今年/増減額/増減率」の表から
     stats["order_adjust"] = order_adjust.update(cfg)   # 受注の3か月の値の1の誤差を説明資料で直す
     stats["segments"] = segments.update(cfg)      # 短信のセグメント別の売上・利益
     # 変化が無い回はページも作り直さない(生成時刻だけ変わる無駄なコミットを防ぐ)
