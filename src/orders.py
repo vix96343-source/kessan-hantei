@@ -900,3 +900,27 @@ def update(cfg: dict, data_dir: Path = DATA_DIR, session: RateLimitedSession | N
                                                                                 encoding="utf-8")
     log.info("orders: %d (ok %d)", len(rows), sum(r["status"] == "ok" for r in rows))
     return len(rows)
+
+
+def drop_inconsistent_narrative(df: pd.DataFrame) -> tuple[pd.DataFrame, list[str]]:
+    """本文の文から読んだ受注(src=narrative)は「期首からの累計」として扱うので、同じ年度の中で受注高が減る会社は
+    文の数値が3か月の値(例: 「受注高:1,604百万円 …(3Q)」)とみなし、その会社の文から読んだ記録を使わない(status=bad)"""
+    ok = df[df["status"] == "ok"]
+    latest = ok.sort_values("disclosed_at").groupby("code").tail(1)
+    narr = set(latest[latest["data"].str.contains('"src": "narrative"')]["code"])   # 一番新しい記録が本文の文から
+    ok = ok[ok["code"].isin(narr)]
+    bad_codes = []
+    for code, g in ok.groupby("code"):
+        recs = sorted(((str(r["period_end"])[:7], int(float(r["n_q"] or 0)), json.loads(r["data"])["total"].get("orders"))
+                       for r in g.to_dict("records")), key=lambda t: t[0])
+        prev = {}
+        for ym, nq, v in recs:
+            p = prev.get(_ym_shift(ym, -3))
+            if v is not None and p and p[0] == nq - 1 and p[1] is not None and v < p[1] - 1e6:
+                bad_codes.append(code)
+                break
+            prev[ym] = (nq, v)
+    m = df["code"].isin(bad_codes) & (df["status"] == "ok")      # その会社の文から読んだ記録(過去の PDF の分も)
+    df = df.copy()
+    df.loc[m, "status"], df.loc[m, "data"] = "bad", ""
+    return df, bad_codes

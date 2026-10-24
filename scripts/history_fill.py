@@ -35,6 +35,9 @@ def main() -> int:
     print("受注 説明資料", pres_orders.build_from_local(), flush=True)
     print("受注 前の四半期", orders.backfill(cfg), flush=True)
     print("受注 推移", orders.backfill_history(cfg, depth=11), flush=True)
+    df, bad = orders.drop_inconsistent_narrative(orders.load(DATA_DIR))   # 3か月の値を書いている会社の文は使わない
+    df.to_csv(orders.path(DATA_DIR), index=False, encoding="utf-8")
+    print("受注 本文の文を使わない会社", bad, flush=True)
     rows = lb.added_rows(before, lb.snapshot())
     rows = {k: v[v["status"] == "ok"] for k, v in rows.items()}
     print("足す行", {k: len(v) for k, v in rows.items()}, flush=True)
