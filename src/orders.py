@@ -592,6 +592,33 @@ def fix_scale_to(x: dict, anchor_total: dict) -> dict:
     return x
 
 
+PDF_DIR = Path.home() / "kessan-pdfs"                  # scripts/irbank_bulk.py が集めた過去の短信・説明資料
+
+
+def past_pdf_text(session, code: str, did: str) -> str | None:
+    """過去の短信 PDF の文字。手元(~/kessan-pdfs/{コード}/{書類番号}.pdf、読んだ文字は .txt に保存)を先に見て、
+    無ければ IRBANK から取る。無い書類は None"""
+    from pypdf import PdfReader
+    doc = did[4:]
+    pdf, txt = PDF_DIR / code / f"{doc}.pdf", PDF_DIR / code / f"{doc}.txt"
+    if txt.exists():
+        return txt.read_text(encoding="utf-8")
+    if pdf.exists():
+        content = pdf.read_bytes()
+    else:
+        resp = session.get(IRBANK_PDF.format(doc=doc))
+        if resp is None:
+            return None
+        content = resp.content
+    text = "\n".join(p.extract_text() or "" for p in PdfReader(io.BytesIO(content)).pages)
+    if pdf.parent.exists():
+        try:
+            txt.write_text(text, encoding="utf-8")
+        except OSError:
+            pass
+    return text
+
+
 def _read_past_pdf(text: str, cur: dict) -> dict | None:
     """前の期の短信 PDF を今回と同じやり方で読む: 表の会社は表の形(tpl)で、本文の文から読んだ会社は本文から"""
     if cur.get("src") == "narrative":
@@ -641,10 +668,9 @@ def backfill_history(cfg: dict, depth: int = 20, data_dir: Path = DATA_DIR,
             seen.add(ym)
             x = None
             try:
-                resp = session.get(IRBANK_PDF.format(doc=did[4:]))
+                text = past_pdf_text(session, code, did)
                 stats["pdfs"] += 1
-                if resp is not None:
-                    text = "\n".join(p.extract_text() or "" for p in PdfReader(io.BytesIO(resp.content)).pages)
+                if text is not None:
                     x = _read_past_pdf(text, cur["data"])
                     if x:
                         x = fix_scale(code, ym, q, x, hist)
@@ -710,10 +736,9 @@ def backfill(cfg: dict, data_dir: Path = DATA_DIR, session: RateLimitedSession |
                 continue
             x = None
             try:
-                resp = session.get(IRBANK_PDF.format(doc=did[4:]))
+                text = past_pdf_text(session, code, did)
                 stats["pdfs"] += 1
-                if resp is not None:
-                    text = "\n".join(p.extract_text() or "" for p in PdfReader(io.BytesIO(resp.content)).pages)
+                if text is not None:
                     x = _read_past_pdf(text, cur["data"])
             except Exception as e:
                 log.warning("受注の補完: PDF の読み取り失敗 %s %s: %s", code, did, e)

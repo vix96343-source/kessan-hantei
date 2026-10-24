@@ -555,7 +555,7 @@ def backfill_history(cfg: dict, depth: int = 6, data_dir: Path = DATA_DIR,
     from pypdf import PdfReader
     from . import history
     from .datasources import irbank
-    from .orders import IRBANK_PDF, _irbank_earnings, _ym_shift
+    from .orders import IRBANK_PDF, _irbank_earnings, _ym_shift, past_pdf_text
 
     session = session or irbank.session_from_config(cfg)
     df = load(data_dir)
@@ -588,10 +588,9 @@ def backfill_history(cfg: dict, depth: int = 6, data_dir: Path = DATA_DIR,
             seen.add(ym)
             x = None
             try:
-                resp = session.get(IRBANK_PDF.format(doc=did[4:]))
+                text = past_pdf_text(session, code, did)
                 stats["pdfs"] += 1
-                if resp is not None:
-                    text = "\n".join(p.extract_text() or "" for p in PdfReader(io.BytesIO(resp.content)).pages)
+                if text is not None:
                     x = parse_pdf_text(text, cur["data"]["tpl"])
                     if x and not plausible(code, ym, q, x, hist):
                         x = None
@@ -619,7 +618,7 @@ def backfill(cfg: dict, data_dir: Path = DATA_DIR, session: RateLimitedSession |
     決算短信 PDF のセグメント情報の表を、今回と同じ列の並びで読んで補う(手元でのみ。Actions からは IRBANK が使えない)。"""
     from pypdf import PdfReader
     from .datasources import irbank
-    from .orders import IRBANK_PDF, _irbank_earnings_ids, _ym_shift
+    from .orders import IRBANK_PDF, _irbank_earnings_ids, _ym_shift, past_pdf_text
 
     from . import history
     session = session or irbank.session_from_config(cfg)
@@ -656,10 +655,9 @@ def backfill(cfg: dict, data_dir: Path = DATA_DIR, session: RateLimitedSession |
                 continue
             x = None
             try:
-                resp = session.get(IRBANK_PDF.format(doc=did[4:]))
+                text = past_pdf_text(session, code, did)
                 stats["pdfs"] += 1
-                if resp is not None:
-                    text = "\n".join(p.extract_text() or "" for p in PdfReader(io.BytesIO(resp.content)).pages)
+                if text is not None:
                     x = parse_pdf_text(text, cur["data"]["tpl"])
                     if x and not plausible(code, ym, nq, x, hist):
                         log.info("セグメントの補完: 連結売上と合わないので捨てる %s %s", code, ym)
