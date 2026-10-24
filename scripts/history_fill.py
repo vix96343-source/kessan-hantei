@@ -27,7 +27,7 @@ def main() -> int:
     before = lb.snapshot()
     for m in (segments, orders):                       # IRBANK から補って読めなかった行(T00:00)を読み直させる
         df = m.load(DATA_DIR)
-        drop = (df["status"] != "ok") & df["disclosed_at"].str.endswith("T00:00")
+        drop = (df["status"] == "none") & df["disclosed_at"].str.endswith("T00:00")   # bad(照合で合わない)は残す
         df[~drop].to_csv(m.path(DATA_DIR), index=False, encoding="utf-8")
         print(m.__name__, "読み直し", int(drop.sum()), flush=True)
     print("セグメント 前の四半期", segments.backfill(cfg), flush=True)

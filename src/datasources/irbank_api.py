@@ -166,3 +166,53 @@ def earnings_reports(code: str, data_dir: Path = DATA_DIR, fetch: bool = True,
         append_index(code, got, data_dir)
         rows = load_index(data_dir, code)
     return [r for r in rows.to_dict("records") if r["doc_id"] and r["source"] == "tdnet"]
+
+
+# ---------------------------------------------------------------- セグメント別業績(照合用)
+
+def _seg_key(n: str) -> str:
+    import re
+    import unicodedata
+    return re.sub(r"\s|・|事業$|部門$", "", unicodedata.normalize("NFKC", n or ""))
+
+
+def segment_cumulative(code: str) -> dict | None:
+    """IRBANK のセグメント別業績(単独四半期)を期首から足した累計: {名前の鍵: {期末YYYY-MM: (売上, 利益)}}(円)。
+    1日1回まで取りに行き ~/kessan-pdfs/irbank_seg/{code}.json に置く。キーが無い・上限なら None"""
+    cache = SHARED / "irbank_seg" / f"{code}.json"
+    today = now_jst().strftime("%Y-%m-%d")
+    raw = None
+    if cache.exists():
+        c = json.loads(cache.read_text(encoding="utf-8"))
+        if c.get("date") == today:
+            raw = c["segments"]
+    if raw is None:
+        if not api_key():
+            return None
+        try:
+            client = Client()
+            sec = client.get(f"securities/{code}")
+            ec = sec and sec.get("edinet_code")
+            raw = (client.get("segments", {"edinet_code": ec, "period": "quarter"}) or {}).get("segments", []) if ec else []
+        except (QuotaExceeded, RuntimeError, requests.RequestException) as e:
+            log.warning("IRBANK セグメント: %s %s", code, e)
+            return None
+        cache.parent.mkdir(parents=True, exist_ok=True)
+        cache.write_text(json.dumps({"date": today, "segments": raw}, ensure_ascii=False), encoding="utf-8")
+    q: dict = {}
+    for s in raw:
+        if s.get("fiscal_year") and s.get("quarter"):
+            q.setdefault(_seg_key(s.get("segment_name")), {})[(s["fiscal_year"], int(s["quarter"]))] = \
+                (s.get("revenue"), s.get("operating_income"))
+    out: dict = {}
+    for name, by in q.items():
+        for (fy, n) in by:
+            parts = [by.get((fy, k)) for k in range(1, n + 1)]
+            if any(p is None for p in parts):
+                continue
+            y, m = int(fy[:4]), int(fy[5:7]) - 3 * (4 - n)
+            y, m = y + (m - 1) // 12, (m - 1) % 12 + 1
+            out.setdefault(name, {})[f"{y:04d}-{m:02d}"] = (
+                None if any(p[0] is None for p in parts) else sum(p[0] for p in parts),
+                None if any(p[1] is None for p in parts) else sum(p[1] for p in parts))
+    return out

@@ -517,6 +517,29 @@ def _parse_pdf_text(text: str, tpl: dict) -> dict | None:
     return {"segments": segs, "total": total, "src": "irbank_pdf", "basis": "計" if inter else "外部顧客"}
 
 
+def irbank_consistent(code: str, ym: str, x: dict) -> bool:
+    """PDF から読んだ記録を IRBANK のセグメント別業績(XBRL から作られた累計)と照らす。合わなければ False。
+    利益は基準によらず比べ、売上は基準が外部顧客の記録だけ。IRBANK に無い(キーが無い等)ときは True"""
+    from .datasources import irbank_api
+    irb = irbank_api.segment_cumulative(code)
+    if not irb:
+        return True
+    ext = x.get("basis") != "計"
+    for sg in x["segments"]:
+        k = irbank_api._seg_key(sg["name"])
+        theirs = irb.get(k)
+        if theirs is None:
+            hits = [v for n, v in irb.items() if k and n and (k in n or n in k)]
+            theirs = hits[0] if len(hits) == 1 else None
+        t = theirs and theirs.get(ym)
+        if not t:
+            continue
+        for v, tv, use in ((sg.get("op"), t[1], True), (sg.get("sales"), t[0], ext)):
+            if use and v is not None and tv is not None and abs(v - tv) > 1.01e6:
+                return False
+    return True
+
+
 def plausible(code: str, ym: str, n_q: int, x: dict, hist: dict) -> bool:
     """PDF から読んだセグメントの売上の合計が、その期の連結売上(過去の四半期業績の累計)と見合うか。
     セグメントの「計」はセグメント間の売上を含むので少し大きくなる。連結売上が分からなければ判定しない。"""
@@ -561,7 +584,9 @@ def backfill_history(cfg: dict, depth: int = 6, data_dir: Path = DATA_DIR,
     df = load(data_dir)
     hist = {c: {q["end"]: q for q in v} for c, v in history.by_code(history.load(data_dir)).items()}
     arch = {a["disclosure_id"]: a for a in earnings.load_archive(data_dir).to_dict("records")}
-    have = {(r["code"], str(r["period_end"])[:7]) for r in df.to_dict("records") if r["period_end"] and r["status"] == "ok"}
+    # 読めた期と、IRBANK と合わなかった期(bad)は取り直さない
+    have = {(r["code"], str(r["period_end"])[:7]) for r in df.to_dict("records")
+            if r["period_end"] and r["status"] in ("ok", "bad")}
     latest = {}
     for r in df[df["status"] == "ok"].sort_values("disclosed_at").to_dict("records"):
         a = arch.get(r["disclosure_id"])
@@ -586,7 +611,7 @@ def backfill_history(cfg: dict, depth: int = 6, data_dir: Path = DATA_DIR,
             if ym in seen:
                 continue
             seen.add(ym)
-            x = None
+            x, bad = None, False
             try:
                 text = past_pdf_text(session, code, did)
                 stats["pdfs"] += 1
@@ -594,12 +619,14 @@ def backfill_history(cfg: dict, depth: int = 6, data_dir: Path = DATA_DIR,
                     x = parse_pdf_text(text, cur["data"]["tpl"])
                     if x and not plausible(code, ym, q, x, hist):
                         x = None
+                    elif x and not irbank_consistent(code, ym, x):
+                        x, bad = None, True
             except Exception as e:
                 log.warning("セグメントの推移: PDF の読み取り失敗 %s %s: %s", code, did, e)
             if x:
                 stats["ok"] += 1
             rows.append({"disclosure_id": did, "code": code, "disclosed_at": f"{did[4:8]}-{did[8:10]}-{did[10:12]}T00:00",
-                         "n_q": str(q), "period_end": ym, "status": "ok" if x else "none",
+                         "n_q": str(q), "period_end": ym, "status": "ok" if x else ("bad" if bad else "none"),
                          "data": json.dumps(x, ensure_ascii=False) if x else ""})
     if rows:
         new = pd.DataFrame(rows).reindex(columns=COLUMNS)
@@ -653,13 +680,16 @@ def backfill(cfg: dict, data_dir: Path = DATA_DIR, session: RateLimitedSession |
             did = next((i for i, q in ids if q == nq), None)
             if did is None:
                 continue
-            x = None
+            x, bad = None, False
             try:
                 text = past_pdf_text(session, code, did)
                 stats["pdfs"] += 1
                 if text is not None:
                     x = parse_pdf_text(text, cur["data"]["tpl"])
-                    if x and not plausible(code, ym, nq, x, hist):
+                    if x and not irbank_consistent(code, ym, x):
+                        log.info("セグメントの補完: IRBANK と合わないので捨てる %s %s", code, ym)
+                        x, bad = None, True
+                    elif x and not plausible(code, ym, nq, x, hist):
                         log.info("セグメントの補完: 連結売上と合わないので捨てる %s %s", code, ym)
                         x = None
             except Exception as e:
@@ -667,7 +697,7 @@ def backfill(cfg: dict, data_dir: Path = DATA_DIR, session: RateLimitedSession |
             if x:
                 stats["ok"] += 1
             rows.append({"disclosure_id": did, "code": code, "disclosed_at": f"{did[4:8]}-{did[8:10]}-{did[10:12]}T00:00",
-                         "n_q": str(nq), "period_end": ym, "status": "ok" if x else "none",
+                         "n_q": str(nq), "period_end": ym, "status": "ok" if x else ("bad" if bad else "none"),
                          "data": json.dumps(x, ensure_ascii=False) if x else ""})
     if rows:
         new = pd.DataFrame(rows).reindex(columns=COLUMNS)
