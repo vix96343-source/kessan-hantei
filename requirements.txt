@@ -10,3 +10,4 @@ pytest>=8.0
 playwright>=1.44
 pypdf>=4.0
 cryptography>=3.1        # 暗号化(AES)された短信 PDF を開くのに pypdf が使う
+pypdfium2>=4.0           # 説明資料の文字を速く読む
