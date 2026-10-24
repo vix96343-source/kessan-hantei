@@ -4,6 +4,7 @@
   - 「受注高 前年 今年 増減額 増減率」の形で、増減額 = 今年 − 前年(端数の ±1 まで)
   - 表の上に単位(百万円・千円・億円)が書いてある
   - 期間が累計とわかる(1Q・通期、または「累計」「中間」「上期」の表記)
+  - 同じ表の売上高の行が、その期の連結売上(短信)と一致する(全社の表で、同じ期間だと確かめる)
 読んだ値は、その説明資料と同じ日の決算短信の記録として data/orders.csv に入れる(src="presentation")。
 """
 import io
@@ -24,6 +25,7 @@ log = logging.getLogger(__name__)
 PDF_DIR = Path.home() / "kessan-pdfs"
 _UNITS = {"百万円": 1e6, "千円": 1e3, "億円": 1e8}
 _N = r"[△▲\-－+＋]?\d[\d,]*(?:\.\d+)?"
+_SALES = re.compile(r"^(?:売上高|売上収益|営業収益)\s+(?P<a>" + _N + r")\s+(?P<b>" + _N + r")\s+(?P<d>" + _N + r")\s+(?P<r>" + _N + r")%\s*$")
 _ROW = re.compile(r"^(?P<lab>受注高|受注額|受注残高?|繰越工事高(?:\(受注残\))?|受注残高?\(繰越\))[^\d△▲\-－+＋]{0,20}?\s+"
                   r"(?P<a>" + _N + r")\s+(?P<b>" + _N + r")\s+(?P<d>" + _N + r")\s+(?P<r>" + _N + r")%\s*$")
 
@@ -77,8 +79,33 @@ def parse_text(text: str, n_q: int | None) -> dict | None:
             key = "orders" if m["lab"] in ("受注高", "受注額") else "backlog"
             if key in out:
                 continue
+            # 同じ表(前後 12 行)の売上高の行(同じ形・検算つき)。全社の表かどうかを短信の連結売上と照らすのに使う
+            sales = None
+            for l2 in lines[max(0, i - 12):i + 13]:
+                ms = _SALES.match(l2)
+                if ms and abs((_num(ms["b"]) - _num(ms["a"])) - _num(ms["d"])) <= 1.01:
+                    sales = _num(ms["b"]) * unit
+                    break
+            if sales is None:
+                continue
             out[key] = b * unit
             out[f"{key}_yoy"] = None if a == 0 else round((b / a - 1) * 100, 1)
+            out[f"{key}_sales"] = sales
+    return out or None
+
+
+def matches_consolidated(x: dict, code: str, ym: str, n_q: int, hist: dict) -> dict | None:
+    """読んだ受注の表の売上高が、その期の連結売上(短信の四半期の値の累計)と単位の丸めの範囲で一致するものだけ残す"""
+    qs = [hist.get(code, {}).get(orders._ym_shift(ym, -3 * k)) for k in range(n_q)]
+    if any(q is None or q.get("sales") is None for q in qs):
+        return None
+    cons = sum(q["sales"] for q in qs)
+    out = {}
+    for key in ("orders", "backlog"):
+        s = x.get(f"{key}_sales")
+        unit = 1e8 if s and s % 1e8 == 0 and abs(s - cons) < 1e8 else 1e6
+        if s is not None and abs(s - cons) <= max(unit, abs(cons) * 0.002):
+            out[key], out[f"{key}_yoy"] = x[key], x[f"{key}_yoy"]
     return out or None
 
 
@@ -107,6 +134,8 @@ def build_from_local(data_dir: Path = DATA_DIR) -> int:
     idx = idx.assign(kind=kind.map(lambda c: c["kind"]), corr=kind.map(lambda c: c["is_correction"]))
     reps = idx[(idx["kind"] == "earnings_report") & ~idx["corr"]]
     pres = idx[idx["kind"] == "earnings_presentation"]
+    from . import history
+    hist = {c: {q["end"]: q for q in v} for c, v in history.by_code(history.load(data_dir)).items()}
     rows = []
     for p in pres.to_dict("records"):
         if p["code"] in skip:
@@ -124,7 +153,8 @@ def build_from_local(data_dir: Path = DATA_DIR) -> int:
             continue
         n_q, ym = orders._quarter_of_title(rep["title"]), orders.period_end_of_title(rep["title"])
         x = parse_text(text_of(pdf), n_q)
-        if not x or not ym:
+        x = x and ym and matches_consolidated(x, p["code"], ym, n_q, hist)
+        if not x:
             continue
         rows.append(_record(p["code"], did, f"{rep['filing_date']}T00:00", n_q, ym, x, p["doc_id"]))
         have.add(did)
@@ -148,6 +178,8 @@ def update(cfg: dict, data_dir: Path = DATA_DIR) -> int:
     arch = {a["disclosure_id"]: a for a in earnings.load_archive(data_dir).to_dict("records")}
     reps = disc[(disc["kind"] == "earnings_report") & (disc["is_correction"] != "True")]
     pres = disc[disc["kind"] == "earnings_presentation"].sort_values("disclosed_at").tail(300)
+    from . import history
+    hist = {c: {q["end"]: q for q in v} for c, v in history.by_code(history.load(data_dir)).items()}
     session = None
     rows = []
     for p in pres.to_dict("records"):
@@ -179,6 +211,7 @@ def update(cfg: dict, data_dir: Path = DATA_DIR) -> int:
             continue
         n_q = int(float(a["n_q"]))
         x = parse_text(text, n_q)
+        x = x and matches_consolidated(x, p["code"], str(a["period_end"])[:7], n_q, hist)
         if x:
             rows.append(_record(p["code"], rep["disclosure_id"], rep["disclosed_at"], n_q, str(a["period_end"])[:7], x,
                                 p["disclosure_id"][4:]))
