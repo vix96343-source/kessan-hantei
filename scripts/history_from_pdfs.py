@@ -68,6 +68,8 @@ def main() -> int:
         for ym, (n_q, c, filed) in by.items():
             if f"{code}|{ym}" in have:
                 continue
+            if filed and filed[:7] <= ym:
+                continue                               # 期末より前の発表は決算期の変更(変則決算)の読み違い
             if n_q == 1:
                 single = dict(c)
             else:
