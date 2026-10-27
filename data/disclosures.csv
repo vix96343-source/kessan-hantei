@@ -1,4 +1,5 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261015551667,2026-10-27T16:30,5279,日本興業,2027年3月期 第2四半期（中間期）決算短信[日本基準]（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261015551667.pdf,https://www.release.tdnet.info/inbs/081220261015551667.zip,東,2026-10-27T16:30
 140120261027556923,2026-10-27T16:00,4973,高純度化,2027年３月期　第２四半期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261027556923.pdf,,東,2026-10-27T16:01
 140120261027556910,2026-10-27T16:00,2798,Ｙ’ｓ,2027年２月期第２四半期（中間期）　決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261027556910.pdf,,東,2026-10-27T16:01
 140120261027556848,2026-10-27T16:00,4973,高純度化,2027年３月期　第２四半期決算短信〔日本基準〕（非連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261027556848.pdf,https://www.release.tdnet.info/inbs/081220261027556848.zip,東,2026-10-27T16:01
