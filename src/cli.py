@@ -5,7 +5,7 @@ import logging
 import sys
 from datetime import date, timedelta
 
-from . import calendar_fetch, consensus, disclosures, earnings, irdocs, order_adjust, orders, pres_orders, reaction, revisions, segments, site, universe
+from . import breakdown, calendar_fetch, consensus, disclosures, earnings, irdocs, order_adjust, orders, pres_orders, reaction, revisions, segments, site, universe
 from .config import load_config, now_jst
 
 
@@ -18,6 +18,7 @@ def cmd_disclosures(args, cfg):
     stats["orders"] += pres_orders.update(cfg)   # 短信に受注が無い会社は説明資料の「前年/今年/増減額/増減率」の表から
     stats["order_adjust"] = order_adjust.update(cfg)   # 受注の3か月の値の1の誤差を説明資料で直す
     stats["segments"] = segments.update(cfg)      # 短信のセグメント別の売上・利益
+    stats["segments"] += breakdown.update(cfg)    # 品目別・製品別などの売上の内訳(セグメントが1つの会社など)
     # 変化が無い回はページも作り直さない(生成時刻だけ変わる無駄なコミットを防ぐ)
     # (IRサイトの説明資料探しは固まっても監視を止めないよう、watch.yml で別プロセスとして実行する)
     if stats["new_rows"] or stats["xbrl_parsed"] or stats["earnings"]["evaluated"] or stats["revisions"] or stats["orders"] or stats["segments"] or stats["order_adjust"] \

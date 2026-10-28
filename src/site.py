@@ -13,7 +13,7 @@ from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader
 
-from . import calendar_fetch, consensus, disclosures, earnings, history, irdocs, order_adjust, orders, reaction, revisions, segments, universe
+from . import breakdown, calendar_fetch, consensus, disclosures, earnings, history, irdocs, order_adjust, orders, reaction, revisions, segments, universe
 from .config import DATA_DIR, ROOT, now_jst
 
 DOCS_DIR = ROOT / "docs"
@@ -631,6 +631,65 @@ def company_name(name: str, listed: bool = False) -> str:
     return n if listed else _MARKET_MARK.sub("", n)
 
 
+def breakdown_numbers(rec: dict | None, past: list[dict]) -> dict | None:
+    """品目別・製品別などの売上の内訳: 品目ごとの3か月の売上と YoY・QoQ の推移(セグメントの表と同じ形、利益は無い)"""
+    if not rec or not rec.get("period_end"):
+        return None
+    by_end = {str(p["period_end"])[:7]: p for p in past if p.get("period_end")}
+    end = str(rec["period_end"])[:7]
+    by_end[end] = rec
+    key = lambda n: re.sub(r"\s", "", unicodedata.normalize("NFKC", n))
+    nq_at = lambda ym: int(float(by_end[ym]["n_q"])) if ym in by_end and by_end[ym].get("n_q") else None
+
+    def item(ym, k):
+        r = by_end.get(ym)
+        return next((x for x in r["data"]["items"] if key(x["name"]) == k), None) if r else None
+
+    def single(ym, k, prior=False):
+        f = "sales_prior" if prior else "sales"
+        x, nq = item(ym, k), nq_at(ym)
+        c = x and x.get(f)
+        if c is None or nq is None:
+            return None
+        if nq == 1:
+            return c
+        if nq_at(_ym_shift(ym, -3)) != nq - 1:
+            return None
+        b = item(_ym_shift(ym, -3), k)
+        b = b and b.get(f)
+        return None if b is None or c - b < 0 else c - b
+
+    hist = []
+    for it in rec["data"]["items"]:
+        if it.get("adj"):                              # 消去・調整・外部顧客への売上高などの行は出さない
+            continue
+        k = key(it["name"])
+        rows = []
+        for ym in sorted(y for y in by_end if y <= end)[-5:]:
+            q = nq_at(ym)
+            v = single(ym, k)
+            fy = _ym_shift(ym, 3 * (4 - q)) if q else ""
+            if q and v is None and ym == end and q > 1 and item(_ym_shift(ym, -3), k) is None:
+                # 前の四半期が読めず3か月にできないときは、今回の累計を「累計」と明記して出す
+                x = item(ym, k)
+                if x and x.get("sales") is not None:
+                    rows.append({"label": f"{fy[2:4]}/{int(fy[5:7])} {q}Q累計", "end": ym, "q": q, "cum": True,
+                                 "sales": {"v": _man(x["sales"]), "yoy": _growth(x["sales"], x.get("sales_prior")), "qoq": None},
+                                 "op": None})
+                continue
+            if q is None or v is None:
+                continue
+            p = single(ym, k, prior=True)
+            if p is None:
+                p = single(_ym_shift(ym, -12), k)
+            rows.append({"label": f"{fy[2:4]}/{int(fy[5:7])} {q}Q", "end": ym, "q": q,
+                         "sales": {"v": _man(v), "yoy": _growth(v, p), "qoq": _growth(v, single(_ym_shift(ym, -3), k))},
+                         "op": None})
+        if rows:
+            hist.append({"name": it["name"], "rows": rows, "sub": bool(it.get("sub"))})
+    return {"title": rec["data"].get("title") or "内訳", "hist": hist} if hist else None
+
+
 def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:
     """取り込み済みの全期間の決算・修正(新しい順)。"""
     all_disc = disclosures.load(data_dir)
@@ -662,6 +721,8 @@ def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:
             if a and not o["period_end"]:
                 o["n_q"], o["period_end"] = a["n_q"], a["period_end"]
     seg_by_id = {o["disclosure_id"]: o for recs in segs.values() for o in recs}
+    brks = breakdown.by_code(data_dir)
+    brk_by_id = {o["disclosure_id"]: o for recs in brks.values() for o in recs}
     cons = consensus.by_code(data_dir)
     # 株数(EPS の換算用): 短信の 累計純利益 ÷ 累計EPS。その開示の時点で一番新しい短信のもの
     shares_hist: dict[str, list[tuple[str, float]]] = {}
@@ -721,6 +782,13 @@ def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:
         rows[-1]["seg"] = segment_numbers(seg_by_id.get(r["disclosure_id"]),
                                           earlier(r, segs.get(r["code"], [])),
                                           rows[-1]["nums"], rows[-1]["ord"]) if r["kind"] == "earnings_report" else None
+        rows[-1]["brk"] = breakdown_numbers(brk_by_id.get(r["disclosure_id"]), earlier(r, brks.get(r["code"], []))) \
+            if r["kind"] == "earnings_report" else None
+        if rows[-1]["brk"] and rows[-1]["seg"]:             # セグメントと同じ表(名前が半分以上同じ)なら二重に出さない
+            sn = {re.sub(r"\s", "", h["name"]) for h in rows[-1]["seg"].get("hist", [])}
+            bn = [re.sub(r"\s", "", h["name"]) for h in rows[-1]["brk"]["hist"]]
+            if sum(n in sn for n in bn) * 2 >= len(bn):
+                rows[-1]["brk"] = None
         rows[-1]["cons"] = consensus_panel(consensus.snapshot(cons.get(r["code"], []), r["disclosed_at"]),
                                            arch.get(r["disclosure_id"])) if r["kind"] == "earnings_report" else None
     return rows
