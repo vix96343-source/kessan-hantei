@@ -1,4 +1,10 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261028557860,2026-10-28T12:30,8218,コメリ,2027年3月期(中間期)決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261028557860.pdf,,東,2026-10-28T12:32
+140120261028557375,2026-10-28T12:30,3778,さくらインターネット,2027年3月期第2四半期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261028557375.pdf,,東,2026-10-28T12:32
+140120261027556998,2026-10-28T12:30,3778,さくらインターネット,第２四半期連結業績予想と実績値との差異及び通期連結業績予想の修正に関するお知らせ,forecast_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261027556998.pdf,,東,2026-10-28T12:32
+140120261027556964,2026-10-28T12:30,3778,さくらインターネット,2027年3月期第2四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261027556964.pdf,https://www.release.tdnet.info/inbs/081220261027556964.zip,東,2026-10-28T12:32
+140120261014550424,2026-10-28T12:30,1934,ユアテック,業績予想の修正および配当予想の修正（増配）ならびに剰余金の配当（中間配当）に関するお知らせ,forecast_dividend_revision,False,up,,,,,https://www.release.tdnet.info/inbs/140120261014550424.pdf,,東,2026-10-28T12:32
+140120260902530450,2026-10-28T12:30,1934,ユアテック,2027年３月期 第２四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120260902530450.pdf,https://www.release.tdnet.info/inbs/081220260902530450.zip,東,2026-10-28T12:32
 140120261028557561,2026-10-28T12:00,8595,ＪＡＦＣＯ,2027年３月期  第２四半期（中間期）決算短信〔日本基準〕（非連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261028557561.pdf,https://www.release.tdnet.info/inbs/081220261028557561.zip,東,2026-10-28T12:04
 140120261028557442,2026-10-28T12:00,4234,サンエー化研,剰余金の配当(中間配当)及び期末配当予想の修正に関するお知らせ,dividend_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261028557442.pdf,https://www.release.tdnet.info/inbs/091220261028557442.zip,東,2026-10-28T12:04
 140120261027557057,2026-10-28T12:00,368A,北里,2027年３月期第２四半期（中間期）決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261027557057.pdf,https://www.release.tdnet.info/inbs/081220261027557057.zip,東,2026-10-28T12:04
