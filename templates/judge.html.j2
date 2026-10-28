@@ -66,8 +66,9 @@ details .why { padding: 0 6px 10px 120px; color: var(--muted); font: 400 13px/1.
 <div class="sec">事後検証(発表前の情報だけで判定 → 翌朝の寄付)</div>
 {% if bt.n %}
 <div class="sub">{{ bt.since | dlabel }}〜{{ bt.until | dlabel }} に決算を出した {{ bt.n }} 銘柄。寄付ギャップ = 発表直前の終値 → 発表翌営業日の寄付。同じ日に TOB・経営統合などが出た銘柄は除外。</div>
-<div class="note">現状のスコアには予測力が見られません(順位相関 {{ "%+.3f"|format(bt.corr) }})。★★GAP の上昇率も全体と大差ありません。
-因子の「会社予想の加速」は MARUWA を見て追加したもので、この検証は1シーズン分です。重みの見直しは件数がたまってから行います。</div>
+<div class="note">{% if bt.corr|abs < 0.1 %}現状のスコアには予測力が見られません(順位相関 {{ "%+.3f"|format(bt.corr) }})。{% else %}スコアと寄付ギャップの順位相関は {{ "%+.3f"|format(bt.corr) }} です。{% endif %}
+ただし「事前の株価上昇」は、この同じ検証で逆向き(上げていた銘柄ほど寄付も高い)だったのを見て減点 → 加点に変えたもの、「会社予想の加速」は MARUWA を見て追加したものです。
+同じデータで決めた因子は当たって見えやすいので、本当に効くかは次の決算シーズンの検証で確かめます(1シーズン分のみ)。</div>
 <div class="tiles">
   <div class="tile"><div class="k">件数</div><div class="v">{{ bt.n }}</div></div>
   <div class="tile"><div class="k">スコアとの順位相関</div><div class="v">{{ "%+.2f"|format(bt.corr) }}</div></div>

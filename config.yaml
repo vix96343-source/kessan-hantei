@@ -44,7 +44,7 @@ factors:
   beat_history:
     weight: 0.0              # 未実装(過去の会社計画が要る)。CLAUDE.md の初期値は 0.15
   momentum_pricing:
-    weight: -0.15            # 負方向(事前に上げた銘柄は織り込み済み)
+    weight: 0.15             # 正方向(事前に上げた銘柄ほど寄付も高い。2026-10 の事後検証で減点→加点に変更)
     ret_scale_pct: 20        # 20営業日リターン ±20% で ±1
     dev_scale_pct: 10        # 25日線乖離 ±10% で ±1
   revision_recency:
