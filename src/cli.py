@@ -5,7 +5,7 @@ import logging
 import sys
 from datetime import date, timedelta
 
-from . import breakdown, calendar_fetch, consensus, disclosures, earnings, irdocs, order_adjust, orders, pres_orders, reaction, revisions, segments, site, universe
+from . import backtest, breakdown, calendar_fetch, consensus, disclosures, earnings, forecasts, irdocs, judge, order_adjust, orders, pres_orders, reaction, revisions, segments, site, universe
 from .config import load_config, now_jst
 
 
@@ -87,7 +87,38 @@ def cmd_run(args, cfg):
     # 決算予定の銘柄のアナリスト予想(発表前の値を残す)
     print(json.dumps({"consensus": consensus.update(cfg)}, ensure_ascii=False))
     print(json.dumps(reaction.update(cfg), ensure_ascii=False))
+    try:                                          # 判定の失敗で速報サイトの更新を止めない
+        print(f"judge: {len(judge.judge(cfg))} 件")
+    except Exception as e:
+        logging.getLogger(__name__).warning("judge 失敗: %s", e)
     cmd_site(args, cfg)
+
+
+def cmd_judge(args, cfg):
+    """M3: 決算持ち越しの判定(既定: 翌営業日の発表銘柄)。--backfill は手元で IRBANK から前回の短信を補う"""
+    if args.backfill:
+        t = judge.backfill_targets(cfg)
+        if args.code:
+            t = [(c, d) for c, d in t if c == args.code] or                 ([(args.code, date.fromisoformat(args.date))] if args.date else [])
+        print(json.dumps(forecasts.backfill(cfg, t, judge.have_recent_snapshot(t)), ensure_ascii=False))
+        return
+    ann = date.fromisoformat(args.date) if args.date else None
+    out = judge.judge(cfg, announce=ann, code=args.code, write=not args.dry_run)
+    for r in out.itertuples():
+        print(f"{r.gap_class:8} {float(r.score_total):+.3f} EV{float(r.ev_pred_pct):+.1f}% {r.code} {r.name} "
+              f"[{r.conviction}] {r.reason_quant}")
+
+
+def cmd_judge_backtest(args, cfg):
+    """判定の事後検証: 期間内に決算を出した銘柄を発表前の情報だけで判定し、寄付ギャップと比べる"""
+    until = args.until or now_jst().strftime("%Y-%m-%d")
+    tg = backtest.targets(cfg, args.since, until)
+    if args.backfill:                             # 手元のみ: 発表前の会社予想を IRBANK から補う
+        print(json.dumps(backtest.backfill(cfg, tg), ensure_ascii=False))
+    df = backtest.run(cfg, tg)
+    print(json.dumps(backtest.summary(df, cfg), ensure_ascii=False, indent=1))
+    if not args.no_site:
+        print(site.render_all(cfg))
 
 
 def cmd_site(args, cfg):
@@ -145,6 +176,20 @@ def main(argv=None):
     s = sub.add_parser("run", help="universe(週1) → calendar → 株価反応 → サイト再生成")
     s.add_argument("--force-universe", action="store_true")
     s.set_defaults(func=cmd_run)
+
+    s = sub.add_parser("judge", help="M3: 決算持ち越しの判定 → data/predictions.csv")
+    s.add_argument("--date", help="発表日 YYYY-MM-DD(既定: 翌営業日)")
+    s.add_argument("--code", help="1銘柄だけ判定(カレンダーに無い過去日も可)")
+    s.add_argument("--dry-run", action="store_true", help="predictions.csv に書かない")
+    s.add_argument("--backfill", action="store_true", help="手元のみ: 前回の短信を IRBANK から補う")
+    s.set_defaults(func=cmd_judge)
+
+    s = sub.add_parser("judge-backtest", help="判定の事後検証 → data/judge_backtest.csv(サイトの「判定」ページ)")
+    s.add_argument("--since", required=True, help="この日以降に決算を出した銘柄 YYYY-MM-DD")
+    s.add_argument("--until", help="この日まで(既定: 今日)")
+    s.add_argument("--backfill", action="store_true", help="手元のみ: 発表前の会社予想を IRBANK から補う")
+    s.add_argument("--no-site", action="store_true")
+    s.set_defaults(func=cmd_judge_backtest)
 
     s = sub.add_parser("site", help="docs/ のサイトを再生成(取得なし)")
     s.set_defaults(func=cmd_site)

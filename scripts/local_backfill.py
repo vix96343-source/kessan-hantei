@@ -14,12 +14,12 @@ sys.path.insert(0, str(ROOT))
 
 import pandas as pd  # noqa: E402
 
-from src import orders, segments, site  # noqa: E402
+from src import forecasts, judge, orders, segments, site  # noqa: E402
 from src.config import DATA_DIR, load_config  # noqa: E402
 
 LOG = ROOT / "data" / "cache" / "local_backfill.log"
 log = logging.getLogger("local_backfill")
-FILES = {"segments": segments, "orders": orders}
+FILES = {"segments": segments, "orders": orders, "forecasts": forecasts}
 
 
 def git(*args, check=True):
@@ -60,6 +60,12 @@ def main() -> int:
     git("reset", "-q", "--hard", "origin/main")
     before = snapshot()
     stats = {"segments": segments.backfill(cfg), "orders": orders.backfill(cfg)}
+    # 判定(judge)用: 決算予定の銘柄の前回の短信(会社予想)。Actions の daily(20:05〜)の判定より前に足しておく
+    try:
+        t = judge.backfill_targets(cfg)
+        stats["forecasts"] = forecasts.backfill(cfg, t, judge.have_recent_snapshot(t))
+    except Exception as e:
+        log.warning("forecasts backfill 失敗: %s", e)
     rows = added_rows(before, snapshot())
     log.info("backfill %s / 追加 %s", stats, {k: len(v) for k, v in rows.items()})
     if not rows:
@@ -71,7 +77,7 @@ def main() -> int:
             apply_rows(rows)
         site.render_all(cfg)
         git("add", "data", "docs")
-        git("commit", "-qm", "data: 前の四半期のセグメント・受注を補完(手元・IRBANK)", check=False)
+        git("commit", "-qm", "data: 前の四半期のセグメント・受注・会社予想を補完(手元・IRBANK)", check=False)
         if git("push", "-q", "origin", "HEAD:main", check=False).returncode == 0:
             log.info("push ok")
             return 0

@@ -2,6 +2,7 @@
 
 - index.html: TDnet 決算速報(開示日を選んで決算・修正を一覧。data/index.json を1分ごとに確認して自動更新)
 - calendar.html: 翌営業日〜N営業日先の決算予定
+- judge.html: 持ち越し判定(M3)と事後検証
 上昇確度は score_of() に集約。決算短信は3つの型(earnings.py)への該当数ごとの過去の上昇率。
 """
 import hashlib
@@ -13,7 +14,7 @@ from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader
 
-from . import breakdown, calendar_fetch, consensus, disclosures, earnings, history, irdocs, order_adjust, orders, reaction, revisions, segments, universe
+from . import backtest, breakdown, calendar_fetch, consensus, disclosures, earnings, history, irdocs, judge, order_adjust, orders, reaction, revisions, segments, universe
 from .config import DATA_DIR, ROOT, now_jst
 
 DOCS_DIR = ROOT / "docs"
@@ -805,6 +806,45 @@ def calendar_rows(data_dir: Path = DATA_DIR) -> list[dict]:
             for r in df.itertuples()]
 
 
+FACTOR_LABEL = {"progress_gap": "進捗率の差", "guidance_acceleration": "会社予想の加速",
+                "guidance_conservatism": "今期の修正の向き", "momentum_pricing": "事前の株価上昇",
+                "revision_recency": "直前の修正", "beat_history": "計画超過の実績"}
+
+
+def judge_context(cfg: dict, data_dir: Path = DATA_DIR) -> dict:
+    """判定ページ: 次の発表分の判定(predictions.csv の最新バッチ)と事後検証(judge_backtest.csv)"""
+    today = now_jst().strftime("%Y-%m-%d")
+    p = judge.load(data_dir)
+    p = p[p["announce_date"] >= today]
+    preds = []
+    if not p.empty:
+        last = p[p["batch_id"] == p["batch_id"].max()]
+        last = last[last["announce_date"] == last["announce_date"].min()]
+        cal = calendar_fetch.load(data_dir).set_index(["announce_date", "code"])
+        for r in last.sort_values("ev_pred_pct", key=lambda x: x.astype(float), ascending=False).to_dict("records"):
+            c = cal.loc[(r["announce_date"], r["code"])] if (r["announce_date"], r["code"]) in cal.index else None
+            preds.append({"code": r["code"], "name": r["name"], "announce_date": r["announce_date"],
+                          "gap_class": r["gap_class"], "ev": float(r["ev_pred_pct"]), "score": float(r["score_total"]),
+                          "conviction": r["conviction"], "reason": r["reason_quant"],
+                          "intraday": c is not None and c["announce_timing"] == "場中",
+                          "time": (c["announce_time"] if c is not None else "") or ""})
+    bt = backtest.load(data_dir)
+    sm = backtest.summary(bt, cfg)
+    for f in sm["factors"]:
+        f["label"] = FACTOR_LABEL.get(f["name"], f["name"])
+        f["weight"] = float(cfg["factors"].get(f["name"], {}).get("weight", 0))
+    order = {"★★GAP": 0, "★GAP": 1, "PASS": 2, "CAUTION": 3}
+    bt = bt.assign(_o=bt["gap_class"].map(order)).sort_values(["_o", "score_total"], ascending=[True, False])
+    rows = [{"date": r["disclosed_at"][:10], "md": f"{int(r['disclosed_at'][5:7])}/{int(r['disclosed_at'][8:10])}",
+             "code": str(r["code"]), "name": r["name"], "gap_class": r["gap_class"],
+             "score": float(r["score_total"]), "gap": float(r["gap_open_pct"]), "reason": r["reason_quant"],
+             "ref": float(r["ref_close"]), "open": float(r["next_open"])}
+            for r in bt.to_dict("records")]
+    sm.update(rows=rows, since=min((r["date"] for r in rows), default=today),
+              until=max((r["date"] for r in rows), default=today), corr=sm.get("corr") or 0.0)
+    return {"preds": preds, "bt": sm}
+
+
 def _group(rows: list[dict]) -> list[tuple[str, list[dict]]]:
     out = []
     for r in rows:
@@ -864,6 +904,7 @@ def render_all(cfg: dict, data_dir: Path = DATA_DIR, docs_dir: Path = DOCS_DIR) 
                                             proxy=(cfg.get("site") or {}).get("tdnet_proxy", ""),
                                             funds=sorted(universe.non_equity_codes(data_dir)))),
         "calendar.html": ("calendar.html.j2", dict(page="calendar", groups=_group(calendar_rows(data_dir)))),
+        "judge.html": ("judge.html.j2", dict(page="judge", **judge_context(cfg, data_dir))),
     }
     for name, (tpl, ctx) in pages.items():
         p = docs_dir / name

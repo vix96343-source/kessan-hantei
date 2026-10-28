@@ -1,0 +1,140 @@
+{% extends "_base.html.j2" %}
+{% block title %}判定{% endblock %}
+{% block style %}
+.sec { padding: 14px 12px 4px; font-size: 15px; color: var(--head); }
+.sub { padding: 0 12px 10px; color: var(--muted); font: 400 12px/1.6 system-ui, sans-serif; }
+.note { margin: 10px 12px; padding: 10px 12px; border: 1px solid var(--warn); border-radius: 8px; color: var(--warn);
+        font: 400 13px/1.6 system-ui, sans-serif; }
+.tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 0 12px 12px; }
+.tile { background: var(--panel); border-radius: 8px; padding: 8px 10px; }
+.tile .k { color: var(--muted); font: 400 12px system-ui, sans-serif; }
+.tile .v { font-size: 22px; font-variant-numeric: tabular-nums; }
+.badge { display: inline-block; padding: 1px 7px; border-radius: 999px; font-size: 12px; background: var(--line); color: var(--text); }
+.b-gap2 { background: #d23c3c; color: #fff; } .b-gap1 { background: #e08a2e; color: #fff; }
+.b-caution { background: #5b6175; color: #fff; } .b-pass { background: transparent; color: var(--muted); border: 1px solid var(--line); }
+.pos { color: var(--green); } .neg { color: var(--red); }
+.num { text-align: right; }
+.c-cls { width: 84px; } .c-n { width: 52px; } .c-v { width: 76px; } .c-date { width: 56px; }
+table.wrap td { white-space: normal; }
+table.wrap td.num { overflow: visible; }
+details { border-bottom: 1px solid var(--line); }
+details summary { list-style: none; cursor: pointer; display: grid; grid-template-columns: 56px 52px 1fr 84px 70px; gap: 6px;
+                  padding: 9px 6px; align-items: center; font-variant-numeric: tabular-nums; }
+details summary::-webkit-details-marker { display: none; }
+details summary > span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+details .why { padding: 0 6px 10px 120px; color: var(--muted); font: 400 13px/1.6 system-ui, sans-serif; }
+.why b { color: var(--text); font-weight: 600; }
+.lhead { display: grid; grid-template-columns: 56px 52px 1fr 84px 70px; gap: 6px; padding: 8px 6px; color: var(--head);
+         font-size: 14px; border-bottom: 1px solid var(--line); background: var(--panel); position: sticky; top: 0; z-index: 1; }
+.seg { display: flex; gap: 6px; padding: 0 12px 10px; flex-wrap: wrap; }
+.seg button { background: var(--panel); color: var(--muted); border: 1px solid var(--line); border-radius: 6px; padding: 5px 10px;
+              font: 600 13px system-ui, sans-serif; cursor: pointer; }
+.seg button[aria-pressed="true"] { color: var(--text); border-color: var(--muted); }
+@media (max-width: 480px) {
+  .tiles { grid-template-columns: repeat(3, 1fr); }
+  .tile .v { font-size: 17px; }
+  details summary, .lhead { grid-template-columns: 34px 36px 1fr 66px 54px; gap: 4px; font-size: 12px; }
+  .badge { font-size: 11px; padding: 1px 5px; }
+  table.wrap td, table.wrap th { font-size: 12px; }
+  details .why { padding-left: 6px; }
+  .c-cls { width: 74px; } .c-n { width: 36px; } .c-v { width: 58px; }
+}
+{% endblock %}
+{% macro badge(cls) -%}
+<span class="badge {{ {'★★GAP': 'b-gap2', '★GAP': 'b-gap1', 'CAUTION': 'b-caution'}.get(cls, 'b-pass') }}">{{ cls }}</span>
+{%- endmacro %}
+{% macro pct(v, d=1) -%}
+{% if v is none or v == "" %}<span class="none">–</span>{% else %}<span class="{{ 'pos' if v > 0 else 'neg' if v < 0 }}">{{ "%+.*f"|format(d, v) }}%</span>{% endif %}
+{%- endmacro %}
+{% block content %}
+
+<div class="sec">次の決算の判定</div>
+{% if preds %}
+<div class="sub">{{ preds[0].announce_date | dlabel }} 発表分 ・ {{ preds | length }} 件(プライム・スタンダード、売買代金1億円以上)</div>
+<div class="lhead"><span>コード</span><span></span><span>企業名</span><span>判定</span><span class="num">EV</span></div>
+{% for r in preds %}
+<details>
+  <summary><span>{{ r.code }}</span><span class="{{ 'warn' if r.intraday }}">{{ '⚠' ~ r.time if r.intraday else '' }}</span>
+    <span>{{ r.name }}</span><span>{{ badge(r.gap_class) }}</span><span class="num">{{ pct(r.ev) }}</span></summary>
+  <div class="why">{{ r.reason }}<br>スコア {{ "%+.3f"|format(r.score) }} ・ データの揃い {{ r.conviction }}</div>
+</details>
+{% endfor %}
+{% else %}
+<div class="sub">まだありません。毎営業日 20時過ぎに翌営業日の発表分を判定します。</div>
+{% endif %}
+
+<div class="sec">事後検証(発表前の情報だけで判定 → 翌朝の寄付)</div>
+{% if bt.n %}
+<div class="sub">{{ bt.since | dlabel }}〜{{ bt.until | dlabel }} に決算を出した {{ bt.n }} 銘柄。寄付ギャップ = 発表直前の終値 → 発表翌営業日の寄付。同じ日に TOB・経営統合などが出た銘柄は除外。</div>
+<div class="note">現状のスコアには予測力が見られません(順位相関 {{ "%+.3f"|format(bt.corr) }})。★★GAP の上昇率も全体と大差ありません。
+因子の「会社予想の加速」は MARUWA を見て追加したもので、この検証は1シーズン分です。重みの見直しは件数がたまってから行います。</div>
+<div class="tiles">
+  <div class="tile"><div class="k">件数</div><div class="v">{{ bt.n }}</div></div>
+  <div class="tile"><div class="k">スコアとの順位相関</div><div class="v">{{ "%+.2f"|format(bt.corr) }}</div></div>
+  <div class="tile"><div class="k">全体の寄付上昇率</div><div class="v">{{ bt.all.up }}%</div></div>
+</div>
+
+<table>
+  <colgroup><col class="c-cls"><col class="c-n"><col><col class="c-v"><col class="c-v"></colgroup>
+  <thead><tr><th>判定</th><th class="num">件数</th><th class="num">予想 → 実測 上昇率</th><th class="num">平均</th><th class="num">中央値</th></tr></thead>
+  <tbody>
+  {% for c in bt.classes %}
+  <tr><td>{{ badge(c.cls) }}</td><td class="num">{{ c.n }}</td>
+    <td class="num">{% if c.n %}{{ c.pred_win }}% → <b>{{ c.up }}%</b>{% else %}<span class="none">–</span>{% endif %}</td>
+    <td class="num">{{ pct(c.mean, 2) }}</td><td class="num">{{ pct(c.median, 2) }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+<div class="sec">因子ごとの効き方</div>
+<div class="sub">その因子の値が+の銘柄と−の銘柄の、寄付ギャップの平均。重みが負の因子は「−の方が上がる」なら設計どおり。</div>
+<table class="wrap">
+  <colgroup><col><col class="c-v"><col class="c-v"><col class="c-v"><col class="c-v"></colgroup>
+  <thead><tr><th>因子(重み)</th><th class="num">+の平均</th><th class="num">−の平均</th><th class="num">順位相関</th><th class="num">件数</th></tr></thead>
+  <tbody>
+  {% for f in bt.factors %}
+  <tr><td>{{ f.label }} <span class="none">({{ "%+.2f"|format(f.weight) }})</span></td>
+    <td class="num">{{ pct(f.pos_mean, 2) }}<br><span class="none">{{ f.pos_n }}件</span></td>
+    <td class="num">{{ pct(f.neg_mean, 2) }}<br><span class="none">{{ f.neg_n }}件</span></td>
+    <td class="num">{% if f.corr is none %}<span class="none">–</span>{% else %}{{ "%+.2f"|format(f.corr) }}{% endif %}</td>
+    <td class="num">{{ f.n }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+<div class="sec">銘柄ごとの結果</div>
+<div class="seg" id="seg">
+  <button data-v="all" aria-pressed="true">すべて</button>
+  <button data-v="★★GAP" aria-pressed="false">★★GAP</button>
+  <button data-v="★GAP" aria-pressed="false">★GAP</button>
+  <button data-v="CAUTION" aria-pressed="false">CAUTION</button>
+</div>
+<div class="lhead"><span>発表</span><span>コード</span><span>企業名</span><span>判定</span><span class="num">寄付</span></div>
+<div id="bt">
+{% for r in bt.rows %}
+<details data-cls="{{ r.gap_class }}">
+  <summary><span>{{ r.md }}</span><span>{{ r.code }}</span><span>{{ r.name }}</span>
+    <span>{{ badge(r.gap_class) }}</span><span class="num">{{ pct(r.gap) }}</span></summary>
+  <div class="why">{{ r.reason }}<br>スコア <b>{{ "%+.3f"|format(r.score) }}</b> ・ 終値 {{ "{:,.0f}".format(r.ref) }} → 寄付 {{ "{:,.0f}".format(r.open) }}</div>
+</details>
+{% endfor %}
+</div>
+{% else %}
+<div class="sub">検証データがありません。</div>
+{% endif %}
+{% endblock %}
+{% block footer %}判定(M3)は開発中です。EV・勝率は初期の仮置きの換算で、実測で置き換える前の値です。投資判断の根拠にしないでください。{% endblock %}
+{% block script %}
+<script>
+(() => {
+  const seg = document.getElementById('seg'); if (!seg) return;
+  seg.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    seg.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b));
+    document.querySelectorAll('#bt details').forEach(d => {
+      d.style.display = (b.dataset.v === 'all' || d.dataset.cls === b.dataset.v) ? '' : 'none';
+    });
+  });
+})();
+</script>
+{% endblock %}

@@ -28,6 +28,25 @@ disclosures:
     - forecast_dividend_revision
 
 factors:
+  # 因子の値は -1〜1。score_total = Σ weight × 値(src/judge.py)
+  progress_gap:
+    weight: 0.30             # 前回短信までの営業利益進捗率 − 過去3年の同じ四半期の進捗率の平均
+    scale_pt: 10             # 差が ±10pt で値 ±1
+    years: 3
+    min_years: 2             # 過去の比較年がこれ未満なら計算しない
+    max_progress_pct: 150    # 進捗率が 0〜150% の外の年(通期がほぼゼロ・累計赤字)は比較に使わない
+  guidance_acceleration:
+    weight: 0.20             # 会社予想が残り期間に織り込む前年比 − 足元の累計の前年比(MARUWA 2027/3 2Q の教訓)
+    scale_pt: 30             # 差が ±30pt で値 ±1
+  guidance_conservatism:
+    weight: 0.20             # 今期の業績予想の修正 上方回数 − 下方回数(過去3年の修正癖は履歴が貯まってから)
+    scale_count: 2
+  beat_history:
+    weight: 0.0              # 未実装(過去の会社計画が要る)。CLAUDE.md の初期値は 0.15
+  momentum_pricing:
+    weight: -0.15            # 負方向(事前に上げた銘柄は織り込み済み)
+    ret_scale_pct: 20        # 20営業日リターン ±20% で ±1
+    dev_scale_pct: 10        # 25日線乖離 ±10% で ±1
   revision_recency:
     weight: -0.10            # 負方向(直前に修正済みならサプライズ余地が減る)
     window_days: 90
@@ -49,6 +68,18 @@ calendar:
 
 judge:
   min_avg_turnover: 100000000   # 一次フィルタ: 平均売買代金 1億円/日
+  max_candidates: 30            # 株価を使う詳細判定に進める件数(株価を使わない仮スコアの上位)
+  min_coverage: 0.5             # 使えた因子の重みの割合がこれ未満なら PASS(データ不足)
+  class_thresholds:
+    gap2: 0.30                  # ★★GAP
+    gap1: 0.15                  # ★GAP
+    caution: -0.15              # CAUTION(跨ぎ回避)
+  ev_per_score_pct: 10          # 予想寄付ギャップ(%) = score_total × これ(初期値。M5 の実測で置き換える)
+  winrate_by_class:             # 初期の較正テーブル(仮置き。実測30件たまったクラスから置き換える)
+    "★★GAP": 62
+    "★GAP": 56
+    PASS: 50
+    CAUTION: 42
 
 reaction:
   # 上昇確度 = 同じバケットの過去開示で「開示前終値 → 開示後最初の終値」が上がった割合

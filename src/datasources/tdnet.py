@@ -390,6 +390,12 @@ def parse_earnings_xbrl(zip_bytes: bytes) -> dict:
     texts = _text_facts(s)
     ends = {cid: (re.findall(r"<xbrli:(?:endDate|instant)>([^<]+)<", body) or [""])[0]
             for cid, body in _CONTEXT.findall(s)}
+    return earnings_from_facts(facts, texts, ends)
+
+
+def earnings_from_facts(facts: dict[tuple[str, str], float], texts: dict[str, str], ends: dict[str, str]) -> dict:
+    """(名前, context) -> 値 の辞書から短信サマリーを読む(TDnet の zip と IRBANK API の xbrl_facts で共通)。
+    ends は context -> 期末日。"""
 
     # 期は売上・利益などの数値が入っている context で決める(子会社数などの別の項目が違う期に付いていることがある)
     is_metric = lambda name: any(p.match(name) for p in METRIC_PATTERNS.values())
@@ -441,6 +447,25 @@ def parse_earnings_xbrl(zip_bytes: bytes) -> dict:
         "has_material": _yes_no(texts, "SupplementalMaterialOfResults", "SupplementalMaterialOfAnnualResults"),
         "has_briefing": _yes_no(texts, "ConveningBriefingOfResults", "ConveningBriefingOfAnnualResults"),
     }
+
+
+def parse_earnings_facts(xbrl_facts: list[dict]) -> dict:
+    """IRBANK API の xbrl_facts(element_name, context, value, unit)から短信サマリーを読む。
+    比率(ChangeIn〜)は TDnet の scale=-2 と同じく 0.117 = 11.7% の形で入っている。"""
+    facts, texts = {}, {}
+    for f in xbrl_facts:
+        name, ctx, v = f.get("element_name") or "", f.get("context") or "", f.get("value")
+        if f.get("unit"):
+            try:
+                facts[(name, ctx)] = float(v)
+            except (TypeError, ValueError):
+                pass
+        elif isinstance(v, str):
+            texts.setdefault(name, v.strip())
+    end = texts.get("CurrentPeriodEndDateDEI", "")
+    ends = {c: end for (_, c) in facts if c.startswith("CurrentAccumulated") or c.startswith("CurrentYearDuration")}
+    return earnings_from_facts(facts, texts, ends)
+
 
 
 _ZIP_CACHE: dict[str, bytes] = {}

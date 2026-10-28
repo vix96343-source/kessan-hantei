@@ -15,7 +15,7 @@ body {
   font: 600 16px/1.4 "Meiryo UI", "Yu Gothic UI", "Hiragino Sans", system-ui, sans-serif;
 }
 nav { display: flex; gap: 4px; align-items: flex-end; padding: 10px 12px 0; max-width: 760px; margin: 0 auto; }
-nav a { color: var(--muted); text-decoration: none; padding: 6px 14px; border-radius: 6px 6px 0 0; font-size: 14px; }
+nav a { color: var(--muted); text-decoration: none; padding: 6px 14px; border-radius: 6px 6px 0 0; font-size: 14px; white-space: nowrap; }
 nav a[aria-current="page"] { color: var(--text); background: var(--tab); }
 .status { margin-left: auto; color: var(--muted); font: 400 12px system-ui, sans-serif; padding-bottom: 6px; white-space: nowrap; }
 .status .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--muted); margin-right: 5px; vertical-align: 1px; }
@@ -37,6 +37,9 @@ tr.day td { color: var(--muted); font-size: 13px; padding: 12px 6px 4px; border-
 footer { color: var(--muted); font: 400 12px/1.6 system-ui, sans-serif; padding: 18px 12px 40px; max-width: 760px; margin: 0 auto; }
 @media (max-width: 480px) {
   body { font-size: 13px; }
+  nav { padding: 8px 6px 0; gap: 2px; }
+  nav a { padding: 6px 9px; }
+  .status { font-size: 11px; }
   th { font-size: 12px; }
   .c-time { width: 62px; } .c-code { width: 44px; } .c-kind { width: 70px; } .c-pct { width: 56px; }
   td, th { padding-left: 3px; padding-right: 3px; }
@@ -48,6 +51,7 @@ footer { color: var(--muted); font: 400 12px/1.6 system-ui, sans-serif; padding:
 <nav>
   <a href="index.html"{% if page == "feed" %} aria-current="page"{% endif %}>決算速報</a>
   <a href="calendar.html"{% if page == "calendar" %} aria-current="page"{% endif %}>決算予定</a>
+  <a href="judge.html"{% if page == "judge" %} aria-current="page"{% endif %}>判定</a>
   <span class="status" id="status">{% block status %}{{ generated_at[:16] }} 更新{% endblock %}</span>
 </nav>
 <main>{% block content %}{% endblock %}</main>

@@ -1,0 +1,1530 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>判定 | 決算持ち越し判定君</title>
+<style>
+:root {
+  --bg: #171a26; --line: #2a2f42; --head: #e6e9f0; --text: #e6e9f0; --muted: #8b93a7;
+  --green: #3ee08f; --red: #ff7a7a; --tab: #1e2232; --panel: #1e2232; --new: #3a3420; --warn: #e6b56a;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font: 600 16px/1.4 "Meiryo UI", "Yu Gothic UI", "Hiragino Sans", system-ui, sans-serif;
+}
+nav { display: flex; gap: 4px; align-items: flex-end; padding: 10px 12px 0; max-width: 760px; margin: 0 auto; }
+nav a { color: var(--muted); text-decoration: none; padding: 6px 14px; border-radius: 6px 6px 0 0; font-size: 14px; white-space: nowrap; }
+nav a[aria-current="page"] { color: var(--text); background: var(--tab); }
+.status { margin-left: auto; color: var(--muted); font: 400 12px system-ui, sans-serif; padding-bottom: 6px; white-space: nowrap; }
+.status .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--muted); margin-right: 5px; vertical-align: 1px; }
+.status .dot.live { background: var(--green); box-shadow: 0 0 6px var(--green); }
+main { max-width: 760px; margin: 0 auto; }
+table { width: 100%; border-collapse: collapse; table-layout: fixed; font-variant-numeric: tabular-nums; }
+th {
+  position: sticky; top: 0; background: var(--panel); color: var(--head); font-weight: 600;
+  padding: 8px 6px; border-bottom: 1px solid var(--line); font-size: 15px; z-index: 1;
+}
+td { padding: 9px 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border-bottom: 1px solid var(--line); }
+td a { color: inherit; text-decoration: none; }
+.c-time { width: 76px; } .c-code { width: 60px; } .c-kind { width: 104px; } .c-pct { width: 72px; text-align: right; }
+th.c-pct { text-align: right; }
+tr.up td { color: var(--green); font-weight: 700; }
+tr.day td { color: var(--muted); font-size: 13px; padding: 12px 6px 4px; border-bottom: 0; }
+.warn { color: var(--warn); }
+.none { color: var(--muted); font-weight: 400; }
+footer { color: var(--muted); font: 400 12px/1.6 system-ui, sans-serif; padding: 18px 12px 40px; max-width: 760px; margin: 0 auto; }
+@media (max-width: 480px) {
+  body { font-size: 13px; }
+  nav { padding: 8px 6px 0; gap: 2px; }
+  nav a { padding: 6px 9px; }
+  .status { font-size: 11px; }
+  th { font-size: 12px; }
+  .c-time { width: 62px; } .c-code { width: 44px; } .c-kind { width: 70px; } .c-pct { width: 56px; }
+  td, th { padding-left: 3px; padding-right: 3px; }
+}
+
+.sec { padding: 14px 12px 4px; font-size: 15px; color: var(--head); }
+.sub { padding: 0 12px 10px; color: var(--muted); font: 400 12px/1.6 system-ui, sans-serif; }
+.note { margin: 10px 12px; padding: 10px 12px; border: 1px solid var(--warn); border-radius: 8px; color: var(--warn);
+        font: 400 13px/1.6 system-ui, sans-serif; }
+.tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 0 12px 12px; }
+.tile { background: var(--panel); border-radius: 8px; padding: 8px 10px; }
+.tile .k { color: var(--muted); font: 400 12px system-ui, sans-serif; }
+.tile .v { font-size: 22px; font-variant-numeric: tabular-nums; }
+.badge { display: inline-block; padding: 1px 7px; border-radius: 999px; font-size: 12px; background: var(--line); color: var(--text); }
+.b-gap2 { background: #d23c3c; color: #fff; } .b-gap1 { background: #e08a2e; color: #fff; }
+.b-caution { background: #5b6175; color: #fff; } .b-pass { background: transparent; color: var(--muted); border: 1px solid var(--line); }
+.pos { color: var(--green); } .neg { color: var(--red); }
+.num { text-align: right; }
+.c-cls { width: 84px; } .c-n { width: 52px; } .c-v { width: 76px; } .c-date { width: 56px; }
+table.wrap td { white-space: normal; }
+table.wrap td.num { overflow: visible; }
+details { border-bottom: 1px solid var(--line); }
+details summary { list-style: none; cursor: pointer; display: grid; grid-template-columns: 56px 52px 1fr 84px 70px; gap: 6px;
+                  padding: 9px 6px; align-items: center; font-variant-numeric: tabular-nums; }
+details summary::-webkit-details-marker { display: none; }
+details summary > span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+details .why { padding: 0 6px 10px 120px; color: var(--muted); font: 400 13px/1.6 system-ui, sans-serif; }
+.why b { color: var(--text); font-weight: 600; }
+.lhead { display: grid; grid-template-columns: 56px 52px 1fr 84px 70px; gap: 6px; padding: 8px 6px; color: var(--head);
+         font-size: 14px; border-bottom: 1px solid var(--line); background: var(--panel); position: sticky; top: 0; z-index: 1; }
+.seg { display: flex; gap: 6px; padding: 0 12px 10px; flex-wrap: wrap; }
+.seg button { background: var(--panel); color: var(--muted); border: 1px solid var(--line); border-radius: 6px; padding: 5px 10px;
+              font: 600 13px system-ui, sans-serif; cursor: pointer; }
+.seg button[aria-pressed="true"] { color: var(--text); border-color: var(--muted); }
+@media (max-width: 480px) {
+  .tiles { grid-template-columns: repeat(3, 1fr); }
+  .tile .v { font-size: 17px; }
+  details summary, .lhead { grid-template-columns: 34px 36px 1fr 66px 54px; gap: 4px; font-size: 12px; }
+  .badge { font-size: 11px; padding: 1px 5px; }
+  table.wrap td, table.wrap th { font-size: 12px; }
+  details .why { padding-left: 6px; }
+  .c-cls { width: 74px; } .c-n { width: 36px; } .c-v { width: 58px; }
+}
+
+</style>
+</head>
+<body>
+<nav>
+  <a href="index.html">決算速報</a>
+  <a href="calendar.html">決算予定</a>
+  <a href="judge.html" aria-current="page">判定</a>
+  <span class="status" id="status">2026-10-29 02:07 更新</span>
+</nav>
+<main>
+
+<div class="sec">次の決算の判定</div>
+
+<div class="sub">まだありません。毎営業日 20時過ぎに翌営業日の発表分を判定します。</div>
+
+
+<div class="sec">事後検証(発表前の情報だけで判定 → 翌朝の寄付)</div>
+
+<div class="sub">9/8(火)〜10/27(火) に決算を出した 220 銘柄。寄付ギャップ = 発表直前の終値 → 発表翌営業日の寄付。同じ日に TOB・経営統合などが出た銘柄は除外。</div>
+<div class="note">現状のスコアには予測力が見られません(順位相関 -0.006)。★★GAP の上昇率も全体と大差ありません。
+因子の「会社予想の加速」は MARUWA を見て追加したもので、この検証は1シーズン分です。重みの見直しは件数がたまってから行います。</div>
+<div class="tiles">
+  <div class="tile"><div class="k">件数</div><div class="v">220</div></div>
+  <div class="tile"><div class="k">スコアとの順位相関</div><div class="v">-0.01</div></div>
+  <div class="tile"><div class="k">全体の寄付上昇率</div><div class="v">41.8%</div></div>
+</div>
+
+<table>
+  <colgroup><col class="c-cls"><col class="c-n"><col><col class="c-v"><col class="c-v"></colgroup>
+  <thead><tr><th>判定</th><th class="num">件数</th><th class="num">予想 → 実測 上昇率</th><th class="num">平均</th><th class="num">中央値</th></tr></thead>
+  <tbody>
+  
+  <tr><td><span class="badge b-gap2">★★GAP</span></td><td class="num">7</td>
+    <td class="num">62% → <b>42.9%</b></td>
+    <td class="num"><span class="neg">-0.92%</span></td><td class="num"><span class="neg">-1.65%</span></td></tr>
+  
+  <tr><td><span class="badge b-gap1">★GAP</span></td><td class="num">26</td>
+    <td class="num">56% → <b>46.2%</b></td>
+    <td class="num"><span class="neg">-0.21%</span></td><td class="num"><span class="neg">-0.15%</span></td></tr>
+  
+  <tr><td><span class="badge b-pass">PASS</span></td><td class="num">169</td>
+    <td class="num">50% → <b>41.4%</b></td>
+    <td class="num"><span class="neg">-0.10%</span></td><td class="num"><span class="neg">-0.73%</span></td></tr>
+  
+  <tr><td><span class="badge b-caution">CAUTION</span></td><td class="num">18</td>
+    <td class="num">42% → <b>38.9%</b></td>
+    <td class="num"><span class="neg">-1.12%</span></td><td class="num"><span class="neg">-1.55%</span></td></tr>
+  
+  </tbody>
+</table>
+
+<div class="sec">因子ごとの効き方</div>
+<div class="sub">その因子の値が+の銘柄と−の銘柄の、寄付ギャップの平均。重みが負の因子は「−の方が上がる」なら設計どおり。</div>
+<table class="wrap">
+  <colgroup><col><col class="c-v"><col class="c-v"><col class="c-v"><col class="c-v"></colgroup>
+  <thead><tr><th>因子(重み)</th><th class="num">+の平均</th><th class="num">−の平均</th><th class="num">順位相関</th><th class="num">件数</th></tr></thead>
+  <tbody>
+  
+  <tr><td>進捗率の差 <span class="none">(+0.30)</span></td>
+    <td class="num"><span class="neg">-0.87%</span><br><span class="none">95件</span></td>
+    <td class="num"><span class="neg">-0.32%</span><br><span class="none">67件</span></td>
+    <td class="num">-0.04</td>
+    <td class="num">162</td></tr>
+  
+  <tr><td>会社予想の加速 <span class="none">(+0.20)</span></td>
+    <td class="num"><span class="pos">+0.04%</span><br><span class="none">76件</span></td>
+    <td class="num"><span class="neg">-0.53%</span><br><span class="none">116件</span></td>
+    <td class="num">+0.10</td>
+    <td class="num">192</td></tr>
+  
+  <tr><td>今期の修正の向き <span class="none">(+0.20)</span></td>
+    <td class="num"><span class="neg">-0.31%</span><br><span class="none">46件</span></td>
+    <td class="num"><span class="neg">-2.81%</span><br><span class="none">8件</span></td>
+    <td class="num">+0.03</td>
+    <td class="num">217</td></tr>
+  
+  <tr><td>事前の株価上昇 <span class="none">(-0.15)</span></td>
+    <td class="num"><span class="pos">+0.91%</span><br><span class="none">86件</span></td>
+    <td class="num"><span class="neg">-0.87%</span><br><span class="none">132件</span></td>
+    <td class="num">+0.12</td>
+    <td class="num">219</td></tr>
+  
+  <tr><td>直前の修正 <span class="none">(-0.10)</span></td>
+    <td class="num"><span class="pos">+1.94%</span><br><span class="none">9件</span></td>
+    <td class="num"><span class="none">–</span><br><span class="none">0件</span></td>
+    <td class="num">+0.07</td>
+    <td class="num">220</td></tr>
+  
+  </tbody>
+</table>
+
+<div class="sec">銘柄ごとの結果</div>
+<div class="seg" id="seg">
+  <button data-v="all" aria-pressed="true">すべて</button>
+  <button data-v="★★GAP" aria-pressed="false">★★GAP</button>
+  <button data-v="★GAP" aria-pressed="false">★GAP</button>
+  <button data-v="CAUTION" aria-pressed="false">CAUTION</button>
+</div>
+<div class="lhead"><span>発表</span><span>コード</span><span>企業名</span><span>判定</span><span class="num">寄付</span></div>
+<div id="bt">
+
+<details data-cls="★★GAP">
+  <summary><span>10/9</span><span>6264</span><span>マルマエ</span>
+    <span><span class="badge b-gap2">★★GAP</span></span><span class="num"><span class="neg">-1.6%</span></span></summary>
+  <div class="why">3Q営業利益進捗64.5%(過去平均41.9%)、会社予想は残り期間に前年比+118%を織り込み(足元+84%)、今期の修正 上方2回・下方0回、20日+3%・25日線+6%<br>スコア <b>+0.643</b> ・ 終値 2,243 → 寄付 2,206</div>
+</details>
+
+<details data-cls="★★GAP">
+  <summary><span>10/27</span><span>6337</span><span>テセック</span>
+    <span><span class="badge b-gap2">★★GAP</span></span><span class="num"><span class="neg">-10.8%</span></span></summary>
+  <div class="why">1Q営業利益進捗37.5%(過去平均17.3%)、今期の修正 上方1回・下方0回、20日-11%・25日線-10%<br>スコア <b>+0.515</b> ・ 終値 3,420 → 寄付 3,050</div>
+</details>
+
+<details data-cls="★★GAP">
+  <summary><span>10/27</span><span>5344</span><span>ＭＡＲＵＷＡ</span>
+    <span><span class="badge b-gap2">★★GAP</span></span><span class="num"><span class="pos">+14.9%</span></span></summary>
+  <div class="why">1Q営業利益進捗18.8%(過去平均20.9%)、会社予想は残り期間に前年比+44%を織り込み(足元+6%)、今期の修正 上方1回・下方0回、20日-17%・25日線-14%<br>スコア <b>+0.387</b> ・ 終値 47,000 → 寄付 54,000</div>
+</details>
+
+<details data-cls="★★GAP">
+  <summary><span>9/14</span><span>6387</span><span>サムコ</span>
+    <span><span class="badge b-gap2">★★GAP</span></span><span class="num"><span class="neg">-7.5%</span></span></summary>
+  <div class="why">3Q営業利益進捗70.8%(過去平均61.8%)、会社予想は残り期間に前年比-19%を織り込み(足元+34%)、今期の修正 上方1回・下方0回、20日-19%・25日線-10%<br>スコア <b>+0.319</b> ・ 終値 8,020 → 寄付 7,420</div>
+</details>
+
+<details data-cls="★★GAP">
+  <summary><span>9/14</span><span>9279</span><span>ギフトホールディングス</span>
+    <span><span class="badge b-gap2">★★GAP</span></span><span class="num"><span class="pos">+1.0%</span></span></summary>
+  <div class="why">2Q営業利益進捗55.0%(過去平均49.5%)、会社予想は残り期間に前年比+19%を織り込み(足元+71%)、今期の修正 上方2回・下方0回、20日-19%・25日線-13%<br>スコア <b>+0.314</b> ・ 終値 2,179 → 寄付 2,200</div>
+</details>
+
+<details data-cls="★★GAP">
+  <summary><span>10/8</span><span>9716</span><span>乃村工藝社</span>
+    <span><span class="badge b-gap2">★★GAP</span></span><span class="num"><span class="pos">+2.5%</span></span></summary>
+  <div class="why">1Q営業利益進捗18.6%(過去平均16.8%)、会社予想は残り期間に前年比+32%を織り込み(足元-45%)、20日-7%・25日線-4%<br>スコア <b>+0.306</b> ・ 終値 1,176 → 寄付 1,206</div>
+</details>
+
+<details data-cls="★★GAP">
+  <summary><span>10/13</span><span>2791</span><span>大黒天物産</span>
+    <span><span class="badge b-gap2">★★GAP</span></span><span class="num"><span class="neg">-4.9%</span></span></summary>
+  <div class="why">会社予想は今期に前年比+40%を織り込み(足元-46%)、20日-13%・25日線-7%<br>スコア <b>+0.301</b> ・ 終値 4,205 → 寄付 4,000</div>
+</details>
+
+<details data-cls="★GAP">
+  <summary><span>9/30</span><span>2975</span><span>スター・マイカ・ホールディングス</span>
+    <span><span class="badge b-gap1">★GAP</span></span><span class="num"><span class="neg">-8.6%</span></span></summary>
+  <div class="why">2Q営業利益進捗65.2%(過去平均53.5%)、会社予想は残り期間に前年比+10%を織り込み(足元+70%)、今期の修正 上方1回・下方0回、20日-14%・25日線-6%<br>スコア <b>+0.299</b> ・ 終値 1,397 → 寄付 1,277</div>
+</details>
+
+<details data-cls="★GAP">
+  <summary><span>9/14</span><span>3415</span><span>ＴＯＫＹＯ　ＢＡＳＥ</span>
+    <span><span class="badge b-gap1">★GAP</span></span><span class="num"><span class="pos">+0.9%</span></span></summary>
+  <div class="why">1Q営業利益進捗16.6%(過去平均15.2%)、会社予想は残り期間に前年比+32%を織り込み(足元+10%)、20日-11%・25日線-7%<br>スコア <b>+0.283</b> ・ 終値 346 → 寄付 349</div>
+</details>
+
+<details data-cls="★GAP">
+  <summary><span>10/9</span><span>3048</span><span>ビックカメラ</span>
+    <span><span class="badge b-gap1">★GAP</span></span><span class="num"><span class="pos">+3.0%</span></span></summary>
+  <div class="why">3Q営業利益進捗96.8%(過去平均79.9%)、会社予想は残り期間に前年比-81%を織り込み(足元+36%)、今期の修正 上方1回・下方0回、20日-5%・25日線-5%<br>スコア <b>+0.254</b> ・ 終値 1,632 → 寄付 1,680</div>
+</details>
+
+<details data-cls="★GAP">
+  <summary><span>10/8</span><span>3907</span><span>シリコンスタジオ</span>
+    <span><span class="badge b-gap1">★GAP</span></span><span class="num"><span class="neg">-21.3%</span></span></summary>
+  <div class="why">会社予想は残り期間に前年比-158%を織り込み(足元-253%)、今期の修正 上方0回・下方1回、20日-21%・25日線-16%<br>スコア <b>+0.250</b> ・ 終値 1,740 → 寄付 1,370</div>
+</details>
+
+<details data-cls="★GAP">
+  <summary><span>10/9</span><span>3222</span><span>ユナイテッド・スーパーマーケット・ホールディングス</span>
+    <span><span class="badge b-gap1">★GAP</span></span><span class="num"><span class="neg">-1.6%</span></span></summary>
+  <div class="why">会社予想は残り期間に前年比+151%を織り込み(足元-208%)、20日-5%・25日線-4%<br>スコア <b>+0.249</b> ・ 終値 791 → 寄付 778</div>
+</details>
+
+<details data-cls="★GAP">
+  <summary><span>10/6</span><span>2734</span><span>サーラコーポレーション</span>
+    <span><span class="badge b-gap1">★GAP</span></span><span class="num"><span class="neg">-0.3%</span></span></summary>
+  <div class="why">2Q営業利益進捗95.6%(過去平均78.6%)、会社予想は残り期間に前年比-77%を織り込み(足元+27%)、今期の修正 上方1回・下方0回、20日-4%・25日線-4%<br>スコア <b>+0.244</b> ・ 終値 1,165 → 寄付 1,162</div>
+</details>
+
+<details data-cls="★GAP">
+  <summary><span>10/13</span><span>4343</span><span>イオンファンタジー</span>
+    <span><span class="badge b-gap1">★GAP</span></span><span class="num"><span class="neg">-3.6%</span></span></summary>
+  <div class="why">1Q営業利益進捗16.7%(過去平均15.6%)、会社予想は残り期間に前年比+36%を織り込み(足元+9%)、20日-5%・25日線-2%<br>スコア <b>+0.243</b> ・ 終値 2,773 → 寄付 2,673</div>
+</details>
+
+<details data-cls="★GAP">
+  <summary><span>9/14</span><span>3475</span><span>グッドコムアセット</span>
+    <span><span class="badge b-gap1">★GAP</span></span><span class="num"><span class="pos">+6.3%</span></span></summary>
+  <div class="why">2Q営業利益進捗33.3%(過去平均35.1%)、会社予想は残り期間に前年比+268%を織り込み(足元+61%)、20日-9%・25日線-7%<br>スコア <b>+0.232</b> ・ 終値 1,418 → 寄付 1,508</div>
+</details>
+
+<details data-cls="★GAP">
+  <summary><span>10/8</span><span>3382</span><span>セブン＆アイ・ホールディングス</span>
+    <span><span class="badge b-gap1">★GAP</span></span><span class="num"><span class="neg">-1.4%</span></span></summary>
+  <div class="why">1Q営業利益進捗24.7%(過去平均14.9%)、会社予想は残り期間に前年比-11%を織り込み(足元+61%)、今期の修正 上方1回・下方0回、20日-4%・25日線-2%<br>スコア <b>+0.229</b> ・ 終値 1,988 → 寄付 1,960</div>
+</details>
+
+<details data-cls="★GAP">
+  <summary><span>10/7</span><span>5932</span><span>三協立山</span>
+    <span><span class="badge b-gap1">★GAP</span></span><span class="num"><span class="pos">+11.1%</span></span></summary>
+  <div class="why">会社予想は今期に前年比+159%を織り込み(足元+0%)、20日-2%・25日線-3%<br>スコア <b>+0.226</b> ・ 終値 629 → 寄付 699</div>
+</details>
+
+<details data-cls="★GAP">
+  <summary><span>10/13</span><span>1419</span><span>タマホーム</span>
+    <span><span class="badge b-gap1">★GAP</span></span><span class="num"><span class="neg">-0.0%</span></span></summary>
+  <div class="why">会社予想は今期に前年比+95%を織り込み(足元-7%)、20日-2%・25日線-2%<br>スコア <b>+0.222</b> ・ 終値 2,801 → 寄付 2,800</div>
+</details>
+
+<details data-cls="★GAP">
+  <summary><span>10/1</span><span>3549</span><span>クスリのアオキホールディングス</span>
+    <span><span class="badge b-gap1">★GAP</span></span><span class="num"><span class="pos">+12.0%</span></span></summary>
+  <div class="why">会社予想は今期に前年比+18%を織り込み(足元+2%)、20日-12%・25日線-9%<br>スコア <b>+0.220</b> ・ 終値 3,711 → 寄付 4,157</div>
+</details>
+
+<details data-cls="★GAP">
+  <summary><span>10/13</span><span>9842</span><span>アークランズ</span>
+    <span><span class="badge b-gap1">★GAP</span></span><span class="num"><span class="pos">+0.1%</span></span></summary>
+  <div class="why">会社予想は今期に前年比+20%を織り込み(足元-12%)、20日-2%・25日線-1%<br>スコア <b>+0.214</b> ・ 終値 1,873 → 寄付 1,875</div>
+</details>
+
+<details data-cls="★GAP">
+  <summary><span>9/14</span><span>6309</span><span>巴工業</span>
+    <span><span class="badge b-gap1">★GAP</span></span><span class="num"><span class="neg">-2.5%</span></span></summary>
+  <div class="why">2Q営業利益進捗62.8%(過去平均66.1%)、会社予想は残り期間に前年比+34%を織り込み(足元-0%)、今期の修正 上方1回・下方0回、20日+1%・25日線-0%<br>スコア <b>+0.200</b> ・ 終値 2,017 → 寄付 1,967</div>
+</details>
+
+<details data-cls="★GAP">
+  <summary><span>10/8</span><span>7513</span><span>コジマ</span>
+    <span><span class="badge b-gap1">★GAP</span></span><span class="num"><span class="pos">+4.3%</span></span></summary>
+  <div class="why">3Q営業利益進捗90.3%(過去平均73.1%)、会社予想は残り期間に前年比-56%を織り込み(足元+34%)、今期の修正 上方1回・下方0回、20日+1%・25日線-0%<br>スコア <b>+0.198</b> ・ 終値 1,410 → 寄付 1,470</div>
+</details>
+
+<details data-cls="★GAP">
+  <summary><span>10/9</span><span>8570</span><span>イオンフィナンシャルサービス</span>
+    <span><span class="badge b-gap1">★GAP</span></span><span class="num"><span class="neg">-2.0%</span></span></summary>
+  <div class="why">1Q営業利益進捗38.9%(過去平均21.5%)、会社予想は残り期間に前年比-42%を織り込み(足元+34%)、20日-9%・25日線-8%<br>スコア <b>+0.194</b> ・ 終値 1,460 → 寄付 1,430</div>
+</details>
+
+<details data-cls="★GAP">
+  <summary><span>9/30</span><span>2685</span><span>アンドエスティＨＤ</span>
+    <span><span class="badge b-gap1">★GAP</span></span><span class="num"><span class="neg">-1.8%</span></span></summary>
+  <div class="why">1Q営業利益進捗45.8%(過去平均36.3%)、会社予想は残り期間に前年比-15%を織り込み(足元+40%)、20日-13%・25日線-7%<br>スコア <b>+0.184</b> ・ 終値 3,090 → 寄付 3,035</div>
+</details>
+
+<details data-cls="★GAP">
+  <summary><span>10/9</span><span>8200</span><span>リンガーハット</span>
+    <span><span class="badge b-gap1">★GAP</span></span><span class="num"><span class="pos">+0.9%</span></span></summary>
+  <div class="why">1Q営業利益進捗27.2%(過去平均23.0%)、会社予想は残り期間に前年比+57%を織り込み(足元+51%)、20日-2%・25日線-1%<br>スコア <b>+0.178</b> ・ 終値 2,314 → 寄付 2,335</div>
+</details>
+
+<details data-cls="★GAP">
+  <summary><span>10/13</span><span>7725</span><span>インターアクション</span>
+    <span><span class="badge b-gap1">★GAP</span></span><span class="num"><span class="neg">-4.5%</span></span></summary>
+  <div class="why">会社予想は今期に前年比+128%を織り込み(足元-50%)、20日+4%・25日線+1%<br>スコア <b>+0.175</b> ・ 終値 1,781 → 寄付 1,701</div>
+</details>
+
+<details data-cls="★GAP">
+  <summary><span>10/5</span><span>6474</span><span>不二越</span>
+    <span><span class="badge b-gap1">★GAP</span></span><span class="num"><span class="pos">+5.7%</span></span></summary>
+  <div class="why">2Q営業利益進捗44.2%(過去平均39.2%)、会社予想は残り期間に前年比+53%を織り込み(足元+61%)、今期の修正 上方1回・下方0回、20日+1%・25日線+3%<br>スコア <b>+0.175</b> ・ 終値 5,780 → 寄付 6,110</div>
+</details>
+
+<details data-cls="★GAP">
+  <summary><span>9/9</span><span>6966</span><span>三井ハイテック</span>
+    <span><span class="badge b-gap1">★GAP</span></span><span class="num"><span class="pos">+6.5%</span></span></summary>
+  <div class="why">1Q営業利益進捗30.6%(過去平均26.1%)、会社予想は残り期間に前年比+10%を織り込み(足元+28%)、今期の修正 上方1回・下方0回、20日-7%・25日線-4%<br>スコア <b>+0.168</b> ・ 終値 899 → 寄付 957</div>
+</details>
+
+<details data-cls="★GAP">
+  <summary><span>10/8</span><span>8125</span><span>ワキタ</span>
+    <span><span class="badge b-gap1">★GAP</span></span><span class="num"><span class="neg">-1.2%</span></span></summary>
+  <div class="why">1Q営業利益進捗31.2%(過去平均27.2%)、会社予想は残り期間に前年比+9%を織り込み(足元+11%)、20日-6%・25日線-4%<br>スコア <b>+0.163</b> ・ 終値 1,812 → 寄付 1,790</div>
+</details>
+
+<details data-cls="★GAP">
+  <summary><span>10/23</span><span>6954</span><span>ファナック</span>
+    <span><span class="badge b-gap1">★GAP</span></span><span class="num"><span class="pos">+5.4%</span></span></summary>
+  <div class="why">1Q営業利益進捗24.5%(過去平均22.3%)、会社予想は残り期間に前年比+16%を織り込み(足元+26%)、今期の修正 上方1回・下方0回、20日-4%・25日線-6%<br>スコア <b>+0.161</b> ・ 終値 5,587 → 寄付 5,887</div>
+</details>
+
+<details data-cls="★GAP">
+  <summary><span>10/26</span><span>6923</span><span>スタンレー電気</span>
+    <span><span class="badge b-gap1">★GAP</span></span><span class="num"><span class="neg">-6.0%</span></span></summary>
+  <div class="why">1Q営業利益進捗15.9%(過去平均16.6%)、会社予想は残り期間に前年比+36%を織り込み(足元+2%)、20日+1%・25日線+2%<br>スコア <b>+0.161</b> ・ 終値 3,620 → 寄付 3,401</div>
+</details>
+
+<details data-cls="★GAP">
+  <summary><span>10/6</span><span>6469</span><span>放電精密加工研究所</span>
+    <span><span class="badge b-gap1">★GAP</span></span><span class="num"><span class="pos">+1.4%</span></span></summary>
+  <div class="why">1Q営業利益進捗39.1%(過去平均22.6%)、会社予想は残り期間に前年比+18%を織り込み(足元+48%)、今期の修正 上方1回・下方0回、20日+6%・25日線+3%<br>スコア <b>+0.155</b> ・ 終値 3,105 → 寄付 3,150</div>
+</details>
+
+<details data-cls="★GAP">
+  <summary><span>10/5</span><span>4390</span><span>ＩＰＳ</span>
+    <span><span class="badge b-gap1">★GAP</span></span><span class="num"><span class="neg">-8.3%</span></span></summary>
+  <div class="why">1Q営業利益進捗19.6%(過去平均15.8%)、会社予想は残り期間に前年比+13%を織り込み(足元+14%)、20日-4%・25日線-3%<br>スコア <b>+0.150</b> ・ 終値 3,965 → 寄付 3,635</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/14</span><span>3168</span><span>ＭＥＲＦ</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-12.7%</span></span></summary>
+  <div class="why">今期の修正 上方2回・下方0回、20日-9%・25日線-5%<br>スコア <b>+0.271</b> ・ 終値 1,185 → 寄付 1,035</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/14</span><span>3083</span><span>スターシーズ</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-4.8%</span></span></summary>
+  <div class="why">今期の修正 上方2回・下方0回、20日-12%・25日線-7%、直前修正2026-09-08<br>スコア <b>+0.237</b> ・ 終値 1,095 → 寄付 1,042</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>9/25</span><span>3333</span><span>あさひ</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-1.2%</span></span></summary>
+  <div class="why">1Q営業利益進捗72.0%(過去平均75.0%)、会社予想は残り期間に前年比+80%を織り込み(足元-5%)、20日-5%・25日線-2%<br>スコア <b>+0.147</b> ・ 終値 1,293 → 寄付 1,278</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/14</span><span>7453</span><span>良品計画</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+4.7%</span></span></summary>
+  <div class="why">3Q営業利益進捗82.5%(過去平均78.1%)、会社予想は残り期間に前年比+19%を織り込み(足元+36%)、今期の修正 上方2回・下方0回、20日+9%・25日線+7%<br>スコア <b>+0.133</b> ・ 終値 4,387 → 寄付 4,595</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/8</span><span>8194</span><span>ライフコーポレーション</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-3.0%</span></span></summary>
+  <div class="why">1Q営業利益進捗26.8%(過去平均27.9%)、会社予想は残り期間に前年比+8%を織り込み(足元-7%)、20日-8%・25日線-4%<br>スコア <b>+0.133</b> ・ 終値 2,559 → 寄付 2,483</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>9/11</span><span>2353</span><span>日本駐車場開発</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+4.7%</span></span></summary>
+  <div class="why">3Q営業利益進捗82.5%(過去平均85.0%)、会社予想は残り期間に前年比+46%を織り込み(足元+6%)、20日+2%・25日線-2%<br>スコア <b>+0.130</b> ・ 終値 258 → 寄付 270</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/13</span><span>7516</span><span>コーナン商事</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+1.0%</span></span></summary>
+  <div class="why">1Q営業利益進捗44.1%(過去平均32.4%)、会社予想は残り期間に前年比-16%を織り込み(足元+43%)、20日-2%・25日線-3%<br>スコア <b>+0.128</b> ・ 終値 4,455 → 寄付 4,500</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/23</span><span>8707</span><span>岩井コスモホールディングス</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-3.6%</span></span></summary>
+  <div class="why">20日-13%・25日線-10%<br>スコア <b>+0.127</b> ・ 終値 4,110 → 寄付 3,960</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/1</span><span>5942</span><span>日本フイルコン</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+5.2%</span></span></summary>
+  <div class="why">2Q営業利益進捗59.6%(過去平均39.9%)、会社予想は残り期間に前年比+47%を織り込み(足元+196%)、今期の修正 上方1回・下方0回、20日+7%・25日線+7%<br>スコア <b>+0.124</b> ・ 終値 689 → 寄付 725</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/27</span><span>9697</span><span>カプコン</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-10.0%</span></span></summary>
+  <div class="why">1Q営業利益進捗49.5%(過去平均31.5%)、会社予想は残り期間に前年比-17%を織り込み(足元+67%)、20日-2%・25日線-2%<br>スコア <b>+0.119</b> ・ 終値 4,380 → 寄付 3,943</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/9</span><span>4187</span><span>大阪有機化学工業</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+6.6%</span></span></summary>
+  <div class="why">2Q営業利益進捗59.0%(過去平均43.8%)、会社予想は残り期間に前年比-6%を織り込み(足元+51%)、今期の修正 上方1回・下方0回、20日+6%・25日線+8%<br>スコア <b>+0.119</b> ・ 終値 4,805 → 寄付 5,120</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>9/11</span><span>5218</span><span>オハラ</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+2.5%</span></span></summary>
+  <div class="why">2Q営業利益進捗29.6%(過去平均48.5%)、会社予想は残り期間に前年比+70%を織り込み(足元-49%)、今期の修正 上方2回・下方0回、20日-2%・25日線-1%<br>スコア <b>+0.118</b> ・ 終値 1,581 → 寄付 1,621</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>9/14</span><span>3565</span><span>アセンテック</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-2.0%</span></span></summary>
+  <div class="why">1Q営業利益進捗28.5%(過去平均22.5%)、会社予想は残り期間に前年比-31%を織り込み(足元-27%)、20日+3%・25日線+3%<br>スコア <b>+0.117</b> ・ 終値 490 → 寄付 480</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/13</span><span>7607</span><span>進和</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-2.3%</span></span></summary>
+  <div class="why">3Q営業利益進捗93.5%(過去平均74.9%)、会社予想は残り期間に前年比-61%を織り込み(足元+6%)、20日-1%・25日線-2%<br>スコア <b>+0.117</b> ・ 終値 3,015 → 寄付 2,946</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/23</span><span>5423</span><span>東京製鐵</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+0.3%</span></span></summary>
+  <div class="why">会社予想は残り期間に前年比+32%を織り込み(足元-148%)、20日-4%・25日線+1%、直前修正2026-10-16<br>スコア <b>+0.117</b> ・ 終値 1,705 → 寄付 1,710</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>9/14</span><span>212A</span><span>フィットイージー</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+0.3%</span></span></summary>
+  <div class="why">会社予想は残り期間に前年比+37%を織り込み(足元+32%)、20日-9%・25日線-6%<br>スコア <b>+0.114</b> ・ 終値 2,769 → 寄付 2,778</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/15</span><span>1407</span><span>ウエストホールディングス</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+7.2%</span></span></summary>
+  <div class="why">3Q営業利益進捗40.6%(過去平均31.5%)、会社予想は残り期間に前年比+2%を織り込み(足元+128%)、20日-5%・25日線-3%<br>スコア <b>+0.114</b> ・ 終値 2,156 → 寄付 2,312</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/8</span><span>9861</span><span>吉野家ホールディングス</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+3.7%</span></span></summary>
+  <div class="why">1Q営業利益進捗29.9%(過去平均14.4%)、会社予想は残り期間に前年比-15%を織り込み(足元+141%)、20日-3%・25日線-0%<br>スコア <b>+0.114</b> ・ 終値 3,747 → 寄付 3,886</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>9/11</span><span>4996</span><span>クミアイ化学工業</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-12.5%</span></span></summary>
+  <div class="why">2Q営業利益進捗145.3%(過去平均83.6%)、会社予想は残り期間に前年比-390%を織り込み(足元+11%)、20日-0%・25日線-2%<br>スコア <b>+0.114</b> ・ 終値 759 → 寄付 664</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/2</span><span>7965</span><span>象印マホービン</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-1.1%</span></span></summary>
+  <div class="why">2Q営業利益進捗79.0%(過去平均69.4%)、会社予想は残り期間に前年比-46%を織り込み(足元+7%)、20日-3%・25日線-2%<br>スコア <b>+0.109</b> ・ 終値 1,426 → 寄付 1,410</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/5</span><span>7679</span><span>薬王堂ホールディングス</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-1.5%</span></span></summary>
+  <div class="why">1Q営業利益進捗25.9%(過去平均26.7%)、会社予想は残り期間に前年比+8%を織り込み(足元-5%)、20日-4%・25日線-3%<br>スコア <b>+0.105</b> ・ 終値 1,561 → 寄付 1,537</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/5</span><span>3186</span><span>ネクステージ</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-10.0%</span></span></summary>
+  <div class="why">2Q営業利益進捗51.0%(過去平均48.1%)、会社予想は残り期間に前年比+8%を織り込み(足元+99%)、今期の修正 上方1回・下方0回、20日-16%・25日線-7%<br>スコア <b>+0.104</b> ・ 終値 2,839 → 寄付 2,556</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/1</span><span>8276</span><span>平和堂</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-1.9%</span></span></summary>
+  <div class="why">1Q営業利益進捗18.0%(過去平均21.7%)、会社予想は残り期間に前年比+13%を織り込み(足元-13%)、20日-4%・25日線-4%<br>スコア <b>+0.103</b> ・ 終値 2,586 → 寄付 2,538</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/14</span><span>8237</span><span>松屋</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-2.3%</span></span></summary>
+  <div class="why">1Q営業利益進捗36.7%(過去平均19.1%)、会社予想は残り期間に前年比-47%を織り込み(足元+36%)、20日-2%・25日線+1%<br>スコア <b>+0.102</b> ・ 終値 2,210 → 寄付 2,160</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/27</span><span>6988</span><span>日東電工</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-4.6%</span></span></summary>
+  <div class="why">1Q営業利益進捗24.6%(過去平均22.2%)、会社予想は残り期間に前年比+7%を織り込み(足元+15%)、今期の修正 上方1回・下方0回、20日+2%・25日線+2%<br>スコア <b>+0.098</b> ・ 終値 3,600 → 寄付 3,436</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/5</span><span>7630</span><span>壱番屋</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-2.4%</span></span></summary>
+  <div class="why">1Q営業利益進捗21.7%(過去平均24.4%)、会社予想は残り期間に前年比+14%を織り込み(足元-14%)、20日-2%・25日線+2%<br>スコア <b>+0.098</b> ・ 終値 1,101 → 寄付 1,075</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/14</span><span>9601</span><span>松竹</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-1.2%</span></span></summary>
+  <div class="why">1Q営業利益進捗46.7%(過去平均35.2%)、会社予想は残り期間に前年比-61%を織り込み(足元+58%)、20日-0%・25日線+1%<br>スコア <b>+0.096</b> ・ 終値 10,880 → 寄付 10,750</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/15</span><span>6058</span><span>ベクトル</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-4.2%</span></span></summary>
+  <div class="why">1Q営業利益進捗31.7%(過去平均18.7%)、会社予想は残り期間に前年比-8%を織り込み(足元+87%)、20日+3%・25日線-1%<br>スコア <b>+0.095</b> ・ 終値 1,923 → 寄付 1,842</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/13</span><span>8267</span><span>イオン</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-2.4%</span></span></summary>
+  <div class="why">1Q営業利益進捗22.1%(過去平均20.5%)、会社予想は残り期間に前年比+24%を織り込み(足元+34%)、20日-15%・25日線-8%<br>スコア <b>+0.095</b> ・ 終値 1,200 → 寄付 1,172</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/14</span><span>1434</span><span>ＪＥＳＣＯホールディングス</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-7.0%</span></span></summary>
+  <div class="why">3Q営業利益進捗96.4%(過去平均39.0%)、会社予想は残り期間に前年比-93%を織り込み(足元+119%)、20日+1%・25日線+0%<br>スコア <b>+0.092</b> ・ 終値 1,682 → 寄付 1,565</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/2</span><span>5076</span><span>インフロニア・ホールディングス</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-14.8%</span></span></summary>
+  <div class="why">1Q営業利益進捗17.0%(過去平均11.7%)、会社予想は残り期間に前年比+2%を織り込み(足元+116%)、今期の修正 上方1回・下方0回、20日-4%・25日線-2%<br>スコア <b>+0.091</b> ・ 終値 2,696 → 寄付 2,296</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/26</span><span>7970</span><span>信越ポリマー</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+8.4%</span></span></summary>
+  <div class="why">1Q営業利益進捗25.9%(過去平均26.3%)、会社予想は残り期間に前年比+16%を織り込み(足元+9%)、20日-4%・25日線-5%<br>スコア <b>+0.088</b> ・ 終値 2,236 → 寄付 2,424</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/27</span><span>7309</span><span>シマノ</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+7.6%</span></span></summary>
+  <div class="why">2Q営業利益進捗58.0%(過去平均51.0%)、会社予想は残り期間に前年比-16%を織り込み(足元-3%)、20日+3%・25日線+3%<br>スコア <b>+0.087</b> ・ 終値 18,450 → 寄付 19,860</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>9/30</span><span>7915</span><span>ＮＩＳＳＨＡ</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-7.8%</span></span></summary>
+  <div class="why">1Q営業利益進捗10.7%(過去平均28.8%)、会社予想は残り期間に前年比+128%を織り込み(足元-48%)、今期の修正 上方1回・下方0回、20日-11%・25日線-6%<br>スコア <b>+0.082</b> ・ 終値 1,160 → 寄付 1,070</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/8</span><span>7649</span><span>スギホールディングス</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-0.6%</span></span></summary>
+  <div class="why">1Q営業利益進捗22.6%(過去平均21.4%)、会社予想は残り期間に前年比+11%を織り込み(足元+11%)、20日-7%・25日線-3%<br>スコア <b>+0.081</b> ・ 終値 1,254 → 寄付 1,246</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>9/8</span><span>9632</span><span>スバル興業</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-3.9%</span></span></summary>
+  <div class="why">1Q営業利益進捗34.3%(過去平均34.6%)、会社予想は残り期間に前年比-2%を織り込み(足元-13%)、20日-1%・25日線-2%<br>スコア <b>+0.081</b> ・ 終値 3,555 → 寄付 3,415</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/9</span><span>3046</span><span>ジンズホールディングス</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-6.7%</span></span></summary>
+  <div class="why">3Q営業利益進捗70.4%(過去平均69.1%)、会社予想は残り期間に前年比+18%を織り込み(足元+1%)、今期の修正 上方0回・下方1回、20日-2%・25日線-2%<br>スコア <b>+0.077</b> ・ 終値 5,680 → 寄付 5,300</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/5</span><span>9793</span><span>ダイセキ</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+2.6%</span></span></summary>
+  <div class="why">1Q営業利益進捗24.7%(過去平均26.7%)、会社予想は残り期間に前年比+18%を織り込み(足元+8%)、20日-8%・25日線-6%<br>スコア <b>+0.073</b> ・ 終値 3,485 → 寄付 3,575</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/23</span><span>2531</span><span>宝ホールディングス</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+7.9%</span></span></summary>
+  <div class="why">会社予想は今期に前年比+10%を織り込み(足元-17%)、20日+14%・25日線+8%<br>スコア <b>+0.073</b> ・ 終値 2,694 → 寄付 2,906</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>9/11</span><span>2929</span><span>ファーマフーズ</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+15.3%</span></span></summary>
+  <div class="why">今期の修正 上方2回・下方0回、20日+3%・25日線+3%、直前修正2026-09-09<br>スコア <b>+0.072</b> ・ 終値 622 → 寄付 717</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/9</span><span>4829</span><span>日本エンタープライズ</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-2.9%</span></span></summary>
+  <div class="why">会社予想は今期に前年比+28%を織り込み(足元+22%)、20日-4%・25日線-2%<br>スコア <b>+0.068</b> ・ 終値 105 → 寄付 102</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/27</span><span>8697</span><span>日本取引所グループ</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-4.8%</span></span></summary>
+  <div class="why">1Q営業利益進捗28.3%(過去平均25.4%)、会社予想は残り期間に前年比+22%を織り込み(足元+73%)、今期の修正 上方2回・下方0回、20日-6%・25日線-3%、直前修正2026-09-24<br>スコア <b>+0.065</b> ・ 終値 2,194 → 寄付 2,088</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/27</span><span>7102</span><span>日本車輌製造</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-5.2%</span></span></summary>
+  <div class="why">1Q営業利益進捗33.2%(過去平均13.8%)、会社予想は残り期間に前年比-42%を織り込み(足元+86%)、20日+2%・25日線+4%<br>スコア <b>+0.064</b> ・ 終値 3,760 → 寄付 3,565</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/9</span><span>3201</span><span>日本毛織</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+6.4%</span></span></summary>
+  <div class="why">2Q営業利益進捗43.0%(過去平均40.7%)、会社予想は残り期間に前年比+6%を織り込み(足元+14%)、20日-4%・25日線-4%<br>スコア <b>+0.063</b> ・ 終値 1,889 → 寄付 2,010</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/8</span><span>8918</span><span>ランド</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="">+0.0%</span></span></summary>
+  <div class="why">20日-9%・25日線-4%<br>スコア <b>+0.063</b> ・ 終値 11 → 寄付 11</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>9/30</span><span>2354</span><span>ＹＥ　ＤＩＧＩＴＡＬ</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-2.4%</span></span></summary>
+  <div class="why">1Q営業利益進捗15.0%(過去平均21.3%)、会社予想は残り期間に前年比+42%を織り込み(足元+5%)、20日-16%・25日線-10%、直前修正2026-09-18<br>スコア <b>+0.061</b> ・ 終値 1,263 → 寄付 1,233</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/6</span><span>2726</span><span>パルグループホールディングス</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+3.5%</span></span></summary>
+  <div class="why">1Q営業利益進捗27.1%(過去平均28.8%)、会社予想は残り期間に前年比+11%を織り込み(足元+1%)、20日-3%・25日線-4%<br>スコア <b>+0.060</b> ・ 終値 1,397 → 寄付 1,446</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/15</span><span>2168</span><span>パソナグループ</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-0.5%</span></span></summary>
+  <div class="why">20日-6%・25日線-4%<br>スコア <b>+0.057</b> ・ 終値 1,468 → 寄付 1,461</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/14</span><span>9837</span><span>モリト</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-0.1%</span></span></summary>
+  <div class="why">2Q営業利益進捗58.8%(過去平均49.4%)、会社予想は残り期間に前年比-18%を織り込み(足元+31%)、20日+4%・25日線+2%<br>スコア <b>+0.054</b> ・ 終値 1,833 → 寄付 1,832</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/6</span><span>2659</span><span>サンエー</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-2.5%</span></span></summary>
+  <div class="why">1Q営業利益進捗26.5%(過去平均23.3%)、会社予想は残り期間に前年比-1%を織り込み(足元+13%)、20日-5%・25日線-4%<br>スコア <b>+0.052</b> ・ 終値 3,210 → 寄付 3,130</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/13</span><span>6432</span><span>竹内製作所</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+6.9%</span></span></summary>
+  <div class="why">1Q営業利益進捗26.7%(過去平均27.8%)、会社予想は残り期間に前年比+2%を織り込み(足元-9%)、20日+1%・25日線-1%<br>スコア <b>+0.051</b> ・ 終値 7,280 → 寄付 7,780</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>9/29</span><span>7921</span><span>ＴＡＫＡＲＡ　＆　ＣＯＭＰＡＮＹ</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+3.9%</span></span></summary>
+  <div class="why">会社予想は今期に前年比+11%を織り込み(足元+9%)、20日-6%・25日線-2%<br>スコア <b>+0.051</b> ・ 終値 4,090 → 寄付 4,250</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/9</span><span>4440</span><span>ヴィッツ</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-11.8%</span></span></summary>
+  <div class="why">3Q営業利益進捗92.6%(過去平均78.4%)、会社予想は残り期間に前年比-53%を織り込み(足元+26%)、今期の修正 上方1回・下方0回、20日+48%・25日線+6%<br>スコア <b>+0.050</b> ・ 終値 2,390 → 寄付 2,108</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>9/30</span><span>6594</span><span>ニデック</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-16.3%</span></span></summary>
+  <div class="why">2Q営業利益進捗8.1%(過去平均59.3%)、会社予想は残り期間に前年比+83%を織り込み(足元-82%)、20日-14%・25日線-14%<br>スコア <b>+0.050</b> ・ 終値 2,355 → 寄付 1,972</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/15</span><span>3697</span><span>ＳＨＩＦＴ</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+11.2%</span></span></summary>
+  <div class="why">今期の修正 上方1回・下方0回、20日+8%・25日線+3%<br>スコア <b>+0.048</b> ・ 終値 908 → 寄付 1,010</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/2</span><span>7611</span><span>ハイデイ日高</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+1.7%</span></span></summary>
+  <div class="why">1Q営業利益進捗31.1%(過去平均27.1%)、会社予想は残り期間に前年比-1%を織り込み(足元+13%)、20日-2%・25日線-2%<br>スコア <b>+0.047</b> ・ 終値 2,931 → 寄付 2,980</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/14</span><span>3922</span><span>ＰＲ　ＴＩＭＥＳ</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+16.4%</span></span></summary>
+  <div class="why">1Q営業利益進捗27.1%(過去平均23.3%)、会社予想は残り期間に前年比-14%を織り込み(足元-0%)、20日-2%・25日線-1%<br>スコア <b>+0.043</b> ・ 終値 2,131 → 寄付 2,481</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/15</span><span>7818</span><span>トランザクション</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+4.5%</span></span></summary>
+  <div class="why">3Q営業利益進捗76.6%(過去平均75.6%)、会社予想は残り期間に前年比+5%を織り込み(足元+14%)、今期の修正 上方2回・下方0回、20日+5%・25日線+2%、直前修正2026-10-08<br>スコア <b>+0.043</b> ・ 終値 1,231 → 寄付 1,286</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/14</span><span>2471</span><span>エスプール</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-2.3%</span></span></summary>
+  <div class="why">2Q営業利益進捗23.7%(過去平均30.0%)、会社予想は残り期間に前年比+29%を織り込み(足元-20%)、20日-2%・25日線-3%<br>スコア <b>+0.041</b> ・ 終値 266 → 寄付 260</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/5</span><span>3148</span><span>クリエイトＳＤホールディングス</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-1.4%</span></span></summary>
+  <div class="why">会社予想は今期に前年比+6%を織り込み(足元+6%)、20日-5%・25日線-3%<br>スコア <b>+0.040</b> ・ 終値 3,240 → 寄付 3,195</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/27</span><span>4973</span><span>日本高純度化学</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-5.6%</span></span></summary>
+  <div class="why">1Q営業利益進捗5.1%(過去平均20.3%)、会社予想は残り期間に前年比+20%を織り込み(足元-66%)、20日-14%・25日線-11%<br>スコア <b>+0.040</b> ・ 終値 4,315 → 寄付 4,075</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>9/25</span><span>2742</span><span>ハローズ</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="">+0.0%</span></span></summary>
+  <div class="why">1Q営業利益進捗21.7%(過去平均24.2%)、会社予想は残り期間に前年比+5%を織り込み(足元-10%)、20日-1%・25日線-1%<br>スコア <b>+0.039</b> ・ 終値 3,920 → 寄付 3,920</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/14</span><span>3093</span><span>トレジャー・ファクトリー</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-2.1%</span></span></summary>
+  <div class="why">1Q営業利益進捗34.8%(過去平均31.9%)、会社予想は残り期間に前年比+6%を織り込み(足元+24%)、今期の修正 上方1回・下方0回、20日+5%・25日線+1%<br>スコア <b>+0.038</b> ・ 終値 1,908 → 寄付 1,868</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/27</span><span>4063</span><span>信越化学工業</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+3.2%</span></span></summary>
+  <div class="why">1Q営業利益進捗24.8%(過去平均26.4%)、会社予想は残り期間に前年比+12%を織り込み(足元+4%)、20日-2%・25日線-3%<br>スコア <b>+0.036</b> ・ 終値 5,850 → 寄付 6,038</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>9/11</span><span>4813</span><span>ＡＣＣＥＳＳ</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-4.0%</span></span></summary>
+  <div class="why">20日-2%・25日線-4%<br>スコア <b>+0.036</b> ・ 終値 401 → 寄付 385</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/8</span><span>9983</span><span>ファーストリテイリング</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+0.9%</span></span></summary>
+  <div class="why">3Q営業利益進捗84.2%(過去平均80.1%)、会社予想は残り期間に前年比+2%を織り込み(足元+36%)、今期の修正 上方3回・下方0回、20日+8%・25日線+8%<br>スコア <b>+0.035</b> ・ 終値 74,800 → 寄付 75,500</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/27</span><span>8218</span><span>コメリ</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+0.8%</span></span></summary>
+  <div class="why">1Q営業利益進捗45.3%(過去平均41.3%)、会社予想は残り期間に前年比+0%を織り込み(足元+9%)、20日+2%・25日線+4%<br>スコア <b>+0.033</b> ・ 終値 3,900 → 寄付 3,930</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/15</span><span>4434</span><span>サーバーワークス</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+11.8%</span></span></summary>
+  <div class="why">1Q営業利益進捗30.4%(過去平均30.5%)、会社予想は残り期間に前年比+114%を織り込み(足元+100%)、20日+5%・25日線+5%<br>スコア <b>+0.031</b> ・ 終値 2,547 → 寄付 2,847</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/14</span><span>7599</span><span>ＩＤＯＭ</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-23.7%</span></span></summary>
+  <div class="why">1Q営業利益進捗18.1%(過去平均19.6%)、会社予想は残り期間に前年比+20%を織り込み(足元+15%)、20日-5%・25日線-3%<br>スコア <b>+0.030</b> ・ 終値 1,166 → 寄付 890</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/13</span><span>7085</span><span>カーブスホールディングス</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+1.5%</span></span></summary>
+  <div class="why">3Q営業利益進捗79.9%(過去平均80.6%)、会社予想は残り期間に前年比+19%を織り込み(足元+22%)、今期の修正 上方1回・下方0回、20日+2%・25日線+3%<br>スコア <b>+0.029</b> ・ 終値 954 → 寄付 968</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/13</span><span>8273</span><span>イズミ</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-0.3%</span></span></summary>
+  <div class="why">1Q営業利益進捗23.7%(過去平均23.9%)、会社予想は残り期間に前年比+6%を織り込み(足元+9%)、20日-7%・25日線-4%<br>スコア <b>+0.029</b> ・ 終値 933 → 寄付 930</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>9/15</span><span>2678</span><span>アスクル</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-0.7%</span></span></summary>
+  <div class="why">20日-1%・25日線-3%<br>スコア <b>+0.028</b> ・ 終値 1,228 → 寄付 1,220</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/27</span><span>4765</span><span>ＳＢＩグローバルアセットマネジメント</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+5.6%</span></span></summary>
+  <div class="why">20日-4%・25日線-2%<br>スコア <b>+0.027</b> ・ 終値 591 → 寄付 624</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/13</span><span>3086</span><span>Ｊ．フロント　リテイリング</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-6.0%</span></span></summary>
+  <div class="why">1Q営業利益進捗30.0%(過去平均30.2%)、会社予想は残り期間に前年比-0%を織り込み(足元-12%)、20日+5%・25日線+3%<br>スコア <b>+0.026</b> ・ 終値 2,767 → 寄付 2,600</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/5</span><span>8923</span><span>トーセイ</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-3.9%</span></span></summary>
+  <div class="why">2Q営業利益進捗86.2%(過去平均79.7%)、会社予想は残り期間に前年比-28%を織り込み(足元+20%)、20日-6%・25日線-0%<br>スコア <b>+0.022</b> ・ 終値 1,731 → 寄付 1,663</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/9</span><span>9974</span><span>ベルク</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-5.1%</span></span></summary>
+  <div class="why">1Q営業利益進捗17.5%(過去平均24.2%)、会社予想は残り期間に前年比+11%を織り込み(足元-15%)、20日-3%・25日線-4%<br>スコア <b>+0.016</b> ・ 終値 6,480 → 寄付 6,150</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/22</span><span>6146</span><span>ディスコ</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-5.3%</span></span></summary>
+  <div class="why">20日+6%・25日線-4%<br>スコア <b>+0.011</b> ・ 終値 51,230 → 寄付 48,530</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>9/28</span><span>8227</span><span>しまむら</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="">+0.0%</span></span></summary>
+  <div class="why">1Q営業利益進捗26.8%(過去平均24.8%)、会社予想は残り期間に前年比+6%を織り込み(足元+17%)、20日-3%・25日線-1%<br>スコア <b>+0.011</b> ・ 終値 3,153 → 寄付 3,153</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>9/29</span><span>3050</span><span>ＤＣＭホールディングス</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-2.5%</span></span></summary>
+  <div class="why">1Q営業利益進捗36.5%(過去平均31.0%)、会社予想は残り期間に前年比-7%を織り込み(足元+17%)、20日-2%・25日線-0%<br>スコア <b>+0.010</b> ・ 終値 1,584 → 寄付 1,544</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/13</span><span>3349</span><span>コスモス薬品</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+2.8%</span></span></summary>
+  <div class="why">会社予想は今期に前年比+2%を織り込み(足元+5%)、20日-6%・25日線-1%<br>スコア <b>+0.008</b> ・ 終値 6,254 → 寄付 6,430</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/6</span><span>1377</span><span>サカタのタネ</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-1.7%</span></span></summary>
+  <div class="why">会社予想は今期に前年比+3%を織り込み(足元+7%)、20日-4%・25日線-3%<br>スコア <b>+0.007</b> ・ 終値 4,220 → 寄付 4,150</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/13</span><span>9948</span><span>アークス</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-2.0%</span></span></summary>
+  <div class="why">1Q営業利益進捗22.8%(過去平均23.4%)、会社予想は残り期間に前年比+1%を織り込み(足元+6%)、20日-6%・25日線-4%<br>スコア <b>+0.007</b> ・ 終値 3,520 → 寄付 3,450</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/15</span><span>6866</span><span>日置電機</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-16.5%</span></span></summary>
+  <div class="why">2Q営業利益進捗53.2%(過去平均46.5%)、会社予想は残り期間に前年比+27%を織り込み(足元+53%)、今期の修正 上方1回・下方0回、20日+14%・25日線+9%<br>スコア <b>+0.007</b> ・ 終値 10,720 → 寄付 8,950</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/15</span><span>5018</span><span>ＭＯＲＥＳＣＯ</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+20.1%</span></span></summary>
+  <div class="why">1Q営業利益進捗44.6%(過去平均18.8%)、会社予想は残り期間に前年比-28%を織り込み(足元+106%)、20日+10%・25日線+8%<br>スコア <b>+0.001</b> ・ 終値 2,483 → 寄付 2,983</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/13</span><span>3087</span><span>ドトール・日レスホールディングス</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+2.2%</span></span></summary>
+  <div class="why">1Q営業利益進捗34.1%(過去平均29.4%)、会社予想は残り期間に前年比-1%を織り込み(足元+35%)、20日-6%・25日線-4%<br>スコア <b>+0.000</b> ・ 終値 3,160 → 寄付 3,230</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/15</span><span>623A</span><span>ベルテックス</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-9.3%</span></span></summary>
+  <div class="why">前回の決算短信のデータなし<br>スコア <b>+0.000</b> ・ 終値 642 → 寄付 582</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>9/11</span><span>8079</span><span>正栄食品工業</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-3.4%</span></span></summary>
+  <div class="why">2Q営業利益進捗64.3%(過去平均61.4%)、会社予想は残り期間に前年比+2%を織り込み(足元+28%)、今期の修正 上方1回・下方0回、20日+2%・25日線+1%<br>スコア <b>-0.000</b> ・ 終値 4,520 → 寄付 4,365</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>9/11</span><span>3539</span><span>ＪＭホールディングス</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+6.6%</span></span></summary>
+  <div class="why">3Q営業利益進捗69.1%(過去平均78.1%)、会社予想は残り期間に前年比+33%を織り込み(足元+0%)、20日-6%・25日線-6%<br>スコア <b>-0.001</b> ・ 終値 1,336 → 寄付 1,424</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/9</span><span>7713</span><span>シグマ光機</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+30.8%</span></span></summary>
+  <div class="why">会社予想は今期に前年比+15%を織り込み(足元+4%)、20日+8%・25日線+6%<br>スコア <b>-0.001</b> ・ 終値 2,600 → 寄付 3,400</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/15</span><span>7730</span><span>マニー</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+2.8%</span></span></summary>
+  <div class="why">3Q営業利益進捗77.2%(過去平均76.2%)、会社予想は残り期間に前年比+8%を織り込み(足元+22%)、今期の修正 上方1回・下方0回、20日+5%・25日線+3%<br>スコア <b>-0.006</b> ・ 終値 1,511 → 寄付 1,553</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>9/18</span><span>6905</span><span>コーセル</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+6.1%</span></span></summary>
+  <div class="why">20日+2%・25日線+0%<br>スコア <b>-0.007</b> ・ 終値 1,320 → 寄付 1,401</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/14</span><span>3543</span><span>コメダホールディングス</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+3.6%</span></span></summary>
+  <div class="why">1Q営業利益進捗25.9%(過去平均24.7%)、会社予想は残り期間に前年比+6%を織り込み(足元+16%)、20日-2%・25日線-1%<br>スコア <b>-0.010</b> ・ 終値 2,790 → 寄付 2,890</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>9/30</span><span>9369</span><span>キユーソー流通システム</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-2.3%</span></span></summary>
+  <div class="why">2Q営業利益進捗51.9%(過去平均56.3%)、会社予想は残り期間に前年比+6%を織り込み(足元-4%)、20日-7%・25日線-4%<br>スコア <b>-0.010</b> ・ 終値 2,906 → 寄付 2,840</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>9/24</span><span>4716</span><span>日本オラクル</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+6.6%</span></span></summary>
+  <div class="why">20日+1%・25日線+1%<br>スコア <b>-0.011</b> ・ 終値 9,145 → 寄付 9,745</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/13</span><span>575A</span><span>前澤ホールディングス</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-0.3%</span></span></summary>
+  <div class="why">前回の決算短信のデータなし<br>スコア <b>-0.011</b> ・ 終値 1,963 → 寄付 1,957</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>9/11</span><span>5889</span><span>Ｊａｐａｎ　Ｅｙｅｗｅａｒ　Ｈｏｌｄｉｎｇｓ</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-9.9%</span></span></summary>
+  <div class="why">1Q営業利益進捗24.7%(過去平均22.2%)、会社予想は残り期間に前年比+10%を織り込み(足元+28%)、20日-4%・25日線-3%<br>スコア <b>-0.011</b> ・ 終値 2,498 → 寄付 2,251</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>9/11</span><span>3444</span><span>菊池製作所</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+20.4%</span></span></summary>
+  <div class="why">20日+2%・25日線+1%<br>スコア <b>-0.012</b> ・ 終値 1,015 → 寄付 1,222</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>9/14</span><span>3657</span><span>ポールトゥウィンホールディングス</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+1.1%</span></span></summary>
+  <div class="why">20日+3%・25日線+0%<br>スコア <b>-0.013</b> ・ 終値 365 → 寄付 369</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>9/11</span><span>9603</span><span>エイチ・アイ・エス</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-2.7%</span></span></summary>
+  <div class="why">2Q営業利益進捗53.7%(過去平均53.7%)、会社予想は残り期間に前年比+13%を織り込み(足元-4%)、今期の修正 上方0回・下方1回、20日+4%・25日線+2%<br>スコア <b>-0.014</b> ・ 終値 1,172 → 寄付 1,140</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/9</span><span>8008</span><span>ヨンドシーホールディングス</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-1.1%</span></span></summary>
+  <div class="why">1Q営業利益進捗29.8%(過去平均27.3%)、会社予想は残り期間に前年比+34%を織り込み(足元+134%)、今期の修正 上方1回・下方0回、20日-1%・25日線-0%<br>スコア <b>-0.018</b> ・ 終値 2,135 → 寄付 2,111</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/9</span><span>4992</span><span>北興化学工業</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-8.2%</span></span></summary>
+  <div class="why">2Q営業利益進捗80.5%(過去平均74.7%)、会社予想は残り期間に前年比-19%を織り込み(足元+14%)、20日-2%・25日線+0%<br>スコア <b>-0.020</b> ・ 終値 1,952 → 寄付 1,792</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/14</span><span>3387</span><span>クリエイト・レストランツ・ホールディングス</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-6.7%</span></span></summary>
+  <div class="why">1Q営業利益進捗37.5%(過去平均37.6%)、会社予想は残り期間に前年比+15%を織り込み(足元+11%)、20日+4%・25日線+4%<br>スコア <b>-0.023</b> ・ 終値 807 → 寄付 753</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>9/10</span><span>6619</span><span>ダブル・スコープ</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-8.0%</span></span></summary>
+  <div class="why">20日+2%・25日線+2%<br>スコア <b>-0.024</b> ・ 終値 163 → 寄付 150</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>9/11</span><span>3399</span><span>丸千代山岡家</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+0.8%</span></span></summary>
+  <div class="why">1Q営業利益進捗22.8%(過去平均21.6%)、会社予想は残り期間に前年比+11%を織り込み(足元+12%)、20日+8%・25日線+4%<br>スコア <b>-0.030</b> ・ 終値 3,820 → 寄付 3,850</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/5</span><span>3612</span><span>ワールド</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-0.7%</span></span></summary>
+  <div class="why">1Q営業利益進捗41.7%(過去平均42.7%)、会社予想は残り期間に前年比-1%を織り込み(足元+8%)、20日-6%・25日線-4%<br>スコア <b>-0.031</b> ・ 終値 1,517 → 寄付 1,506</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/9</span><span>6136</span><span>オーエスジー</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+3.2%</span></span></summary>
+  <div class="why">2Q営業利益進捗52.2%(過去平均49.2%)、会社予想は残り期間に前年比+32%を織り込み(足元+65%)、今期の修正 上方1回・下方0回、20日+0%・25日線+3%<br>スコア <b>-0.032</b> ・ 終値 3,653 → 寄付 3,770</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/9</span><span>6814</span><span>古野電気</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+7.2%</span></span></summary>
+  <div class="why">1Q営業利益進捗33.4%(過去平均21.1%)、会社予想は残り期間に前年比-12%を織り込み(足元+65%)、20日-0%・25日線+5%、直前修正2026-10-06<br>スコア <b>-0.032</b> ・ 終値 7,930 → 寄付 8,500</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/8</span><span>8016</span><span>オンワードホールディングス</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+4.6%</span></span></summary>
+  <div class="why">1Q営業利益進捗44.1%(過去平均48.0%)、会社予想は残り期間に前年比+14%を織り込み(足元+6%)、20日-2%・25日線-2%<br>スコア <b>-0.033</b> ・ 終値 699 → 寄付 731</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/22</span><span>3091</span><span>ブロンコビリー</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+2.3%</span></span></summary>
+  <div class="why">2Q営業利益進捗48.6%(過去平均45.0%)、会社予想は残り期間に前年比+20%を織り込み(足元+58%)、今期の修正 上方1回・下方0回、20日+5%・25日線+3%<br>スコア <b>-0.037</b> ・ 終値 2,943 → 寄付 3,010</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/15</span><span>3915</span><span>テラスカイ</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+7.1%</span></span></summary>
+  <div class="why">1Q営業利益進捗22.3%(過去平均19.7%)、会社予想は残り期間に前年比+59%を織り込み(足元+79%)、20日-4%・25日線-1%<br>スコア <b>-0.037</b> ・ 終値 2,147 → 寄付 2,300</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/15</span><span>4413</span><span>ボードルア</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="">+0.0%</span></span></summary>
+  <div class="why">1Q営業利益進捗19.2%(過去平均18.0%)、会社予想は残り期間に前年比+28%を織り込み(足元+39%)、20日+1%・25日線+0%<br>スコア <b>-0.044</b> ・ 終値 3,030 → 寄付 3,030</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/7</span><span>6407</span><span>ＣＫＤ</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-4.2%</span></span></summary>
+  <div class="why">1Q営業利益進捗28.2%(過去平均21.4%)、会社予想は残り期間に前年比+29%を織り込み(足元+113%)、今期の修正 上方1回・下方0回、20日+15%・25日線+13%<br>スコア <b>-0.045</b> ・ 終値 5,930 → 寄付 5,680</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/7</span><span>2670</span><span>エービーシー・マート</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+4.6%</span></span></summary>
+  <div class="why">1Q営業利益進捗31.0%(過去平均29.8%)、会社予想は残り期間に前年比+2%を織り込み(足元+8%)、20日+4%・25日線+3%<br>スコア <b>-0.046</b> ・ 終値 2,768 → 寄付 2,896</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/23</span><span>6999</span><span>ＫＯＡ</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+13.6%</span></span></summary>
+  <div class="why">1Q営業利益進捗15.9%(過去平均19.8%)、会社予想は残り期間に前年比+43%を織り込み(足元+70%)、今期の修正 上方1回・下方0回、20日-14%・25日線-14%<br>スコア <b>-0.047</b> ・ 終値 1,889 → 寄付 2,145</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/15</span><span>5817</span><span>ＪＭＡＣＳ</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-13.0%</span></span></summary>
+  <div class="why">1Q営業利益進捗69.0%(過去平均47.2%)、会社予想は残り期間に前年比-77%を織り込み(足元+239%)、20日+21%・25日線+15%<br>スコア <b>-0.050</b> ・ 終値 1,301 → 寄付 1,132</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/14</span><span>2337</span><span>いちご</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+8.6%</span></span></summary>
+  <div class="why">1Q営業利益進捗12.6%(過去平均21.4%)、会社予想は残り期間に前年比+6%を織り込み(足元-25%)、20日-1%・25日線-1%<br>スコア <b>-0.054</b> ・ 終値 386 → 寄付 419</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/8</span><span>4825</span><span>ウェザーニューズ</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-0.4%</span></span></summary>
+  <div class="why">会社予想は今期に前年比+3%を織り込み(足元+16%)、20日-4%・25日線-2%<br>スコア <b>-0.054</b> ・ 終値 1,947 → 寄付 1,940</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/26</span><span>8060</span><span>キヤノンマーケティングジャパン</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-3.3%</span></span></summary>
+  <div class="why">2Q営業利益進捗51.6%(過去平均48.0%)、会社予想は残り期間に前年比-1%を織り込み(足元+19%)、今期の修正 上方1回・下方0回、20日+15%・25日線+10%<br>スコア <b>-0.055</b> ・ 終値 4,249 → 寄付 4,109</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/1</span><span>7447</span><span>ナガイレーベン</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+2.1%</span></span></summary>
+  <div class="why">3Q営業利益進捗69.9%(過去平均79.8%)、会社予想は残り期間に前年比+81%を織り込み(足元-4%)、20日-5%・25日線-3%<br>スコア <b>-0.056</b> ・ 終値 1,635 → 寄付 1,669</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/7</span><span>2918</span><span>わらべや日洋ホールディングス</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-5.3%</span></span></summary>
+  <div class="why">1Q営業利益進捗21.5%(過去平均38.8%)、会社予想は残り期間に前年比+16%を織り込み(足元-26%)、20日-5%・25日線-3%<br>スコア <b>-0.057</b> ・ 終値 2,613 → 寄付 2,475</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>9/10</span><span>4194</span><span>ビジョナル</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-8.5%</span></span></summary>
+  <div class="why">3Q営業利益進捗84.9%(過去平均83.5%)、会社予想は残り期間に前年比-12%を織り込み(足元+12%)、20日-6%・25日線-5%<br>スコア <b>-0.058</b> ・ 終値 8,794 → 寄付 8,048</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/14</span><span>5885</span><span>ジーデップ・アドバンス</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+6.4%</span></span></summary>
+  <div class="why">会社予想は今期に前年比+14%を織り込み(足元+33%)、20日-10%・25日線-5%<br>スコア <b>-0.059</b> ・ 終値 2,980 → 寄付 3,170</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/13</span><span>7512</span><span>イオン北海道</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-1.6%</span></span></summary>
+  <div class="why">1Q営業利益進捗10.4%(過去平均15.9%)、会社予想は残り期間に前年比+6%を織り込み(足元-6%)、20日-2%・25日線-2%<br>スコア <b>-0.061</b> ・ 終値 841 → 寄付 828</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/8</span><span>2809</span><span>キユーピー</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-1.6%</span></span></summary>
+  <div class="why">2Q営業利益進捗52.7%(過去平均50.8%)、会社予想は残り期間に前年比-3%を織り込み(足元+24%)、20日-8%・25日線-4%<br>スコア <b>-0.064</b> ・ 終値 4,360 → 寄付 4,290</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>9/10</span><span>9692</span><span>シーイーシー</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-6.6%</span></span></summary>
+  <div class="why">1Q営業利益進捗29.9%(過去平均26.5%)、会社予想は残り期間に前年比-2%を織り込み(足元+30%)、20日-0%・25日線-4%<br>スコア <b>-0.065</b> ・ 終値 2,277 → 寄付 2,127</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/14</span><span>9418</span><span>Ｕ－ＮＥＸＴ　ＨＯＬＤＩＮＧＳ</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-1.9%</span></span></summary>
+  <div class="why">3Q営業利益進捗75.3%(過去平均78.8%)、会社予想は残り期間に前年比+12%を織り込み(足元+4%)、20日+3%・25日線+0%<br>スコア <b>-0.065</b> ・ 終値 1,765 → 寄付 1,731</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/14</span><span>2292</span><span>Ｓ　Ｆｏｏｄｓ</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-3.5%</span></span></summary>
+  <div class="why">1Q営業利益進捗28.3%(過去平均24.5%)、会社予想は残り期間に前年比-17%を織り込み(足元+55%)、20日-2%・25日線-2%<br>スコア <b>-0.067</b> ・ 終値 2,653 → 寄付 2,561</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/8</span><span>8278</span><span>フジ</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-2.4%</span></span></summary>
+  <div class="why">1Q営業利益進捗2.3%(過去平均14.5%)、会社予想は残り期間に前年比+78%を織り込み(足元-79%)、20日-3%・25日線-3%<br>スコア <b>-0.068</b> ・ 終値 1,980 → 寄付 1,932</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/15</span><span>9602</span><span>東宝</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-2.6%</span></span></summary>
+  <div class="why">1Q営業利益進捗22.4%(過去平均43.6%)、会社予想は残り期間に前年比-1%を織り込み(足元-28%)、20日-6%・25日線-4%<br>スコア <b>-0.069</b> ・ 終値 1,562 → 寄付 1,522</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/15</span><span>3994</span><span>マネーフォワード</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+2.9%</span></span></summary>
+  <div class="why">20日+7%・25日線+6%<br>スコア <b>-0.069</b> ・ 終値 6,405 → 寄付 6,588</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/27</span><span>7751</span><span>キヤノン</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-4.9%</span></span></summary>
+  <div class="why">今期の修正 上方1回・下方1回、20日+7%・25日線+6%<br>スコア <b>-0.069</b> ・ 終値 4,904 → 寄付 4,662</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/13</span><span>2379</span><span>ディップ</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-3.5%</span></span></summary>
+  <div class="why">1Q営業利益進捗10.9%(過去平均31.1%)、会社予想は残り期間に前年比+16%を織り込み(足元-76%)、20日-3%・25日線-2%<br>スコア <b>-0.070</b> ・ 終値 1,751 → 寄付 1,690</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/8</span><span>6323</span><span>ローツェ</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+4.5%</span></span></summary>
+  <div class="why">1Q営業利益進捗26.8%(過去平均24.7%)、会社予想は残り期間に前年比+23%を織り込み(足元+21%)、20日+20%・25日線+17%<br>スコア <b>-0.074</b> ・ 終値 4,434 → 寄付 4,634</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/15</span><span>367A</span><span>プリモグローバルホールディングス</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+6.7%</span></span></summary>
+  <div class="why">会社予想は残り期間に前年比+10%を織り込み(足元+18%)、20日+2%・25日線+2%<br>スコア <b>-0.078</b> ・ 終値 2,762 → 寄付 2,946</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>9/11</span><span>1766</span><span>東建コーポレーション</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-2.2%</span></span></summary>
+  <div class="why">会社予想は今期に前年比-10%を織り込み(足元+0%)、20日+3%・25日線+0%<br>スコア <b>-0.079</b> ・ 終値 13,490 → 寄付 13,190</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/27</span><span>4519</span><span>中外製薬</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+1.5%</span></span></summary>
+  <div class="why">20日+4%・25日線+8%<br>スコア <b>-0.080</b> ・ 終値 6,688 → 寄付 6,788</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/9</span><span>7888</span><span>三光合成</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-5.9%</span></span></summary>
+  <div class="why">会社予想は今期に前年比+11%を織り込み(足元+25%)、20日-2%・25日線-0%<br>スコア <b>-0.082</b> ・ 終値 888 → 寄付 836</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>9/30</span><span>6908</span><span>イリソ電子工業</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-8.4%</span></span></summary>
+  <div class="why">3Q営業利益進捗81.2%(過去平均76.1%)、会社予想は残り期間に前年比-34%を織り込み(足元+15%)、20日+4%・25日線+3%<br>スコア <b>-0.085</b> ・ 終値 2,948 → 寄付 2,701</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/5</span><span>3498</span><span>霞ヶ関キャピタル</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+2.0%</span></span></summary>
+  <div class="why">3Q営業利益進捗29.7%(過去平均46.1%)、会社予想は残り期間に前年比+103%を織り込み(足元-12%)、今期の修正 上方1回・下方0回、20日+0%・25日線+0%、直前修正2026-09-17<br>スコア <b>-0.086</b> ・ 終値 7,410 → 寄付 7,560</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>9/11</span><span>8142</span><span>トーホー</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-2.8%</span></span></summary>
+  <div class="why">1Q営業利益進捗25.0%(過去平均24.9%)、会社予想は残り期間に前年比+2%を織り込み(足元+14%)、20日+3%・25日線+0%<br>スコア <b>-0.091</b> ・ 終値 1,411 → 寄付 1,371</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/27</span><span>8892</span><span>エスコン</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+0.6%</span></span></summary>
+  <div class="why">1Q営業利益進捗2.2%(過去平均16.5%)、会社予想は残り期間に前年比+8%を織り込み(足元-73%)、20日-3%・25日線+1%<br>スコア <b>-0.093</b> ・ 終値 1,054 → 寄付 1,060</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/7</span><span>3391</span><span>ツルハホールディングス</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+3.1%</span></span></summary>
+  <div class="why">1Q営業利益進捗24.4%(過去平均22.9%)、会社予想は残り期間に前年比+49%を織り込み(足元+94%)、20日-8%・25日線-4%<br>スコア <b>-0.093</b> ・ 終値 2,085 → 寄付 2,150</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/14</span><span>7608</span><span>エスケイジャパン</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-11.9%</span></span></summary>
+  <div class="why">1Q営業利益進捗21.9%(過去平均23.0%)、会社予想は残り期間に前年比+5%を織り込み(足元+4%)、20日+10%・25日線+5%<br>スコア <b>-0.096</b> ・ 終値 966 → 寄付 851</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>9/10</span><span>1928</span><span>積水ハウス</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-0.6%</span></span></summary>
+  <div class="why">1Q営業利益進捗21.7%(過去平均19.7%)、会社予想は残り期間に前年比-3%を織り込み(足元+26%)、20日-3%・25日線-3%<br>スコア <b>-0.098</b> ・ 終値 3,321 → 寄付 3,302</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/27</span><span>4733</span><span>オービックビジネスコンサルタント</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+2.4%</span></span></summary>
+  <div class="why">1Q営業利益進捗24.8%(過去平均22.5%)、会社予想は残り期間に前年比+11%を織り込み(足元+18%)、20日+14%・25日線+9%<br>スコア <b>-0.098</b> ・ 終値 9,406 → 寄付 9,632</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/15</span><span>6532</span><span>ベイカレント</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+15.9%</span></span></summary>
+  <div class="why">1Q営業利益進捗22.3%(過去平均23.2%)、会社予想は残り期間に前年比+30%を織り込み(足元+19%)、20日+18%・25日線+11%<br>スコア <b>-0.099</b> ・ 終値 8,695 → 寄付 10,080</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/1</span><span>7545</span><span>西松屋チェーン</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-4.4%</span></span></summary>
+  <div class="why">1Q営業利益進捗42.4%(過去平均46.4%)、20日-3%・25日線-1%<br>スコア <b>-0.100</b> ・ 終値 1,967 → 寄付 1,881</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>9/11</span><span>9743</span><span>丹青社</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-1.4%</span></span></summary>
+  <div class="why">1Q営業利益進捗29.2%(過去平均41.8%)、会社予想は残り期間に前年比+49%を織り込み(足元-49%)、20日+1%・25日線-0%<br>スコア <b>-0.101</b> ・ 終値 1,471 → 寄付 1,451</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>9/11</span><span>3193</span><span>エターナルホスピタリティグループ</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-5.7%</span></span></summary>
+  <div class="why">3Q営業利益進捗69.0%(過去平均74.0%)、会社予想は残り期間に前年比-3%を織り込み(足元+17%)、今期の修正 上方1回・下方0回、20日-9%・25日線-6%<br>スコア <b>-0.105</b> ・ 終値 1,359 → 寄付 1,282</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/14</span><span>2153</span><span>Ｅ・Ｊホールディングス</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-0.5%</span></span></summary>
+  <div class="why">今期の修正 上方0回・下方1回、20日+2%・25日線-0%<br>スコア <b>-0.105</b> ・ 終値 1,853 → 寄付 1,843</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/9</span><span>2157</span><span>コシダカホールディングス</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+1.5%</span></span></summary>
+  <div class="why">3Q営業利益進捗64.0%(過去平均71.5%)、会社予想は残り期間に前年比+42%を織り込み(足元-10%)、今期の修正 上方0回・下方1回、20日-2%・25日線-2%<br>スコア <b>-0.107</b> ・ 終値 974 → 寄付 989</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>9/8</span><span>4238</span><span>ミライアル</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-2.3%</span></span></summary>
+  <div class="why">20日+14%・25日線+7%<br>スコア <b>-0.107</b> ・ 終値 1,888 → 寄付 1,845</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/14</span><span>7581</span><span>サイゼリヤ</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+11.4%</span></span></summary>
+  <div class="why">3Q営業利益進捗73.2%(過去平均68.1%)、会社予想は残り期間に前年比-0%を織り込み(足元+26%)、今期の修正 上方0回・下方1回、20日-6%・25日線+2%<br>スコア <b>-0.109</b> ・ 終値 6,550 → 寄付 7,300</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>9/14</span><span>6838</span><span>多摩川ホールディングス</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-6.7%</span></span></summary>
+  <div class="why">会社予想は残り期間に前年比-19%を織り込み(足元+276%)、今期の修正 上方1回・下方0回、20日-3%・25日線+2%<br>スコア <b>-0.109</b> ・ 終値 1,503 → 寄付 1,403</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/14</span><span>6183</span><span>ベルシステム２４ホールディングス</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-3.1%</span></span></summary>
+  <div class="why">1Q営業利益進捗24.7%(過去平均27.1%)、会社予想は残り期間に前年比+0%を織り込み(足元+11%)、20日-4%・25日線-3%<br>スコア <b>-0.110</b> ・ 終値 1,299 → 寄付 1,259</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/26</span><span>9663</span><span>ナガワ</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+1.3%</span></span></summary>
+  <div class="why">1Q営業利益進捗21.8%(過去平均18.8%)、会社予想は残り期間に前年比-3%を織り込み(足元+32%)、20日-1%・25日線+0%<br>スコア <b>-0.110</b> ・ 終値 4,865 → 寄付 4,930</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>9/14</span><span>4053</span><span>Ｓｕｎ　Ａｓｔｅｒｉｓｋ</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+7.4%</span></span></summary>
+  <div class="why">1Q営業利益進捗36.3%(過去平均33.5%)、会社予想は残り期間に前年比+44%を織り込み(足元+114%)、20日+1%・25日線-1%<br>スコア <b>-0.111</b> ・ 終値 460 → 寄付 494</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/13</span><span>9278</span><span>ブックオフグループホールディングス</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-1.8%</span></span></summary>
+  <div class="why">会社予想は今期に前年比+7%を織り込み(足元+28%)、20日-1%・25日線-3%<br>スコア <b>-0.111</b> ・ 終値 2,722 → 寄付 2,672</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/9</span><span>6506</span><span>安川電機</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+3.0%</span></span></summary>
+  <div class="why">1Q営業利益進捗14.1%(過去平均23.1%)、会社予想は残り期間に前年比+40%を織り込み(足元-19%)、20日+3%・25日線+5%<br>スコア <b>-0.116</b> ・ 終値 4,783 → 寄付 4,926</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>9/14</span><span>2301</span><span>学情</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+2.4%</span></span></summary>
+  <div class="why">2Q営業利益進捗13.3%(過去平均21.6%)、会社予想は残り期間に前年比+21%を織り込み(足元-26%)、今期の修正 上方0回・下方1回、20日-2%・25日線-3%<br>スコア <b>-0.117</b> ・ 終値 1,681 → 寄付 1,721</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/9</span><span>6668</span><span>アドテック　プラズマ　テクノロジー</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+14.3%</span></span></summary>
+  <div class="why">3Q営業利益進捗57.0%(過去平均82.2%)、会社予想は残り期間に前年比+935%を織り込み(足元-16%)、今期の修正 上方1回・下方0回、20日+14%・25日線+10%<br>スコア <b>-0.122</b> ・ 終値 4,925 → 寄付 5,630</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/27</span><span>2212</span><span>山崎製パン</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-5.0%</span></span></summary>
+  <div class="why">2Q営業利益進捗56.0%(過去平均58.3%)、会社予想は残り期間に前年比+6%を織り込み(足元+3%)、20日+8%・25日線+6%<br>スコア <b>-0.125</b> ・ 終値 3,893 → 寄付 3,700</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/14</span><span>3562</span><span>Ｎｏ．１</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-4.7%</span></span></summary>
+  <div class="why">1Q営業利益進捗10.7%(過去平均12.1%)、会社予想は残り期間に前年比+25%を織り込み(足元+20%)、20日+13%・25日線+10%<br>スコア <b>-0.127</b> ・ 終値 1,700 → 寄付 1,620</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>9/14</span><span>604A</span><span>ビーエイブル</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+18.9%</span></span></summary>
+  <div class="why">前回の決算短信のデータなし<br>スコア <b>-0.127</b> ・ 終値 1,265 → 寄付 1,504</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/15</span><span>8233</span><span>高島屋</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-4.4%</span></span></summary>
+  <div class="why">1Q営業利益進捗27.8%(過去平均26.8%)、会社予想は残り期間に前年比+2%を織り込み(足元+26%)、20日-0%・25日線-1%<br>スコア <b>-0.131</b> ・ 終値 2,192 → 寄付 2,096</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>9/11</span><span>4382</span><span>ＨＥＲＯＺ</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+4.0%</span></span></summary>
+  <div class="why">会社予想は今期に前年比+53%を織り込み(足元+71%)、20日+2%・25日線+1%<br>スコア <b>-0.134</b> ・ 終値 757 → 寄付 787</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>9/11</span><span>3038</span><span>神戸物産</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="pos">+4.0%</span></span></summary>
+  <div class="why">2Q営業利益進捗48.9%(過去平均49.7%)、会社予想は残り期間に前年比+6%を織り込み(足元+10%)、20日+10%・25日線+7%<br>スコア <b>-0.145</b> ・ 終値 2,966 → 寄付 3,083</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>10/15</span><span>1887</span><span>日本国土開発</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-0.2%</span></span></summary>
+  <div class="why">会社予想は今期に前年比-12%を織り込み(足元+208%)、20日-6%・25日線-4%<br>スコア <b>-0.149</b> ・ 終値 516 → 寄付 515</div>
+</details>
+
+<details data-cls="PASS">
+  <summary><span>9/14</span><span>9425</span><span>ＲｅＹｕｕ　Ｊａｐａｎ</span>
+    <span><span class="badge b-pass">PASS</span></span><span class="num"><span class="neg">-3.1%</span></span></summary>
+  <div class="why">20日+28%・25日線+12%<br>スコア <b>-0.150</b> ・ 終値 255 → 寄付 247</div>
+</details>
+
+<details data-cls="CAUTION">
+  <summary><span>9/14</span><span>9627</span><span>アインホールディングス</span>
+    <span><span class="badge b-caution">CAUTION</span></span><span class="num"><span class="neg">-5.0%</span></span></summary>
+  <div class="why">会社予想は今期に前年比+9%を織り込み(足元+77%)、20日-5%・25日線-4%<br>スコア <b>-0.154</b> ・ 終値 6,021 → 寄付 5,721</div>
+</details>
+
+<details data-cls="CAUTION">
+  <summary><span>10/27</span><span>4684</span><span>オービック</span>
+    <span><span class="badge b-caution">CAUTION</span></span><span class="num"><span class="neg">-0.5%</span></span></summary>
+  <div class="why">1Q営業利益進捗25.4%(過去平均24.2%)、会社予想は残り期間に前年比+9%を織り込み(足元+16%)、20日+20%・25日線+14%<br>スコア <b>-0.162</b> ・ 終値 5,940 → 寄付 5,909</div>
+</details>
+
+<details data-cls="CAUTION">
+  <summary><span>10/15</span><span>277A</span><span>グロービング</span>
+    <span><span class="badge b-caution">CAUTION</span></span><span class="num"><span class="neg">-4.7%</span></span></summary>
+  <div class="why">会社予想は今期に前年比+21%を織り込み(足元+54%)、20日-2%・25日線-4%<br>スコア <b>-0.163</b> ・ 終値 1,696 → 寄付 1,616</div>
+</details>
+
+<details data-cls="CAUTION">
+  <summary><span>9/28</span><span>1723</span><span>日本電技</span>
+    <span><span class="badge b-caution">CAUTION</span></span><span class="num"><span class="neg">-4.5%</span></span></summary>
+  <div class="why">1Q営業利益進捗14.0%(過去平均9.2%)、会社予想は残り期間に前年比+2%を織り込み(足元+40%)、20日+18%・25日線+8%<br>スコア <b>-0.180</b> ・ 終値 2,544 → 寄付 2,430</div>
+</details>
+
+<details data-cls="CAUTION">
+  <summary><span>10/14</span><span>6505</span><span>東洋電機製造</span>
+    <span><span class="badge b-caution">CAUTION</span></span><span class="num"><span class="pos">+21.5%</span></span></summary>
+  <div class="why">会社予想は今期に前年比-16%を織り込み(足元+30%)、20日-2%・25日線-1%<br>スコア <b>-0.181</b> ・ 終値 2,329 → 寄付 2,829</div>
+</details>
+
+<details data-cls="CAUTION">
+  <summary><span>10/27</span><span>5911</span><span>横河ブリッジホールディングス</span>
+    <span><span class="badge b-caution">CAUTION</span></span><span class="num"><span class="neg">-1.7%</span></span></summary>
+  <div class="why">1Q営業利益進捗9.4%(過去平均13.0%)、会社予想は残り期間に前年比-12%を織り込み(足元+2%)、20日-3%・25日線+0%<br>スコア <b>-0.186</b> ・ 終値 2,896 → 寄付 2,846</div>
+</details>
+
+<details data-cls="CAUTION">
+  <summary><span>10/26</span><span>3635</span><span>コーエーテクモホールディングス</span>
+    <span><span class="badge b-caution">CAUTION</span></span><span class="num"><span class="pos">+0.3%</span></span></summary>
+  <div class="why">1Q営業利益進捗16.9%(過去平均13.7%)、会社予想は残り期間に前年比-21%を織り込み(足元+51%)、20日-2%・25日線-0%、直前修正2026-10-19<br>スコア <b>-0.189</b> ・ 終値 1,668 → 寄付 1,672</div>
+</details>
+
+<details data-cls="CAUTION">
+  <summary><span>9/11</span><span>2695</span><span>くら寿司</span>
+    <span><span class="badge b-caution">CAUTION</span></span><span class="num"><span class="neg">-1.4%</span></span></summary>
+  <div class="why">2Q営業利益進捗49.5%(過去平均76.0%)、会社予想は残り期間に前年比-1%を織り込み(足元-15%)、20日-1%・25日線-2%<br>スコア <b>-0.190</b> ・ 終値 1,675 → 寄付 1,652</div>
+</details>
+
+<details data-cls="CAUTION">
+  <summary><span>9/14</span><span>2315</span><span>ＣＡＩＣＡ　ＤＩＧＩＴＡＬ</span>
+    <span><span class="badge b-caution">CAUTION</span></span><span class="num"><span class="neg">-6.3%</span></span></summary>
+  <div class="why">会社予想は残り期間に前年比+22%を織り込み(足元+108%)、20日+2%・25日線-0%<br>スコア <b>-0.205</b> ・ 終値 63 → 寄付 59</div>
+</details>
+
+<details data-cls="CAUTION">
+  <summary><span>10/14</span><span>4432</span><span>ウイングアーク１ｓｔ</span>
+    <span><span class="badge b-caution">CAUTION</span></span><span class="num"><span class="pos">+0.3%</span></span></summary>
+  <div class="why">1Q営業利益進捗20.4%(過去平均29.3%)、会社予想は残り期間に前年比+22%を織り込み(足元+3%)、20日+13%・25日線+5%<br>スコア <b>-0.227</b> ・ 終値 3,485 → 寄付 3,495</div>
+</details>
+
+<details data-cls="CAUTION">
+  <summary><span>10/9</span><span>4443</span><span>Ｓａｎｓａｎ</span>
+    <span><span class="badge b-caution">CAUTION</span></span><span class="num"><span class="neg">-11.3%</span></span></summary>
+  <div class="why">会社予想は今期に前年比+65%を織り込み(足元+192%)、20日+5%・25日線+2%<br>スコア <b>-0.234</b> ・ 終値 2,219 → 寄付 1,969</div>
+</details>
+
+<details data-cls="CAUTION">
+  <summary><span>9/9</span><span>5032</span><span>ＡＮＹＣＯＬＯＲ</span>
+    <span><span class="badge b-caution">CAUTION</span></span><span class="num"><span class="pos">+9.6%</span></span></summary>
+  <div class="why">会社予想は今期に前年比-6%を織り込み(足元+24%)、20日+6%・25日線+3%<br>スコア <b>-0.242</b> ・ 終値 2,855 → 寄付 3,130</div>
+</details>
+
+<details data-cls="CAUTION">
+  <summary><span>9/30</span><span>6083</span><span>ＥＲＩホールディングス</span>
+    <span><span class="badge b-caution">CAUTION</span></span><span class="num"><span class="neg">-9.4%</span></span></summary>
+  <div class="why">会社予想は今期に前年比+8%を織り込み(足元+142%)、20日+5%・25日線+7%<br>スコア <b>-0.273</b> ・ 終値 1,696 → 寄付 1,536</div>
+</details>
+
+<details data-cls="CAUTION">
+  <summary><span>10/9</span><span>8185</span><span>チヨダ</span>
+    <span><span class="badge b-caution">CAUTION</span></span><span class="num"><span class="neg">-4.5%</span></span></summary>
+  <div class="why">1Q営業利益進捗67.5%(過去平均114.3%)、20日-1%・25日線-0%<br>スコア <b>-0.295</b> ・ 終値 989 → 寄付 944</div>
+</details>
+
+<details data-cls="CAUTION">
+  <summary><span>9/14</span><span>4446</span><span>Ｌｉｎｋ－Ｕグループ</span>
+    <span><span class="badge b-caution">CAUTION</span></span><span class="num"><span class="neg">-6.6%</span></span></summary>
+  <div class="why">3Q営業利益進捗66.9%(過去平均85.7%)、会社予想は残り期間に前年比+148%を織り込み(足元-13%)、今期の修正 上方0回・下方1回、20日+12%・25日線+9%<br>スコア <b>-0.311</b> ・ 終値 908 → 寄付 848</div>
+</details>
+
+<details data-cls="CAUTION">
+  <summary><span>10/27</span><span>9782</span><span>ディーエムエス</span>
+    <span><span class="badge b-caution">CAUTION</span></span><span class="num"><span class="pos">+0.1%</span></span></summary>
+  <div class="why">1Q営業利益進捗19.5%(過去平均26.0%)、会社予想は残り期間に前年比-3%を織り込み(足元+27%)、20日-6%・25日線-2%<br>スコア <b>-0.359</b> ・ 終値 3,245 → 寄付 3,250</div>
+</details>
+
+<details data-cls="CAUTION">
+  <summary><span>10/6</span><span>8011</span><span>三陽商会</span>
+    <span><span class="badge b-caution">CAUTION</span></span><span class="num"><span class="pos">+1.4%</span></span></summary>
+  <div class="why">1Q営業利益進捗5.4%(過去平均15.1%)、会社予想は残り期間に前年比+57%を織り込み(足元+214%)、20日-12%・25日線-8%<br>スコア <b>-0.388</b> ・ 終値 1,297 → 寄付 1,315</div>
+</details>
+
+<details data-cls="CAUTION">
+  <summary><span>10/9</span><span>6289</span><span>技研製作所</span>
+    <span><span class="badge b-caution">CAUTION</span></span><span class="num"><span class="pos">+2.6%</span></span></summary>
+  <div class="why">3Q営業利益進捗61.3%(過去平均69.9%)、会社予想は残り期間に前年比-4%を織り込み(足元+27%)、20日+5%・25日線+0%<br>スコア <b>-0.479</b> ・ 終値 1,949 → 寄付 2,000</div>
+</details>
+
+</div>
+
+</main>
+<footer>
+  出典: TDnet(日本取引所グループ)/ JPX / Yahoo Finance<br>
+  判定(M3)は開発中です。EV・勝率は初期の仮置きの換算で、実測で置き換える前の値です。投資判断の根拠にしないでください。
+</footer>
+
+<script>
+(() => {
+  const seg = document.getElementById('seg'); if (!seg) return;
+  seg.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    seg.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b));
+    document.querySelectorAll('#bt details').forEach(d => {
+      d.style.display = (b.dataset.v === 'all' || d.dataset.cls === b.dataset.v) ? '' : 'none';
+    });
+  });
+})();
+</script>
+
+</body>
+</html>
