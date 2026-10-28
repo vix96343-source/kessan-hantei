@@ -1,4 +1,12 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261028557526,2026-10-28T11:30,3003,ヒューリック,通期業績予想及び配当予想の修正に関するお知らせ,forecast_dividend_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261028557526.pdf,,東,2026-10-28T11:31
+140120261027557259,2026-10-28T11:30,4956,コニシ,2027年３月期　第２四半期（中間期）業績予想との差異および通期業績予想の上方修正に関するお知らせ,forecast_revision,False,up,,,,,https://www.release.tdnet.info/inbs/140120261027557259.pdf,,東,2026-10-28T11:31
+140120261027557255,2026-10-28T11:30,4956,コニシ,2027年３月期　第２四半期（中間期）決算短信（日本基準）（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261027557255.pdf,https://www.release.tdnet.info/inbs/081220261027557255.zip,東,2026-10-28T11:31
+140120261027557231,2026-10-28T11:30,8628,松井証,2027年3月期第2四半期 決算報告資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261027557231.pdf,,東,2026-10-28T11:31
+140120261027557085,2026-10-28T11:30,3003,ヒューリック,2026年12月期第３四半期決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261027557085.pdf,https://www.release.tdnet.info/inbs/081220261027557085.zip,東,2026-10-28T11:31
+140120261027557042,2026-10-28T11:30,5834,Ｇ－ＳＢＩリーシング,2027年３月期　第２四半期（中間期）決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261027557042.pdf,,東,2026-10-28T11:31
+140120261027557038,2026-10-28T11:30,5834,Ｇ－ＳＢＩリーシング,2027年３月期　第２四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261027557038.pdf,https://www.release.tdnet.info/inbs/081220261027557038.zip,東,2026-10-28T11:31
+140120261027556908,2026-10-28T11:30,8628,松井証,2027年3月期第2四半期（中間期）決算短信〔日本基準〕（非連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261027556908.pdf,https://www.release.tdnet.info/inbs/081220261027556908.zip,東,2026-10-28T11:31
 140120261027557156,2026-10-28T11:00,9932,杉本商事,2027年3月期中間決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261027557156.pdf,,東,2026-10-28T11:03
 140120261027557039,2026-10-28T11:00,9932,杉本商事,2027年３月期第２四半期（中間期）決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261027557039.pdf,https://www.release.tdnet.info/inbs/081220261027557039.zip,東,2026-10-28T11:03
 140120261026556450,2026-10-27T17:00,4519,中外薬,2026年12月期第3四半期連結決算〔IFRS〕補足資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261026556450.pdf,,東,2026-10-27T17:03
