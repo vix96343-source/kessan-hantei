@@ -1,4 +1,6 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261027557156,2026-10-28T11:00,9932,杉本商事,2027年3月期中間決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261027557156.pdf,,東,2026-10-28T11:03
+140120261027557039,2026-10-28T11:00,9932,杉本商事,2027年３月期第２四半期（中間期）決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261027557039.pdf,https://www.release.tdnet.info/inbs/081220261027557039.zip,東,2026-10-28T11:03
 140120261026556450,2026-10-27T17:00,4519,中外薬,2026年12月期第3四半期連結決算〔IFRS〕補足資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261026556450.pdf,,東,2026-10-27T17:03
 140120261026556449,2026-10-27T17:00,4519,中外薬,2026年12月期第３四半期決算短信〔ＩＦＲＳ〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261026556449.pdf,https://www.release.tdnet.info/inbs/081220261026556449.zip,東,2026-10-27T17:03
 140120261015551667,2026-10-27T16:30,5279,日本興業,2027年3月期 第2四半期（中間期）決算短信[日本基準]（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261015551667.pdf,https://www.release.tdnet.info/inbs/081220261015551667.zip,東,2026-10-27T16:30
