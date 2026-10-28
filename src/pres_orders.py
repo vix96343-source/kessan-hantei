@@ -182,8 +182,10 @@ def update(cfg: dict, data_dir: Path = DATA_DIR) -> int:
     hist = {c: {q["end"]: q for q in v} for c, v in history.by_code(history.load(data_dir)).items()}
     session = None
     rows = []
+    checked = _load_checked(data_dir)                  # 一度読んだ説明資料は(受注が無くても)読み直さない
+    n_checked = len(checked)
     for p in pres.to_dict("records"):
-        if p["code"] in skip or p["disclosure_id"][4:] in done:
+        if p["code"] in skip or p["disclosure_id"][4:] in done or p["disclosure_id"] in checked:
             continue
         r = reps[(reps["code"] == p["code"]) & (reps["disclosed_at"].str[:10] <= p["disclosed_at"][:10])]
         r = r[r["disclosed_at"].str[:10] >= (pd.Timestamp(p["disclosed_at"][:10]) - pd.Timedelta(days=3)).strftime("%Y-%m-%d")]
@@ -201,6 +203,7 @@ def update(cfg: dict, data_dir: Path = DATA_DIR) -> int:
         except Exception as e:
             log.warning("説明資料の取得失敗 %s: %s", p["code"], e)
             continue
+        checked.add(p["disclosure_id"])
         if resp is None:
             continue
         import pypdfium2 as pdfium
@@ -221,5 +224,16 @@ def update(cfg: dict, data_dir: Path = DATA_DIR) -> int:
                          pd.DataFrame(rows).reindex(columns=orders.COLUMNS)])
         out.sort_values(["disclosed_at", "disclosure_id"], ascending=False).to_csv(orders.path(data_dir), index=False,
                                                                                  encoding="utf-8")
+    if len(checked) != n_checked:
+        _checked_path(data_dir).write_text("".join(f"{x}\n" for x in sorted(checked)), encoding="utf-8")
     log.info("説明資料の受注: %d", len(rows))
     return len(rows)
+
+
+def _checked_path(data_dir: Path) -> Path:
+    return data_dir / "pres_checked.txt"
+
+
+def _load_checked(data_dir: Path) -> set[str]:
+    p = _checked_path(data_dir)
+    return set(p.read_text(encoding="utf-8").split()) if p.exists() else set()
