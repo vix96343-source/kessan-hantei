@@ -26,6 +26,9 @@ details .why { padding: 0 6px 10px 120px; color: var(--muted); font: 400 13px/1.
 .why b { color: var(--text); font-weight: 600; }
 .lhead { display: grid; grid-template-columns: 56px 52px 1fr 84px 70px; gap: 6px; padding: 8px 6px; color: var(--head);
          font-size: 14px; border-bottom: 1px solid var(--line); background: var(--panel); position: sticky; top: 0; z-index: 1; }
+.day-h { padding: 16px 12px 6px; font-size: 15px; color: var(--head); }
+details.fold { border-bottom: 0; margin-top: 18px; }
+details.fold > summary.sec { display: block; color: var(--muted); padding: 14px 12px; }
 .seg { display: flex; gap: 6px; padding: 0 12px 10px; flex-wrap: wrap; }
 .seg button { background: var(--panel); color: var(--muted); border: 1px solid var(--line); border-radius: 6px; padding: 5px 10px;
               font: 600 13px system-ui, sans-serif; cursor: pointer; }
@@ -48,21 +51,25 @@ details .why { padding: 0 6px 10px 120px; color: var(--muted); font: 400 13px/1.
 {%- endmacro %}
 {% block content %}
 
-<div class="sec">次の決算の判定</div>
-{% if preds %}
-<div class="sub">{{ preds[0].announce_date | dlabel }} 発表分 ・ {{ preds | length }} 件(プライム・スタンダード、売買代金1億円以上)</div>
+<div class="sec">これから決算を出す銘柄の判定</div>
+<div class="sub">決算予定(JPX)の、まだ発表されていない日すべて。発表前に分かっている数字と株価だけで判定し、発表後に結果と照らし合わせます。
+各日 売買代金1億円以上のプライム・スタンダードから、株価を使わない仮スコアの上位30件。行をタップで理由。</div>
+{% for d, rows in preds %}
+<div class="day-h">{{ d | dlabel }} 発表 <span class="none">{{ rows | length }}件{% set g2 = rows | selectattr("gap_class", "equalto", "★★GAP") | list %}{% set g1 = rows | selectattr("gap_class", "equalto", "★GAP") | list %}{% if g2 or g1 %} ・ ★★GAP {{ g2 | length }} / ★GAP {{ g1 | length }}{% endif %}</span></div>
 <div class="lhead"><span>コード</span><span></span><span>企業名</span><span>判定</span><span class="num">EV</span></div>
-{% for r in preds %}
+{% for r in rows %}
 <details>
-  <summary><span>{{ r.code }}</span><span class="{{ 'warn' if r.intraday }}">{{ '⚠' ~ r.time if r.intraday else '' }}</span>
+  <summary><span>{{ r.code }}</span><span class="{{ 'warn' if r.intraday }}">{{ '⚠' if r.intraday else '' }}</span>
     <span>{{ r.name }}</span><span>{{ badge(r.gap_class) }}</span><span class="num">{{ pct(r.ev) }}</span></summary>
-  <div class="why">{{ r.reason }}<br>スコア {{ "%+.3f"|format(r.score) }} ・ データの揃い {{ r.conviction }}</div>
+  <div class="why">{% if r.intraday %}<span class="warn">⚠ 場中発表{{ (" " ~ r.time) if r.time }}: 前日までに判断が必要</span><br>{% endif %}{{ r.reason }}<br>スコア {{ "%+.3f"|format(r.score) }} ・ データの揃い {{ r.conviction }} ・ {{ r.judged }} 判定</div>
 </details>
 {% endfor %}
 {% else %}
-<div class="sub">まだありません。毎営業日 20時過ぎに翌営業日の発表分を判定します。</div>
-{% endif %}
+<div class="sub">判定はまだありません。</div>
+{% endfor %}
 
+<details class="fold">
+<summary class="sec">参考: 過去の決算での事後検証 ›</summary>
 <div class="sec">事後検証(発表前の情報だけで判定 → 翌朝の寄付)</div>
 {% if bt.n %}
 <div class="sub">{{ bt.since | dlabel }}〜{{ bt.until | dlabel }} に決算を出した {{ bt.n }} 銘柄。寄付ギャップ = 発表直前の終値 → 発表翌営業日の寄付。同じ日に TOB・経営統合などが出た銘柄は除外。</div>
@@ -123,8 +130,9 @@ details .why { padding: 0 6px 10px 120px; color: var(--muted); font: 400 13px/1.
 {% else %}
 <div class="sub">検証データがありません。</div>
 {% endif %}
+</details>
 {% endblock %}
-{% block footer %}判定(M3)は開発中です。EV・勝率は初期の仮置きの換算で、実測で置き換える前の値です。投資判断の根拠にしないでください。{% endblock %}
+{% block footer %}判定は毎営業日 20時過ぎに決算予定の全日程を判定し直します(同じ銘柄は最新の判定を表示)。判定(M3)は開発中です。EV・勝率は初期の仮置きの換算で、実測で置き換える前の値です。投資判断の根拠にしないでください。{% endblock %}
 {% block script %}
 <script>
 (() => {

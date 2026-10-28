@@ -813,21 +813,26 @@ FACTOR_LABEL = {"progress_gap": "進捗率の差", "guidance_acceleration": "会
 
 def judge_context(cfg: dict, data_dir: Path = DATA_DIR) -> dict:
     """判定ページ: 次の発表分の判定(predictions.csv の最新バッチ)と事後検証(judge_backtest.csv)"""
-    today = now_jst().strftime("%Y-%m-%d")
+    days = [d.isoformat() for d in judge.upcoming_dates(cfg, data_dir)]
     p = judge.load(data_dir)
-    p = p[p["announce_date"] >= today]
-    preds = []
-    if not p.empty:
-        last = p[p["batch_id"] == p["batch_id"].max()]
-        last = last[last["announce_date"] == last["announce_date"].min()]
-        cal = calendar_fetch.load(data_dir).set_index(["announce_date", "code"])
-        for r in last.sort_values("ev_pred_pct", key=lambda x: x.astype(float), ascending=False).to_dict("records"):
-            c = cal.loc[(r["announce_date"], r["code"])] if (r["announce_date"], r["code"]) in cal.index else None
-            preds.append({"code": r["code"], "name": r["name"], "announce_date": r["announce_date"],
-                          "gap_class": r["gap_class"], "ev": float(r["ev_pred_pct"]), "score": float(r["score_total"]),
-                          "conviction": r["conviction"], "reason": r["reason_quant"],
-                          "intraday": c is not None and c["announce_timing"] == "場中",
-                          "time": (c["announce_time"] if c is not None else "") or ""})
+    p = p[p["announce_date"].isin(days)]
+    # 同じ発表日・銘柄は最新の判定(batch_id が新しいもの)
+    p = p.sort_values("batch_id").drop_duplicates(["announce_date", "code"], keep="last")
+    cal = calendar_fetch.load(data_dir).set_index(["announce_date", "code"])
+    preds = []                                    # [(発表日, [行])]
+    for d in days:
+        rows = []
+        for r in p[p["announce_date"] == d].sort_values("ev_pred_pct", key=lambda x: x.astype(float),
+                                                        ascending=False).to_dict("records"):
+            c = cal.loc[(d, r["code"])] if (d, r["code"]) in cal.index else None
+            rows.append({"code": r["code"], "name": r["name"], "gap_class": r["gap_class"],
+                         "ev": float(r["ev_pred_pct"]), "score": float(r["score_total"]),
+                         "conviction": r["conviction"], "reason": r["reason_quant"], "judged": r["batch_id"],
+                         "intraday": c is not None and c["announce_timing"] == "場中",
+                         "time": (c["announce_time"] if c is not None else "") or ""})
+        if rows:
+            preds.append((d, rows))
+    today = now_jst().strftime("%Y-%m-%d")
     bt = backtest.load(data_dir)
     sm = backtest.summary(bt, cfg)
     for f in sm["factors"]:

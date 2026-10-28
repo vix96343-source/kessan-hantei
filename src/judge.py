@@ -132,8 +132,11 @@ def state_before(code: str, announce: date, snaps: pd.DataFrame, events: pd.Data
             ch = val[0] / prev[0] - 1
             ups, downs = ups + (ch >= min_change), downs + (ch <= -min_change)
         prev = val
+    # 前期の通期実績(本決算の短信)。四半期履歴の合計より正確(遡及修正などで合わないことがある)
+    annual = [r for r in s.to_dict("records") if int(float(r["n_q"])) == 4 and _ym(r["period_end"]) == _shift(fy_end, -12)]
+    ly_fy_op = _num(annual[-1].get("cum_op")) if annual else None
     return {"snap": snap, "n_q": n_q, "period_end": _ym(snap["period_end"]), "fy_end": fy_end,
-            "fc_op": fc_op, "fc_sales": fc_sales, "ups": ups, "downs": downs}
+            "fc_op": fc_op, "fc_sales": fc_sales, "ups": ups, "downs": downs, "ly_fy_op": ly_fy_op}
 
 
 # ---------------------------------------------------------------- 因子
@@ -173,10 +176,13 @@ def guidance_acceleration(st: dict, hist: list[dict], fcfg: dict) -> dict | None
     本決算の直後(n_q=4)は「来期予想の前期比 − 終わった期の前期比」。"""
     n_q, fc = st["n_q"], st["fc_op"]
     cum, prior = _num(st["snap"].get("cum_op")), _num(st["snap"].get("prior_op"))
-    if fc is None or cum is None or prior is None or prior <= 0:
+    # 累計が赤字(または前年が赤字)だと伸び率の符号が意味を持たない(-141% のような値になる)ので計算しない
+    if fc is None or cum is None or prior is None or prior <= 0 or cum <= 0:
         return None
     if n_q == 4:
         rest_implied, rest_ly = fc, cum
+    elif st.get("ly_fy_op") is not None:          # 前期の通期実績(短信) − 前年同期の累計(短信)
+        rest_implied, rest_ly = fc - cum, st["ly_fy_op"] - prior
     else:
         ly = _fy_quarters(hist, _shift(st["fy_end"], -12))
         rest = ly[n_q:]
@@ -337,6 +343,27 @@ def judge(cfg: dict, announce: date | None = None, code: str | None = None, data
     if write:
         save(out, data_dir)
     return out
+
+
+def upcoming_dates(cfg: dict, data_dir: Path = DATA_DIR) -> list[date]:
+    """まだ発表されていない決算予定日(今日は場中の締め時刻 calendar.intraday_cutoff より前なら含める)"""
+    now = now_jst()
+    first = now.date() if now.strftime("%H:%M") < cfg["calendar"]["intraday_cutoff"] else now.date() + timedelta(days=1)
+    cal = calendar_fetch.load(data_dir)
+    return [date.fromisoformat(d) for d in sorted(set(cal["announce_date"])) if d >= first.isoformat()]
+
+
+def judge_upcoming(cfg: dict, data_dir: Path = DATA_DIR, write: bool = True) -> pd.DataFrame:
+    """決算予定にある、まだ発表されていない日をすべて判定する(株価は全日分を1回で取る)"""
+    days = upcoming_dates(cfg, data_dir)
+    codes = sorted({c for d in days for c in targets_for(d, cfg, data_dir)["code"]})
+    if not codes:
+        return pd.DataFrame(columns=COLUMNS)
+    from .datasources import yf
+    closes = yf.daily_closes(codes, period="3mo")
+    outs = [judge(cfg, announce=d, data_dir=data_dir, closes=closes, write=write) for d in days]
+    outs = [o for o in outs if not o.empty]
+    return pd.concat(outs, ignore_index=True) if outs else pd.DataFrame(columns=COLUMNS)
 
 
 def save(new: pd.DataFrame, data_dir: Path = DATA_DIR) -> None:

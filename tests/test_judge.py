@@ -86,7 +86,17 @@ def test_guidance_acceleration_after_annual_report():
 def test_missing_history_returns_none():
     st = judge.state_before("5344", date(2026, 10, 27), _snaps([ANNUAL, Q1]), NO_EVENTS)
     assert judge.progress_gap(st, HIST[-2:], FW["progress_gap"]) is None
-    assert judge.guidance_acceleration(st, [], FW["guidance_acceleration"]) is None
+    # 前期の本決算短信があれば、四半期履歴が無くても「前期通期 − 前年同期累計」で計算できる
+    a = judge.guidance_acceleration(st, [], FW["guidance_acceleration"])
+    assert a["implied_yoy"] == 44.2
+    st2 = judge.state_before("5344", date(2026, 10, 27), _snaps([Q1]), NO_EVENTS)
+    assert judge.guidance_acceleration(st2, [], FW["guidance_acceleration"]) is None
+
+
+def test_guidance_acceleration_skips_loss_making_ytd():
+    loss = {**Q1, "cum_op": -1.0 * B}
+    st = judge.state_before("5344", date(2026, 10, 27), _snaps([ANNUAL, loss]), NO_EVENTS)
+    assert judge.guidance_acceleration(st, HIST, FW["guidance_acceleration"]) is None
 
 
 def test_momentum_pricing_uses_only_closes_up_to_asof():

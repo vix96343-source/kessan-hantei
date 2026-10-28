@@ -88,7 +88,7 @@ def cmd_run(args, cfg):
     print(json.dumps({"consensus": consensus.update(cfg)}, ensure_ascii=False))
     print(json.dumps(reaction.update(cfg), ensure_ascii=False))
     try:                                          # 判定の失敗で速報サイトの更新を止めない
-        print(f"judge: {len(judge.judge(cfg))} 件")
+        print(f"judge: {len(judge.judge_upcoming(cfg))} 件")   # 決算予定の、まだ発表されていない日すべて
     except Exception as e:
         logging.getLogger(__name__).warning("judge 失敗: %s", e)
     cmd_site(args, cfg)
@@ -102,10 +102,15 @@ def cmd_judge(args, cfg):
             t = [(c, d) for c, d in t if c == args.code] or                 ([(args.code, date.fromisoformat(args.date))] if args.date else [])
         print(json.dumps(forecasts.backfill(cfg, t, judge.have_recent_snapshot(t)), ensure_ascii=False))
         return
-    ann = date.fromisoformat(args.date) if args.date else None
-    out = judge.judge(cfg, announce=ann, code=args.code, write=not args.dry_run)
+    if args.date or args.code:
+        ann = date.fromisoformat(args.date) if args.date else None
+        out = judge.judge(cfg, announce=ann, code=args.code, write=not args.dry_run)
+    else:                                         # 既定: 決算予定の、まだ発表されていない日すべて
+        out = judge.judge_upcoming(cfg, write=not args.dry_run)
+    if not args.dry_run:
+        site.render_all(cfg)
     for r in out.itertuples():
-        print(f"{r.gap_class:8} {float(r.score_total):+.3f} EV{float(r.ev_pred_pct):+.1f}% {r.code} {r.name} "
+        print(f"{r.announce_date} {r.gap_class:8} {float(r.score_total):+.3f} EV{float(r.ev_pred_pct):+.1f}% {r.code} {r.name} "
               f"[{r.conviction}] {r.reason_quant}")
 
 
@@ -178,7 +183,7 @@ def main(argv=None):
     s.set_defaults(func=cmd_run)
 
     s = sub.add_parser("judge", help="M3: 決算持ち越しの判定 → data/predictions.csv")
-    s.add_argument("--date", help="発表日 YYYY-MM-DD(既定: 翌営業日)")
+    s.add_argument("--date", help="発表日 YYYY-MM-DD(既定: 決算予定の、まだ発表されていない日すべて)")
     s.add_argument("--code", help="1銘柄だけ判定(カレンダーに無い過去日も可)")
     s.add_argument("--dry-run", action="store_true", help="predictions.csv に書かない")
     s.add_argument("--backfill", action="store_true", help="手元のみ: 前回の短信を IRBANK から補う")
