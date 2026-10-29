@@ -1,4 +1,9 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261029559373,2026-10-29T14:30,6301,コマツ,2026年度 第２四半期(４-９月) 決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261029559373.pdf,,東,2026-10-29T14:30
+140120261029559357,2026-10-29T14:30,6301,コマツ,2027年３月期 第２四半期（中間期）決算短信〔米国基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261029559357.pdf,https://www.release.tdnet.info/inbs/081220261029559357.zip,東,2026-10-29T14:30
+140120261015551648,2026-10-29T14:30,4366,ダイトーケミックス,2027年３月期　第２四半期（中間期）決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261015551648.pdf,,東,2026-10-29T14:30
+140120261015551123,2026-10-29T14:30,4366,ダイトーケミックス,通期連結業績予想の修正に関するお知らせ,forecast_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261015551123.pdf,,東,2026-10-29T14:30
+140120261015551077,2026-10-29T14:30,4366,ダイトーケミックス,2027年３月期 第２四半期決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261015551077.pdf,https://www.release.tdnet.info/inbs/081220261015551077.zip,東,2026-10-29T14:30
 140120260916537079,2026-10-29T14:15,9531,東瓦斯,2027年３月期 第２四半期（中間期）決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120260916537079.pdf,https://www.release.tdnet.info/inbs/081220260916537079.zip,東名,2026-10-29T14:15
 140120261029559187,2026-10-29T14:00,8708,アイザワ証Ｇ,2027年３月期第２四半期（中間期）　決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261029559187.pdf,,東,2026-10-29T14:00
 140120261029559086,2026-10-29T14:00,8708,アイザワ証Ｇ,2027年３月期　第２四半期（中間期）決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261029559086.pdf,https://www.release.tdnet.info/inbs/081220261029559086.zip,東,2026-10-29T14:00
