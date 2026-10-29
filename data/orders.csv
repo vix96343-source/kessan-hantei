@@ -1,4 +1,14 @@
 disclosure_id,code,disclosed_at,n_q,period_end,status,data
+140120261029559360,1959,2026-10-29T15:00,2,2026-09-30,ok,"{""segments"": [{""name"": ""配電線工事"", ""orders"": 60500000000.0, ""orders_prior"": null, ""orders_fy"": null, ""backlog"": null, ""backlog_prior"": null, ""backlog_fy"": null, ""orders_yoy"": null, ""backlog_yoy"": null}, {""name"": ""屋内線工事"", ""orders"": 265500000000.0, ""orders_prior"": null, ""orders_fy"": null, ""backlog"": null, ""backlog_prior"": null, ""backlog_fy"": null, ""orders_yoy"": null, ""backlog_yoy"": null}, {""name"": ""空調管工事"", ""orders"": 169000000000.0, ""orders_prior"": null, ""orders_fy"": null, ""backlog"": null, ""backlog_prior"": null, ""backlog_fy"": null, ""orders_yoy"": null, ""backlog_yoy"": null}], ""total"": {""name"": ""合計"", ""orders"": 495000000000.0, ""orders_prior"": null, ""orders_fy"": null, ""backlog"": null, ""backlog_prior"": null, ""backlog_fy"": null, ""orders_yoy"": null, ""backlog_yoy"": null}, ""unit"": 1000000.0, ""tpl"": [{""header"": [[""部門別"", ""売上高(百万円)"", ""工事受注高(百万円)""]], ""width"": 3, ""numeric_cols"": [1, 2], ""unit"": 1000000.0, ""rows"": [[""配電線工事""], [""屋内線工事""], [""空調管工事""], [""設備工事業計""], [""その他の事業""], [""合計""]], ""parents"": [null, null, null, null, null, null]}]}"
+140120261028558518,6473,2026-10-29T15:00,2,2026-09-30,none,
+140120261028558245,9914,2026-10-29T15:00,2,2026-09-20,none,
+140120261028558223,8015,2026-10-29T15:00,2,2026-09-30,none,
+140120261028558134,6161,2026-10-29T15:00,2,2026-09-20,none,
+140120261028557722,8864,2026-10-29T15:00,2,2026-09-30,none,
+140120261028557334,4113,2026-10-29T15:00,2,2026-09-30,none,
+140120261023555045,7919,2026-10-29T15:00,2,2026-09-30,none,
+140120261016552375,8071,2026-10-29T15:00,2,2026-09-30,none,
+140120261014550738,6436,2026-10-29T15:00,2,2026-09-30,none,
 140120261023555226,5482,2026-10-29T14:40,2,2026-09-30,none,
 140120261029559357,6301,2026-10-29T14:30,2,2026-09-30,none,
 140120261015551077,4366,2026-10-29T14:30,2,2026-09-30,none,
