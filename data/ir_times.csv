@@ -226,13 +226,10 @@ Please use the Async API instead.",2026-10-29T15:00
 2026-10-30,5214,no_time,,https://www.neg.co.jp/ir/event/,2026年10月30日 2026年12月期第3四半期決算発表,2026-10-29T14:30
 2026-10-30,5257,no_time,,https://www.nova-system.com/ir/calendar/,2026年10月30日 2026年12月期 第3四半期決算発表 SPACE SPACE,2026-10-29T14:30
 2026-10-30,5280,no_time,,https://www.yoshicon.co.jp/main/ir/,2026.10.30 / 2027年3月期 第2四半期決算発表(予定),2026-10-29T14:30
-2026-10-30,5332,error,,,"It looks like you are using Playwright Sync API inside the asyncio loop.
-Please use the Async API instead.",2026-10-29T15:01
-2026-10-30,5333,error,,,"It looks like you are using Playwright Sync API inside the asyncio loop.
-Please use the Async API instead.",2026-10-29T15:01
+2026-10-30,5332,none,,,,2026-10-29T22:12
+2026-10-30,5333,no_time,,https://www.ngk.co.jp/ir/calendar/,2026年10月30日 2027年3月期(2026年度)第2四半期決算発表,2026-10-29T22:12
 2026-10-30,5334,found,16:40,https://www.niterragroup.com/ir/events/calendar.html,2026年10月30日 / 2027年3月期 第2四半期決算発表日(16:40),2026-10-29T15:01
-2026-10-30,5388,error,,,"It looks like you are using Playwright Sync API inside the asyncio loop.
-Please use the Async API instead.",2026-10-29T15:01
+2026-10-30,5388,none,,,,2026-10-29T22:12
 2026-10-30,5410,none,,,,2026-10-29T15:05
 2026-10-30,5440,no_time,,https://www.kyoeisteel.co.jp/ja/ir/calendar.html,2026/10/30 / 2027年3月期 中間期決算発表 ・13:00 開示 ・17:30 機関投資家・アナリスト向け決算説明会(Zoomウェビナー) お申し込みは、以下URLにログインいただき、 弊社ページよりご登録ください。 みんせつ ( msetsu.com ),2026-10-29T15:05
 2026-10-30,5445,no_time,,https://www.tokyotekko.co.jp/ja/ir/calendar.html,10月30日(予定) 2027年3月期 第2四半期決算発表,2026-10-29T15:06
@@ -481,3 +478,50 @@ Please use the Async API instead.",2026-10-29T15:01
 2026-11-04,7296,none,,,,2026-10-29T16:01
 2026-11-04,7466,none,,,,2026-10-29T16:01
 2026-11-04,7565,no_time,,https://www.mansei.co.jp/ir/calendar/,2026.11.04 2027年3月期第2四半期決算発表,2026-10-29T16:01
+2026-11-04,7600,no_time,,https://www.jmdm.co.jp/ir/schedule/,2026年11月04日(水) / 2027年3月期第2四半期決算発表,2026-10-29T22:12
+2026-11-04,7609,no_time,,https://www.daitron.co.jp/ir/calender.html,2026年11月4日 / 2026年12月期 第3四半期決算公表,2026-10-29T22:13
+2026-11-04,7729,found,15:30,https://www.accretech.com/jp/ir/index.html,2027年3月期第2四半期決算の開示は、2026年11月4日(水)15:30を予定しております。,2026-10-29T22:13
+2026-11-04,7883,no_time,,https://www.sunmesse.co.jp/ir/calendar/,2026年11月04日 / 2026年3月期 第2四半期決算発表(予定),2026-10-29T22:13
+2026-11-04,7972,no_time,,https://www.itoki.jp/company/ir/ircalendar/,2026/11/04 2026年12月期 第3四半期決算発表(予定),2026-10-29T22:13
+2026-11-04,7995,found,15:30,https://www.valqua.co.jp/ir/calendar/,第2四半期 / 2026年11月4日15:30開示予定,2026-10-29T22:13
+2026-11-04,8001,found,13:00,https://www.itochu.co.jp/ja/ir/,2026年度第2四半期決算公表日 2026年11月4日13:00(予定),2026-10-29T22:13
+2026-11-04,8002,found,11:00,https://www.marubeni.com/jp/,2026年度(2027年3月期)第2四半期 決算公表は2026年11月4日(水) 11:00です。,2026-10-29T22:13
+2026-11-04,8031,found,12:00,https://www.mitsui.com/jp/ja/ir/index.html,2027年3月期第2四半期 決算公表日 / 2026年11月4日 12:00(予定),2026-10-29T22:13
+2026-11-04,8058,none,,,,2026-10-29T22:13
+2026-11-04,8081,none,,,,2026-10-29T22:13
+2026-11-04,8242,no_time,,https://www.h2o-retailing.co.jp/ja/ir/calendar.html,第2四半期決算発表 / 2026年11月4日(予定),2026-10-29T22:13
+2026-11-04,8255,none,,,,2026-10-29T22:14
+2026-11-04,8566,none,,,,2026-10-29T22:14
+2026-11-04,9010,none,,,,2026-10-29T22:14
+2026-11-04,9059,no_time,,https://www.kanda-web.co.jp/financial/ir-calendar/,2026.11.04 2027年3月期 第2四半期決算短信発表,2026-10-29T22:14
+2026-11-04,9064,none,,,,2026-10-29T22:14
+2026-11-04,9107,none,,,,2026-10-29T22:14
+2026-11-04,9127,no_time,,https://www.tamaiship.co.jp/ir/,平成23年3月期 第2四半期決算短信 2010年11月 4日,2026-10-29T22:14
+2026-11-04,9142,no_time,,https://www.jrkyushu.co.jp/company/ir/library/calendar/,2026年11月04日 2027年3月期第2四半期(中間期)決算発表,2026-10-29T22:15
+2026-11-04,9412,no_time,,https://www.skyperfectjsat.space/ir,2026/11/4 2027年3月期 第2四半期 決算発表,2026-10-29T22:15
+2026-11-04,9432,no_time,,https://group.ntt/jp/ir/,2026年度 第2四半期決算の発表予定日(2026年11月4日)を掲載しました,2026-10-29T22:15
+2026-11-04,9845,none,,,,2026-10-29T22:15
+2026-11-04,9878,none,,,,2026-10-29T22:15
+2026-11-04,9990,none,,,,2026-10-29T22:15
+2026-11-05,1814,none,,,,2026-10-29T22:15
+2026-11-05,1897,none,,,,2026-10-29T22:16
+2026-11-05,1898,none,,,,2026-10-29T22:16
+2026-11-05,1911,found,15:30,https://sfc.jp/information/ir/calendar/,2026.11.05 2026年12月期 第3四半期決算発表(15:30),2026-10-29T22:16
+2026-11-05,1945,none,,,,2026-10-29T22:16
+2026-11-05,2148,found,15:30,https://corp.itmedia.co.jp/ir/,2026.11.05 15:30開示予定 2027年3月期 第2四半期(中間期) 決算発表,2026-10-29T22:16
+2026-11-05,2307,no_time,,https://www.xcat.co.jp/ja/ir.html,【2026年11月5日】 2027年3月期 第2四半期決算短信発表予定,2026-10-29T22:16
+2026-11-05,2425,no_time,,https://www.care.co.jp/ir/schedule,2026年11月5日 / 第2四半期決算発表(予定),2026-10-29T22:16
+2026-11-05,2573,none,,,,2026-10-29T22:16
+2026-11-05,2612,none,,,,2026-10-29T22:16
+2026-11-05,2676,no_time,,https://corp.takachiho-kk.co.jp/ir/event/,2026年11月5日 決算関連 2027年3月期 第2四半期 決算発表,2026-10-29T22:17
+2026-11-05,2730,none,,,,2026-10-29T22:17
+2026-11-05,3002,no_time,,https://www.gunze.co.jp/ir/support/calendar/,2027年3月期第2四半期決算発表 2026年11月5日(予定),2026-10-29T22:17
+2026-11-05,3028,none,,,,2026-10-29T22:17
+2026-11-05,3034,none,,,,2026-10-29T22:17
+2026-11-05,3059,no_time,,https://company.hiraki.co.jp/ir/ir-calendar/,2025年11月 5日 / 2026年3月期 第2四半期(中間期) 決算発表,2026-10-29T22:17
+2026-11-05,3110,no_time,,https://www.nittobo.co.jp/ir/calender.htm,11月5日 / 2027年3月期 第2四半期決算発表,2026-10-29T22:17
+2026-11-05,3166,no_time,,https://www.ochiholdings.co.jp/stockholder/calendar.html,2025年11月5日 / 2026年3月期 第2四半期決算発表,2026-10-29T22:17
+2026-11-05,3167,no_time,,https://www.tokaiholdings.co.jp/ir/calendar/,2026年11月5日 / 2027年3月期 第2四半期決算発表,2026-10-29T22:18
+2026-11-05,3232,none,,,,2026-10-29T22:18
+2026-11-05,3252,no_time,,https://www.jinushi-jp.com/ir/calendar.html,2026/11/05 2026年12月期 第3四半期決算発表,2026-10-29T22:18
+2026-11-05,3326,none,,,,2026-10-29T22:18
