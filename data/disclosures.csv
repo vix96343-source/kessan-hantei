@@ -1,4 +1,8 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261029560175,2026-10-29T19:00,3691,Ｇ－デジタルプラス,2027年９月期通期業績予想および株主還元 補足説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261029560175.pdf,,東,2026-10-29T19:00
+140120261029560173,2026-10-29T19:00,3691,Ｇ－デジタルプラス,2026年９月期第4四半期流通速報及び事業進捗 補足説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261029560173.pdf,,東,2026-10-29T19:00
+140120261029560032,2026-10-29T19:00,3691,Ｇ－デジタルプラス,2026年９月期 連結業績予想の開示に関するお知らせ,forecast_initial,False,,,,,,https://www.release.tdnet.info/inbs/140120261029560032.pdf,,東,2026-10-29T19:00
+140120261029559944,2026-10-29T19:00,3691,Ｇ－デジタルプラス,2027年９月期 連結業績予想及び株主優待制度の拡充に関するお知らせ,forecast_initial,False,,,,,,https://www.release.tdnet.info/inbs/140120261029559944.pdf,,東,2026-10-29T19:00
 140120261029559410,2026-10-29T18:00,4380,Ｇ－Ｍマート,第27期（2027年1月期2Q）上半期決算及び会社説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261029559410.pdf,,東,2026-10-29T18:00
 140120261029559900,2026-10-29T17:30,6622,ダイヘン,2027年３月期第２四半期（中間期）及び通期連結業績予想の修正並びに期末配当予想の修正に関するお知らせ,forecast_dividend_revision,False,up,OperatingIncome,20.0,CurrentYearDuration,"{""NetSales"": 7.1, ""OperatingIncome"": 20.0, ""OrdinaryIncome"": 19.6, ""ProfitAttributableToOwnersOfParent"": 21.2}",https://www.release.tdnet.info/inbs/140120261029559900.pdf,https://www.release.tdnet.info/inbs/091220261029559900.zip,東福,2026-10-29T17:30
 140120261029558848,2026-10-29T17:00,9501,東電力ＨＤ,2026年度第2四半期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261029558848.pdf,,東,2026-10-29T17:00
