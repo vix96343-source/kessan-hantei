@@ -1,4 +1,5 @@
 disclosure_id,code,disclosed_at,n_q,period_end,status,data
+140120261026556356,8706,2026-10-29T11:25,2,2026-09-30,none,
 140120261027556975,6902,2026-10-29T11:10,2,2026-09-30,none,
 140120261028557469,6516,2026-10-29T11:00,2,2026-09-30,ok,"{""total"": {""name"": ""合計"", ""orders"": 91562000000.0, ""orders_yoy"": 71.4, ""backlog"": 70415000000.0, ""backlog_yoy"": 82.9, ""backlog_fy"": null}, ""segments"": [{""name"": ""サンエースカンパニー"", ""orders"": 35307000000.0, ""orders_yoy"": 90.0, ""backlog"": 24834000000.0, ""backlog_yoy"": 128.8, ""backlog_fy"": null}, {""name"": ""エレクトロニクスカンパニー"", ""orders"": 18593000000.0, ""orders_yoy"": 63.2, ""backlog"": 16853000000.0, ""backlog_yoy"": 52.0, ""backlog_fy"": null}, {""name"": ""モーションカンパニー"", ""orders"": 33503000000.0, ""orders_yoy"": 61.7, ""backlog"": 26772000000.0, ""backlog_yoy"": 80.6, ""backlog_fy"": null}, {""name"": ""その他"", ""orders"": 4157000000.0, ""orders_yoy"": 53.8, ""backlog"": 1954000000.0, ""backlog_yoy"": 12.0, ""backlog_fy"": null}], ""src"": ""narrative""}"
 140120261023555513,9368,2026-10-29T11:00,2,2026-09-30,none,
