@@ -14,7 +14,7 @@ sys.path.insert(0, str(ROOT))
 
 import pandas as pd  # noqa: E402
 
-from src import forecasts, judge, orders, segments, site  # noqa: E402
+from src import announce_times, forecasts, judge, orders, segments, site  # noqa: E402
 from src.config import DATA_DIR, load_config  # noqa: E402
 
 LOG = ROOT / "data" / "cache" / "local_backfill.log"
@@ -66,18 +66,26 @@ def main() -> int:
         stats["forecasts"] = forecasts.backfill(cfg, t, judge.have_recent_snapshot(t))
     except Exception as e:
         log.warning("forecasts backfill 失敗: %s", e)
+    # 決算予定ページの時刻の目安: 索引が1週間より古い銘柄だけ取り直し、変わったときだけ書き直す
+    try:
+        stats["announce_times"] = announce_times.update(cfg)
+    except Exception as e:
+        log.warning("announce_times 失敗: %s", e)
+    times = announce_times.load(DATA_DIR) if stats.get("announce_times", {}).get("changed_rows") else None
     rows = added_rows(before, snapshot())
     log.info("backfill %s / 追加 %s", stats, {k: len(v) for k, v in rows.items()})
-    if not rows:
+    if not rows and times is None:
         return 0
     for attempt in range(5):
         if attempt:
             git("fetch", "-q", "origin")
             git("reset", "-q", "--hard", "origin/main")
             apply_rows(rows)
+            if times is not None:
+                times.to_csv(announce_times.path(DATA_DIR), index=False, encoding="utf-8")
         site.render_all(cfg)
         git("add", "data", "docs")
-        git("commit", "-qm", "data: 前の四半期のセグメント・受注・会社予想を補完(手元・IRBANK)", check=False)
+        git("commit", "-qm", "data: 前の四半期のセグメント・受注・会社予想・発表時刻を補完(手元・IRBANK)", check=False)
         if git("push", "-q", "origin", "HEAD:main", check=False).returncode == 0:
             log.info("push ok")
             return 0

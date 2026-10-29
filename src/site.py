@@ -14,7 +14,7 @@ from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader
 
-from . import backtest, breakdown, calendar_fetch, consensus, disclosures, earnings, history, irdocs, judge, order_adjust, orders, reaction, revisions, segments, universe
+from . import announce_times, backtest, breakdown, calendar_fetch, consensus, disclosures, earnings, history, irdocs, judge, order_adjust, orders, reaction, revisions, segments, universe
 from .config import DATA_DIR, ROOT, now_jst
 
 DOCS_DIR = ROOT / "docs"
@@ -795,15 +795,31 @@ def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:
     return rows
 
 
-def calendar_rows(data_dir: Path = DATA_DIR) -> list[dict]:
+def calendar_rows(data_dir: Path = DATA_DIR, cutoff: str = "15:00") -> list[dict]:
+    """決算予定(今日以降)。時刻は TDnet に出ていればその時刻(済)、まだなら前回の短信の時刻(目安)。日ごとに時刻順"""
     cal, uni = calendar_fetch.load(data_dir), universe.load(data_dir)
     if cal.empty or uni.empty:
         return []
-    df = cal.merge(uni[["code", "name", "avg_turnover_20d"]], on="code", how="inner")
-    df = df.sort_values(["announce_date", "avg_turnover_20d"], ascending=[True, False])
-    return [{"date": r.announce_date, "time": r.announce_time or "引け後", "intraday": r.announce_timing == "場中",
-             "code": r.code, "name": r.name, "kind": f"決算{r.fiscal_q}", "pct": None, "up": False}
-            for r in df.itertuples()]
+    disc = disclosures.load(data_dir)
+    done = announce_times.from_disclosures(disc).drop_duplicates(["code", "announce_date"]) \
+        .set_index(["code", "announce_date"])["announce_time"].to_dict()
+    est = announce_times.estimates(data_dir, disc)
+    df = cal[cal["announce_date"] >= now_jst().strftime("%Y-%m-%d")]
+    df = df.merge(uni[["code", "name", "avg_turnover_20d"]], on="code", how="inner")
+    rows = []
+    for r in df.sort_values("avg_turnover_20d", ascending=False).itertuples():
+        actual = done.get((r.code, r.announce_date)) or r.announce_time
+        e = est.get(r.code)
+        # 目安の前回分は今回の発表そのものを除く(発表済みなら前回 = 今回になってしまう)
+        if e and actual and e["last_date"] == r.announce_date:
+            e = None
+        time = actual or (e["time"] if e else "")
+        rows.append({"date": r.announce_date, "time": time, "done": bool(actual), "intraday": bool(time) and time < cutoff,
+                     "code": r.code, "name": r.name, "kind": f"決算{r.fiscal_q}",
+                     "same": f"{e['same']}/{e['n']}" if e and not actual else "",
+                     "steady": bool(e) and e["same"] * 4 >= e["n"] * 3,
+                     "others": "・".join(e["others"]) if e and not actual else ""})
+    return sorted(rows, key=lambda x: (x["date"], x["time"] or "99"))
 
 
 FACTOR_LABEL = {"progress_gap": "進捗率の差", "guidance_acceleration": "会社予想の加速",
@@ -908,7 +924,7 @@ def render_all(cfg: dict, data_dir: Path = DATA_DIR, docs_dir: Path = DOCS_DIR) 
                                             day_json=dump(latest).replace("</", "<\\/"),
                                             proxy=(cfg.get("site") or {}).get("tdnet_proxy", ""),
                                             funds=sorted(universe.non_equity_codes(data_dir)))),
-        "calendar.html": ("calendar.html.j2", dict(page="calendar", groups=_group(calendar_rows(data_dir)))),
+        "calendar.html": ("calendar.html.j2", dict(page="calendar", groups=_group(calendar_rows(data_dir, cfg["calendar"]["intraday_cutoff"])))),
         "judge.html": ("judge.html.j2", dict(page="judge", **judge_context(cfg, data_dir))),
     }
     for name, (tpl, ctx) in pages.items():
