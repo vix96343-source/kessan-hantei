@@ -1,4 +1,10 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261028557723,2026-10-29T09:00,6723,ルネサス,2026年12月期第3四半期決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261028557723.pdf,,東,2026-10-29T09:00
+140120261028557711,2026-10-29T09:00,6723,ルネサス,業績予想に関するお知らせ,forecast_initial,False,,,,,,https://www.release.tdnet.info/inbs/140120261028557711.pdf,,東,2026-10-29T09:00
+140120261028557610,2026-10-29T09:00,6723,ルネサス,2026年12月期第３四半期決算短信〔ＩＦＲＳ〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261028557610.pdf,https://www.release.tdnet.info/inbs/081220261028557610.zip,東,2026-10-29T09:00
+140120261015551669,2026-10-29T09:00,4043,トクヤマ,2027年3月期通期連結業績予想の修正、通期個別業績見込みと前期実績値との差異および配当予想の修正に関するお知らせ,forecast_dividend_revision,False,,,,CurrentYearDuration,,https://www.release.tdnet.info/inbs/140120261015551669.pdf,https://www.release.tdnet.info/inbs/091220261015551669.zip,東,2026-10-29T09:00
+140120261001544937,2026-10-29T09:00,4043,トクヤマ,2027年3月期 第2四半期（中間期）決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261001544937.pdf,,東,2026-10-29T09:00
+140120261001544936,2026-10-29T09:00,4043,トクヤマ,2027年3月期 第2四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261001544936.pdf,https://www.release.tdnet.info/inbs/081220261001544936.zip,東,2026-10-29T09:00
 140120261028558640,2026-10-29T08:30,4262,Ｇ－ニフティライフ,2027年３月期第２四半期（中間期）決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261028558640.pdf,https://www.release.tdnet.info/inbs/081220261028558640.zip,東,2026-10-29T08:30
 140120261028558629,2026-10-29T08:30,4262,Ｇ－ニフティライフ,2027年３月期 第２四半期（中間期）決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261028558629.pdf,,東,2026-10-29T08:30
 140120261028558505,2026-10-29T08:30,5933,アルインコ,2027年3月期第2四半期　決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261028558505.pdf,,東,2026-10-29T08:30
