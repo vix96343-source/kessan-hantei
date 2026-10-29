@@ -46,6 +46,7 @@ class IRSite:
         self._robots: dict[str, robotparser.RobotFileParser | None] = {}
         self._pw = self._browser = self._ctx = None
         self._last_render = 0.0
+        self.render_broken = False
 
     def allowed(self, url: str) -> bool:
         p = urlparse(url)
@@ -102,12 +103,19 @@ class IRSite:
 
     def render_html(self, url: str) -> list[dict] | None:
         """ブラウザで表示した後の HTML(iframe の中も)[{url, html}]。IRカレンダーを JavaScript で作るサイト用"""
-        if not self.allowed(url):
+        if self.render_broken or not self.allowed(url):
             return None
         if self._browser is None:
             from playwright.sync_api import sync_playwright
-            self._pw = sync_playwright().start()
-            self._browser = self._pw.chromium.launch()
+            try:
+                self._pw = sync_playwright().start()
+                self._browser = self._pw.chromium.launch()
+            except Exception as e:
+                # ブラウザが起動できない環境(タスク スケジューラから等)では、以後ブラウザ表示はしない
+                log.warning("ブラウザを起動できないので静的なページだけ読む: %s", str(e).splitlines()[0])
+                self.render_broken = True
+                self.close()
+                return None
             self._ctx = self._browser.new_context(user_agent=self.ua, locale="ja-JP")
             self._ctx.set_default_timeout(15000)
         wait = self.s.min_interval - (time.monotonic() - self._last_render)
@@ -137,8 +145,10 @@ class IRSite:
     def close(self) -> None:
         if self._browser is not None:
             self._browser.close()
-            self._pw.stop()
             self._browser = None
+        if self._pw is not None:
+            self._pw.stop()
+            self._pw = None
 
     def page(self, url: str) -> BeautifulSoup | None:
         if not self.allowed(url):

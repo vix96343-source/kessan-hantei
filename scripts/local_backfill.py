@@ -72,10 +72,10 @@ def main() -> int:
     except Exception as e:
         log.warning("announce_times 失敗: %s", e)
     times = announce_times.load(DATA_DIR) if stats.get("announce_times", {}).get("changed_rows") else None
-    # 決算予定の時刻: 各社 IR カレンダーの予定時刻(未発表の銘柄を1日1回ずつ、1回6分まで)
+    # 決算予定の時刻: 各社 IR カレンダーの予定時刻(未発表の銘柄を1日1回ずつ、1回6分まで。タスクからはブラウザが起動できない)
     urls_before = irdocs._load_urls(DATA_DIR)
     try:
-        stats["ir_times"] = ir_times.update(cfg, time_budget_sec=360)
+        stats["ir_times"] = ir_times.update(cfg, time_budget_sec=360, render=False)   # 静的なページだけで十分(17社中16社)
     except Exception as e:
         log.warning("ir_times 失敗: %s", e)
     irt = ir_times.load(DATA_DIR) if stats.get("ir_times", {}).get("checked") else None
