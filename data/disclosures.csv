@@ -1,4 +1,5 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261026556225,2026-10-29T10:00,4212,積水樹脂,2027年３月期 第２四半期(中間期)連結業績予想の修正に関するお知らせ,forecast_revision,False,down,OperatingIncome,-0.9,CurrentAccumulatedQ2Duration,"{""NetSales"": -1.4, ""OperatingIncome"": -0.9, ""OrdinaryIncome"": 2.5, ""ProfitAttributableToOwnersOfParent"": 39.5}",https://www.release.tdnet.info/inbs/140120261026556225.pdf,https://www.release.tdnet.info/inbs/091220261026556225.zip,東,2026-10-29T10:00
 140120261028557723,2026-10-29T09:00,6723,ルネサス,2026年12月期第3四半期決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261028557723.pdf,,東,2026-10-29T09:00
 140120261028557711,2026-10-29T09:00,6723,ルネサス,業績予想に関するお知らせ,forecast_initial,False,,,,,,https://www.release.tdnet.info/inbs/140120261028557711.pdf,,東,2026-10-29T09:00
 140120261028557610,2026-10-29T09:00,6723,ルネサス,2026年12月期第３四半期決算短信〔ＩＦＲＳ〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261028557610.pdf,https://www.release.tdnet.info/inbs/081220261028557610.zip,東,2026-10-29T09:00
