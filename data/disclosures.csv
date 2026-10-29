@@ -1,4 +1,5 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261027556722,2026-10-29T13:25,7282,豊田合,2027年３月期 第２四半期（中間期）決算短信〔ＩＦＲＳ〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261027556722.pdf,https://www.release.tdnet.info/inbs/081220261027556722.zip,東名,2026-10-29T13:25
 140120261029559193,2026-10-29T13:00,4507,塩野義薬,2027年3月期 業績予想および年間配当予想の修正（増配）に関するお知らせ,forecast_dividend_revision,False,up,OperatingIncome,4.5,CurrentYearDuration,"{""IncomeBeforeIncomeTaxesUS"": 0.2, ""NetSales"": 2.9, ""OperatingIncome"": 4.5, ""ProfitAttributableToOwnersOfParent"": 1.2}",https://www.release.tdnet.info/inbs/140120261029559193.pdf,https://www.release.tdnet.info/inbs/091220261029559193.zip,東,2026-10-29T13:00
 140120261029559137,2026-10-29T13:00,4507,塩野義薬,2026年度 第2四半期（中間期）決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261029559137.pdf,,東,2026-10-29T13:00
 140120261029559131,2026-10-29T13:00,4549,栄研化,2027年3月期第2四半期 決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261029559131.pdf,,東,2026-10-29T13:00
