@@ -59,6 +59,82 @@ announce_date,code,status,ir_time,source_url,snippet,checked_at
 2026-10-29,6504,no_time,,https://www.fujielectric.co.jp/ir/other/index12.html,10月29日 / 2026年度 第2四半期 決算説明会 2026年度 第2四半期 決算発表,2026-10-29T14:00
 2026-10-29,6516,none,,,,2026-10-29T14:00
 2026-10-29,6702,none,,,,2026-10-29T14:00
+2026-10-29,6754,found,15:30,https://www.anritsu.com,【お知らせ】2027年3月期第2四半期決算は2026年10月29日(木)15時30分に発表予定です。 なお、本日から決算発表当日までは、決算に関するコメント・質問への回答は控えさせていただきます。,2026-10-29T14:55
+2026-10-29,6810,error,,,"BrowserType.launch: Executable doesn't exist at C:\Users\赤塚弘晃\AppData\Local\ms-playwright\chromium_headless_shell-1243\chrome-headless-shell-win64\chrome-headless-shell.exe
+╔══════════════════════════",2026-10-29T14:55
+2026-10-29,6822,error,,,"It looks like you are using Playwright Sync API inside the asyncio loop.
+Please use the Async API instead.",2026-10-29T14:55
+2026-10-29,6823,no_url,,,,2026-10-29T14:55
+2026-10-29,6861,error,,,"It looks like you are using Playwright Sync API inside the asyncio loop.
+Please use the Async API instead.",2026-10-29T14:55
+2026-10-29,6912,error,,,"It looks like you are using Playwright Sync API inside the asyncio loop.
+Please use the Async API instead.",2026-10-29T14:55
+2026-10-29,7022,error,,,"It looks like you are using Playwright Sync API inside the asyncio loop.
+Please use the Async API instead.",2026-10-29T14:56
+2026-10-29,7148,error,,,"It looks like you are using Playwright Sync API inside the asyncio loop.
+Please use the Async API instead.",2026-10-29T14:56
+2026-10-29,7185,error,,,"It looks like you are using Playwright Sync API inside the asyncio loop.
+Please use the Async API instead.",2026-10-29T14:56
+2026-10-29,7191,error,,,"It looks like you are using Playwright Sync API inside the asyncio loop.
+Please use the Async API instead.",2026-10-29T14:56
+2026-10-29,7278,error,,,"It looks like you are using Playwright Sync API inside the asyncio loop.
+Please use the Async API instead.",2026-10-29T14:56
+2026-10-29,7477,error,,,"It looks like you are using Playwright Sync API inside the asyncio loop.
+Please use the Async API instead.",2026-10-29T14:56
+2026-10-29,7687,error,,,"It looks like you are using Playwright Sync API inside the asyncio loop.
+Please use the Async API instead.",2026-10-29T14:56
+2026-10-29,7919,error,,,"It looks like you are using Playwright Sync API inside the asyncio loop.
+Please use the Async API instead.",2026-10-29T14:56
+2026-10-29,7949,found,15:30,https://www.komatsuwall.co.jp/ir/calendar/index.html,2026年10月29日 / 2027年3月期第2四半期決算発表(15:30予定),2026-10-29T14:57
+2026-10-29,7962,error,,,"It looks like you are using Playwright Sync API inside the asyncio loop.
+Please use the Async API instead.",2026-10-29T14:57
+2026-10-29,7976,error,,,"It looks like you are using Playwright Sync API inside the asyncio loop.
+Please use the Async API instead.",2026-10-29T14:57
+2026-10-29,7984,error,,,"It looks like you are using Playwright Sync API inside the asyncio loop.
+Please use the Async API instead.",2026-10-29T14:57
+2026-10-29,8015,error,,,"It looks like you are using Playwright Sync API inside the asyncio loop.
+Please use the Async API instead.",2026-10-29T14:57
+2026-10-29,8174,error,,,"It looks like you are using Playwright Sync API inside the asyncio loop.
+Please use the Async API instead.",2026-10-29T14:57
+2026-10-29,8614,error,,,"It looks like you are using Playwright Sync API inside the asyncio loop.
+Please use the Async API instead.",2026-10-29T14:57
+2026-10-29,8699,error,,,"It looks like you are using Playwright Sync API inside the asyncio loop.
+Please use the Async API instead.",2026-10-29T14:57
+2026-10-29,8864,error,,,"It looks like you are using Playwright Sync API inside the asyncio loop.
+Please use the Async API instead.",2026-10-29T14:58
+2026-10-29,8898,error,,,"It looks like you are using Playwright Sync API inside the asyncio loop.
+Please use the Async API instead.",2026-10-29T14:58
+2026-10-29,9046,error,,,"It looks like you are using Playwright Sync API inside the asyncio loop.
+Please use the Async API instead.",2026-10-29T14:58
+2026-10-29,9081,none,,,,2026-10-29T14:58
+2026-10-29,9158,error,,,"It looks like you are using Playwright Sync API inside the asyncio loop.
+Please use the Async API instead.",2026-10-29T14:58
+2026-10-29,9202,error,,,"It looks like you are using Playwright Sync API inside the asyncio loop.
+Please use the Async API instead.",2026-10-29T14:58
+2026-10-29,9436,error,,,"It looks like you are using Playwright Sync API inside the asyncio loop.
+Please use the Async API instead.",2026-10-29T14:58
+2026-10-29,9501,found,17:00,https://www.tepco.co.jp/about/ir/,2027年3月期(2026年度) 第2四半期決算 (10月29日17時00分発表予定),2026-10-29T14:58
+2026-10-29,9502,error,,,"It looks like you are using Playwright Sync API inside the asyncio loop.
+Please use the Async API instead.",2026-10-29T14:59
+2026-10-29,9503,none,,,,2026-10-29T14:59
+2026-10-29,9505,error,,,"It looks like you are using Playwright Sync API inside the asyncio loop.
+Please use the Async API instead.",2026-10-29T14:59
+2026-10-29,9532,error,,,"It looks like you are using Playwright Sync API inside the asyncio loop.
+Please use the Async API instead.",2026-10-29T14:59
+2026-10-29,9536,error,,,"It looks like you are using Playwright Sync API inside the asyncio loop.
+Please use the Async API instead.",2026-10-29T14:59
+2026-10-29,9551,none,,,,2026-10-29T15:00
+2026-10-29,9640,error,,,"It looks like you are using Playwright Sync API inside the asyncio loop.
+Please use the Async API instead.",2026-10-29T15:00
+2026-10-29,9709,error,,,"It looks like you are using Playwright Sync API inside the asyncio loop.
+Please use the Async API instead.",2026-10-29T15:00
+2026-10-29,9759,error,,,"It looks like you are using Playwright Sync API inside the asyncio loop.
+Please use the Async API instead.",2026-10-29T15:00
+2026-10-29,9766,error,,,"It looks like you are using Playwright Sync API inside the asyncio loop.
+Please use the Async API instead.",2026-10-29T15:00
+2026-10-29,9795,none,,,,2026-10-29T15:00
+2026-10-29,9969,error,,,"It looks like you are using Playwright Sync API inside the asyncio loop.
+Please use the Async API instead.",2026-10-29T15:00
 2026-10-30,1850,none,,,,2026-10-29T14:00
 2026-10-30,1878,none,,,,2026-10-29T14:00
 2026-10-30,1939,none,,,,2026-10-29T14:00
@@ -150,3 +226,10 @@ announce_date,code,status,ir_time,source_url,snippet,checked_at
 2026-10-30,5214,no_time,,https://www.neg.co.jp/ir/event/,2026年10月30日 2026年12月期第3四半期決算発表,2026-10-29T14:30
 2026-10-30,5257,no_time,,https://www.nova-system.com/ir/calendar/,2026年10月30日 2026年12月期 第3四半期決算発表 SPACE SPACE,2026-10-29T14:30
 2026-10-30,5280,no_time,,https://www.yoshicon.co.jp/main/ir/,2026.10.30 / 2027年3月期 第2四半期決算発表(予定),2026-10-29T14:30
+2026-10-30,5332,error,,,"It looks like you are using Playwright Sync API inside the asyncio loop.
+Please use the Async API instead.",2026-10-29T15:01
+2026-10-30,5333,error,,,"It looks like you are using Playwright Sync API inside the asyncio loop.
+Please use the Async API instead.",2026-10-29T15:01
+2026-10-30,5334,found,16:40,https://www.niterragroup.com/ir/events/calendar.html,2026年10月30日 / 2027年3月期 第2四半期決算発表日(16:40),2026-10-29T15:01
+2026-10-30,5388,error,,,"It looks like you are using Playwright Sync API inside the asyncio loop.
+Please use the Async API instead.",2026-10-29T15:01
