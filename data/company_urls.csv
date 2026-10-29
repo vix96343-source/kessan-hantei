@@ -44,6 +44,7 @@ code,url
 2449,https://www.prap.co.jp/
 2462,https://www.like-gr.co.jp
 2484,https://corporate.demae-can.co.jp/
+2491,https://www.valuecommerce.co.jp/
 2493,https://www.e-supportlink.com/
 2531,https://www.takara.co.jp/
 2594,https://www.keycoffee.co.jp/
@@ -99,8 +100,10 @@ code,url
 3186,https://www.nextage.jp/
 3189,http://www.anap.co.jp/
 3192,https://www.shirohato.co.jp/
+3199,https://watahan.co.jp
 3201,https://www.nikke.co.jp
 3223,http://www.sld-inc.com/
+3231,https://www.nomura-re-hd.co.jp/
 3236,https://www.properst.co.jp
 3246,https://www.kose-re.jp
 3248,http://www.early-age.co.jp
@@ -117,6 +120,7 @@ code,url
 3418,https://www.balnibarbi.com
 3419,http://www.artgreen.co.jp/
 3421,https://www.inaba-ss.co.jp
+3426,https://www.atomlt.com/
 3441,https://www.sanno.co.jp/
 3444,https://www.kikuchiseisakusho.co.jp
 3459,https://www.samty-residential.com
@@ -141,6 +145,7 @@ code,url
 3733,https://www.softs.co.jp
 3771,https://www.sr-net.co.jp/
 3791,https://www.igport.co.jp/
+3799,https://www.keyware.co.jp
 3804,https://www.systemd.co.jp/
 3810,https://cshd.cyberstep.com/
 3815,http://www.mkb.ne.jp
@@ -164,8 +169,11 @@ code,url
 4221,https://www.okr-ind.co.jp/
 4250,https://all-frontier.com/
 428A,https://www.cypress-holdings.co.jp/
+4307,https://www.nri.com/jp/
+4308,https://www.stream.co.jp/
 4317,https://www.ray.co.jp
 4334,https://www.yukes.co.jp
+4347,https://www.broadmedia.co.jp/
 4361,https://www.kawachem.co.jp
 4373,https://www.simplex.holdings/
 4380,https://www.m-mart.co.jp
@@ -178,6 +186,7 @@ code,url
 4461,https://www.dks-web.co.jp
 4465,https://www.niitaka.co.jp
 4475,https://hennge.com/jp/
+4582,https://www.symbiopharma.com/
 4616,https://www.kawakami-paint.co.jp/
 4644,https://www.imagineer.co.jp/
 4645,https://ir.ichishin.co.jp
@@ -231,6 +240,8 @@ code,url
 5832,https://www.chugin-fg.co.jp/
 5869,https://www.wasedazemi.com
 5900,https://daiken.ne.jp
+5906,https://www.mkseiko.co.jp
+5909,https://www.corona.co.jp/
 5911,https://www.ybhd.co.jp/
 5929,https://www.sanwa-hldgs.co.jp
 5936,https://www.toyo-shutter.co.jp
@@ -271,9 +282,11 @@ code,url
 6267,https://www.general-packer.co.jp
 6292,https://www.kawata.cc/
 6302,https://www.shi.co.jp/
+6305,https://www.hitachicm.com/global/ja/
 6325,https://www.takakita-net.co.jp
 6331,https://www.kakoki.co.jp/
 6336,https://www.ishiihyoki.co.jp/
+6349,https://www.komori.com/ja/jp/
 6356,https://www.nippon-gear.jp
 6371,https://www.tsubakimoto.jp/
 6382,https://www.trinityind.co.jp
@@ -284,6 +297,7 @@ code,url
 6436,https://www.amano.co.jp/
 6455,https://www.morita119.com
 6469,https://www.hsk.co.jp
+6471,https://www.nsk.com/jp-ja/
 6472,https://www.ntn.co.jp
 6473,https://www.jtekt.co.jp/
 6474,https://www.nachi-fujikoshi.co.jp/
@@ -292,6 +306,7 @@ code,url
 6496,https://www.nakakita-s.co.jp
 6497,https://www.hamai-net.com
 6503,https://www.MitsubishiElectric.co.jp/
+6504,https://www.fujielectric.co.jp/
 6505,https://www.toyodenki.co.jp
 6506,https://www.yaskawa.co.jp
 6508,https://www.meidensha.co.jp
@@ -326,7 +341,7 @@ code,url
 6810,https://www.maxell.co.jp/
 6814,https://www.furuno.co.jp/
 6822,https://www.ooi.co.jp
-6823,
+6823,https://www.rion.co.jp
 6832,https://www.aoi-electronics.co.jp/
 6838,https://www.tmex.co.jp
 6858,https://www.onosokki.com
@@ -462,6 +477,7 @@ code,url
 8035,https://www.tel.co.jp
 8046,https://www.mrfj.co.jp/
 8052,https://www.tsubaki.co.jp
+8060,https://canon.jp
 8071,https://www.tokai-ele.com/
 8076,https://www.canox.co.jp/
 8077,https://www.torq.co.jp
