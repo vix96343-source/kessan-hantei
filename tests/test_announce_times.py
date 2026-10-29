@@ -29,8 +29,21 @@ def test_combine_keeps_first_time_per_day_and_latest_eight():
 def test_estimate_uses_last_time_and_counts():
     e = announce_times.estimate([("2026-07-29", "15:30"), ("2026-04-28", "15:40"), ("2026-01-29", "15:40"),
                                  ("2025-10-29", "15:30")])
-    assert e == {"time": "15:30", "last_date": "2026-07-29", "n": 4, "same": 2, "others": ["15:40×2"]}
+    assert e == {"time": "15:30", "prev": "15:30", "last_date": "2026-07-29", "n": 4, "same": 2, "others": ["15:40×2"]}
     assert announce_times.estimate([]) is None
+
+
+def test_estimate_uses_same_quarter_last_year_when_time_changes():
+    # コクヨ: 10月(Q3)はいつも 16:00、ほかの四半期は 12:00
+    hist = [("2026-07-31", "12:00"), ("2026-04-28", "16:00"), ("2026-02-13", "12:00"), ("2025-10-30", "16:00"),
+            ("2025-07-30", "12:00")]
+    e = announce_times.estimate(hist, on="2026-10-29")
+    assert (e["time"], e["prev"], e["same"]) == ("16:00", "12:00", 2)
+    # 前回と前々回が同じ会社は前回の時刻
+    hist = [("2026-07-30", "15:00"), ("2026-04-30", "15:00"), ("2025-10-30", "13:00")]
+    assert announce_times.estimate(hist, on="2026-10-29")["time"] == "15:00"
+    # 今回の発表そのもの(on の日)は使わない
+    assert announce_times.estimate([("2026-10-29", "11:40"), ("2026-07-28", "16:00")], on="2026-10-29")["last_date"] == "2026-07-28"
 
 
 def test_from_disclosures_skips_corrections():

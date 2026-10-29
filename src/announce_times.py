@@ -1,6 +1,6 @@
 """各社の過去の決算短信の発表時刻 → data/announce_times.csv(決算予定ページの「発表時刻の目安」)
 
-JPX の決算発表予定日には時刻が無い。ほとんどの会社は毎回同じ時刻に出すので、前回の短信の時刻を目安にする。
+JPX の決算発表予定日には時刻が無い。ほとんどの会社は毎回同じ時刻に出すので、前回の短信の時刻(四半期で変える会社は去年の同じ四半期の時刻)を目安にする。
 過去の時刻は手元の IRBANK 開示索引(~/kessan-pdfs/index、手元のみ)から週1回作り直し、
 直近の四半期は TDnet 監視の disclosures.csv(リポジトリ内・毎分更新)を描画時に重ねる。
 """
@@ -64,21 +64,33 @@ def combine(*frames: pd.DataFrame) -> pd.DataFrame:
     return d.reset_index(drop=True)
 
 
-def estimate(hist: list[tuple[str, str]]) -> dict | None:
-    """[(日付, 時刻)] 新しい順 → 目安(前回の時刻)と過去の内訳"""
+def _same_quarter(d: str, on: str) -> bool:
+    """d が on の1年前・2年前…の前後45日(= 同じ四半期の発表)"""
+    off = abs((pd.Timestamp(on) - pd.Timestamp(d)).days) % 365.25
+    return off <= 45 or off >= 320
+
+
+def estimate(hist: list[tuple[str, str]], on: str = "") -> dict | None:
+    """[(日付, 時刻)] 新しい順 → on の日の発表時刻の目安と過去の内訳(on の日以降の分は使わない)
+    前回と前々回が同じ時刻なら前回の時刻、違えば(四半期で時刻を変える会社)去年の同じ四半期の時刻。
+    過去の短信 1,336 回で当たりは 前回の時刻 80.1% → 86.2%"""
+    hist = [(d, t) for d, t in hist if not on or d < on]
     if not hist:
         return None
     times = [t for _, t in hist]
+    time = times[0]
+    if on and not (len(times) >= 2 and times[0] == times[1]):
+        time = next((t for d, t in hist if _same_quarter(d, on)), time)
     cnt = Counter(times)
-    return {"time": times[0], "last_date": hist[0][0], "n": len(times), "same": cnt[times[0]],
-            "others": [f"{t}×{c}" if c > 1 else t for t, c in cnt.most_common() if t != times[0]]}
+    return {"time": time, "prev": times[0], "last_date": hist[0][0], "n": len(times), "same": cnt[time],
+            "others": [f"{t}×{c}" if c > 1 else t for t, c in cnt.most_common() if t != time]}
 
 
-def estimates(data_dir: Path = DATA_DIR, disc: pd.DataFrame | None = None) -> dict[str, dict]:
-    """描画用: 週1回の索引分 + TDnet 監視分 → {code: 目安}"""
+def histories(data_dir: Path = DATA_DIR, disc: pd.DataFrame | None = None) -> dict[str, list[tuple[str, str]]]:
+    """描画用: 週1回の索引分 + TDnet 監視分 → {code: [(日付, 時刻)] 新しい順}"""
     disc = disclosures.load(data_dir) if disc is None else disc
     d = combine(load(data_dir), from_disclosures(disc))
-    return {c: estimate(list(zip(g["announce_date"], g["announce_time"]))) for c, g in d.groupby("code")}
+    return {c: list(zip(g["announce_date"], g["announce_time"])) for c, g in d.groupby("code")}
 
 
 def update(cfg: dict, data_dir: Path = DATA_DIR, fetch: bool = True) -> dict:
