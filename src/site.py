@@ -1,7 +1,7 @@
 """docs/ の静的サイト(GitHub Pages)を生成する。
 
 - index.html: TDnet 決算速報(開示日を選んで決算・修正を一覧。data/index.json を1分ごとに確認して自動更新)
-- calendar.html: 翌営業日〜N営業日先の決算予定
+- calendar.html: 決算時間サイト(kessan-jikan)への転送。中身は data/calendar.json
 - judge.html: 持ち越し判定(M3)と事後検証
 上昇確度は score_of() に集約。決算短信は3つの型(earnings.py)への該当数ごとの過去の上昇率。
 """
@@ -889,10 +889,12 @@ def build_id() -> str:
 
 
 def render_all(cfg: dict, data_dir: Path = DATA_DIR, docs_dir: Path = DOCS_DIR) -> list[str]:
-    """index.html(決算速報)・開示日ごとの data/YYYY-MM-DD.json・data/index.json・calendar.html を出力。"""
+    """index.html(決算速報)・開示日ごとの data/YYYY-MM-DD.json・data/index.json・data/calendar.json(決算時間サイト用)を出力。
+    calendar.html は決算時間サイトへの転送だけ。"""
     env = Environment(loader=FileSystemLoader(ROOT / "templates"), autoescape=True)
     env.filters["dlabel"] = _date_label
     now = now_jst().strftime("%Y-%m-%d %H:%M:%S")
+    cutoff = cfg["calendar"]["intraday_cutoff"]
     data_out = docs_dir / "data"
     data_out.mkdir(parents=True, exist_ok=True)
 
@@ -918,13 +920,21 @@ def render_all(cfg: dict, data_dir: Path = DATA_DIR, docs_dir: Path = DOCS_DIR) 
     if old_feed.exists():
         old_feed.unlink()
 
+    # 決算時間サイト(別リポジトリ kessan-jikan)が読む決算予定。変わったときだけ書き換える
+    cal = dump({"days": [{"date": d, "rows": rs} for d, rs in _group(calendar_rows(data_dir, cutoff))],
+                "cutoff": cutoff})
+    p = data_out / "calendar.json"
+    if not p.exists() or p.read_text(encoding="utf-8") != cal:
+        p.write_text(cal, encoding="utf-8")
+        out.append(str(p))
+
     latest = {"date": dates[0], "rows": by_date[dates[0]]} if dates else {"date": "", "rows": []}
     pages = {
         "index.html": ("feed.html.j2", dict(page="feed", index_json=dump(index).replace("</", "<\\/"),
                                             day_json=dump(latest).replace("</", "<\\/"),
                                             proxy=(cfg.get("site") or {}).get("tdnet_proxy", ""),
                                             funds=sorted(universe.non_equity_codes(data_dir)))),
-        "calendar.html": ("calendar.html.j2", dict(page="calendar", groups=_group(calendar_rows(data_dir, cfg["calendar"]["intraday_cutoff"])))),
+        "calendar.html": ("calendar.html.j2", {}),
         "judge.html": ("judge.html.j2", dict(page="judge", **judge_context(cfg, data_dir))),
     }
     for name, (tpl, ctx) in pages.items():

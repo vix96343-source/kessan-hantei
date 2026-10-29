@@ -1,50 +1,11 @@
-{% extends "_base.html.j2" %}
-{% block title %}決算予定{% endblock %}
-{% block style %}
-.c-time { width: 96px; }
-.c-same { width: 64px; text-align: right; }
-th.c-same { text-align: right; }
-td.done { color: var(--green); }
-td.c-same.shaky { color: var(--warn); }
-.others { display: block; color: var(--muted); font: 400 11px system-ui, sans-serif; }
-tr.day td .n { margin-left: 8px; }
-.filter { display: flex; gap: 6px; padding: 8px 6px; max-width: 760px; margin: 0 auto; }
-.filter button { background: var(--panel); color: var(--muted); border: 1px solid var(--line); border-radius: 14px;
-  padding: 4px 12px; font: 600 13px "Meiryo UI", system-ui, sans-serif; cursor: pointer; }
-.filter button[aria-pressed="true"] { color: var(--text); border-color: var(--muted); }
-body.only-intraday tr.row:not(.intra) { display: none; }
-@media (max-width: 480px) { .c-same { width: 46px; } }
-{% endblock %}
-{% block content %}
-<div class="filter">
-  <button type="button" aria-pressed="true" data-f="">すべて</button>
-  <button type="button" aria-pressed="false" data-f="only-intraday">⚠ 場中だけ</button>
-</div>
-<table>
-  <colgroup><col class="c-time"><col class="c-code"><col><col class="c-kind"><col class="c-same"></colgroup>
-  <thead><tr><th class="c-time">時刻</th><th class="c-code">コード</th><th>企業名</th><th class="c-kind">種別</th><th class="c-same">同時刻</th></tr></thead>
-  <tbody>
-  {% for d, rows in groups %}
-    <tr class="day"><td colspan="5">{{ d | dlabel }}<span class="n">{{ rows | length }}社 · 場中 {{ rows | selectattr("intraday") | list | length }}社</span></td></tr>
-    {% for r in rows %}
-    <tr class="row{{ ' intra' if r.intraday }}">
-      <td class="{{ 'done' if r.done else ('warn' if r.intraday) }}">{% if r.done %}✓{% elif r.intraday %}⚠{% endif %}{{ r.time or '–' }}</td>
-      <td>{{ r.code }}</td>
-      <td>{{ r.name }}{% if r.others %}<span class="others">ほか {{ r.others }}</span>{% endif %}</td>
-      <td>{{ r.kind }}</td>
-      <td class="c-same{{ ' shaky' if r.same and not r.steady }}">{% if r.done %}発表済{% else %}{{ r.same or '–' }}{% endif %}</td>
-    </tr>
-    {% endfor %}
-  {% else %}
-    <tr><td colspan="5" class="none">データがありません</td></tr>
-  {% endfor %}
-  </tbody>
-</table>
-<script>
-document.querySelectorAll(".filter button").forEach(b => b.addEventListener("click", () => {
-  document.querySelectorAll(".filter button").forEach(x => x.setAttribute("aria-pressed", x === b));
-  document.body.className = b.dataset.f;
-}));
-</script>
-{% endblock %}
-{% block footer %}決算発表予定日は JPX の公表分(翌営業日〜5営業日先、プライム・スタンダード)。時刻は TDnet に短信が出たものは ✓ と実際の時刻、まだのものは前回の決算短信の時刻(目安・会社が変えることもある)。「同時刻」は過去の短信(最大8回)のうち目安と同じ時刻だった回数で、黄色は 3/4 未満(時刻がよく変わる会社)。その下の「ほか」は過去に出たほかの時刻。⚠ は 15:00 より前(場中)の発表 — 持ち越すなら前日中に。過去の時刻の出典: TDnet(IRBANK 経由)。{% endblock %}
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="refresh" content="0; url=https://vix96343-source.github.io/kessan-jikan/">
+<title>決算時間</title>
+</head>
+<body style="background:#171a26;color:#e6e9f0;font-family:system-ui,sans-serif">
+決算予定は「決算時間」に移りました: <a style="color:#6aa8ff" href="https://vix96343-source.github.io/kessan-jikan/">https://vix96343-source.github.io/kessan-jikan/</a>
+</body>
+</html>

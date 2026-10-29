@@ -50,7 +50,7 @@ footer { color: var(--muted); font: 400 12px/1.6 system-ui, sans-serif; padding:
 <body>
 <nav>
   <a href="index.html"{% if page == "feed" %} aria-current="page"{% endif %}>決算速報</a>
-  <a href="calendar.html"{% if page == "calendar" %} aria-current="page"{% endif %}>決算予定</a>
+  <a href="https://vix96343-source.github.io/kessan-jikan/">決算時間 ↗</a>
   <a href="judge.html"{% if page == "judge" %} aria-current="page"{% endif %}>判定</a>
   <span class="status" id="status">{% block status %}{{ generated_at[:16] }} 更新{% endblock %}</span>
 </nav>
