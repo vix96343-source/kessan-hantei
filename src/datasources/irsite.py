@@ -100,6 +100,40 @@ class IRSite:
         finally:
             pg.close()
 
+    def render_html(self, url: str) -> list[dict] | None:
+        """ブラウザで表示した後の HTML(iframe の中も)[{url, html}]。IRカレンダーを JavaScript で作るサイト用"""
+        if not self.allowed(url):
+            return None
+        if self._browser is None:
+            from playwright.sync_api import sync_playwright
+            self._pw = sync_playwright().start()
+            self._browser = self._pw.chromium.launch()
+            self._ctx = self._browser.new_context(user_agent=self.ua, locale="ja-JP")
+            self._ctx.set_default_timeout(15000)
+        wait = self.s.min_interval - (time.monotonic() - self._last_render)
+        if wait > 0:
+            time.sleep(wait)
+        self._last_render = time.monotonic()
+        pg = self._ctx.new_page()
+        try:
+            try:                                      # 通信が止まないサイトもあるので、読み込み後に3秒だけ待つ
+                pg.goto(url, wait_until="domcontentloaded", timeout=15000)
+                pg.wait_for_timeout(3000)
+            except Exception:
+                pass
+            out = []
+            for fr in pg.frames[:6]:
+                try:
+                    out.append({"url": fr.url, "html": fr.content()})
+                except Exception:
+                    continue
+            return out
+        except Exception as e:
+            log.debug("ブラウザ表示失敗 %s: %s", url, e)
+            return None
+        finally:
+            pg.close()
+
     def close(self) -> None:
         if self._browser is not None:
             self._browser.close()

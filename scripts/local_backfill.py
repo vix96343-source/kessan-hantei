@@ -14,7 +14,7 @@ sys.path.insert(0, str(ROOT))
 
 import pandas as pd  # noqa: E402
 
-from src import announce_times, forecasts, judge, orders, segments, site  # noqa: E402
+from src import announce_times, forecasts, ir_times, irdocs, judge, orders, segments, site  # noqa: E402
 from src.config import DATA_DIR, load_config  # noqa: E402
 
 LOG = ROOT / "data" / "cache" / "local_backfill.log"
@@ -72,9 +72,17 @@ def main() -> int:
     except Exception as e:
         log.warning("announce_times 失敗: %s", e)
     times = announce_times.load(DATA_DIR) if stats.get("announce_times", {}).get("changed_rows") else None
+    # 決算予定の時刻: 各社 IR カレンダーの予定時刻(未発表の銘柄を1日1回ずつ、1回6分まで)
+    urls_before = irdocs._load_urls(DATA_DIR)
+    try:
+        stats["ir_times"] = ir_times.update(cfg, time_budget_sec=360)
+    except Exception as e:
+        log.warning("ir_times 失敗: %s", e)
+    irt = ir_times.load(DATA_DIR) if stats.get("ir_times", {}).get("checked") else None
+    new_urls = {k: v for k, v in irdocs._load_urls(DATA_DIR).items() if urls_before.get(k) != v}
     rows = added_rows(before, snapshot())
     log.info("backfill %s / 追加 %s", stats, {k: len(v) for k, v in rows.items()})
-    if not rows and times is None:
+    if not rows and times is None and irt is None:
         return 0
     for attempt in range(5):
         if attempt:
@@ -83,9 +91,13 @@ def main() -> int:
             apply_rows(rows)
             if times is not None:
                 times.to_csv(announce_times.path(DATA_DIR), index=False, encoding="utf-8")
+            if irt is not None:
+                irt.to_csv(ir_times.path(DATA_DIR), index=False, encoding="utf-8")
+            if new_urls:                                   # 会社URLは Actions も足すので、取り直した分に足す
+                irdocs._save_urls({**irdocs._load_urls(DATA_DIR), **new_urls}, DATA_DIR)
         site.render_all(cfg)
         git("add", "data", "docs")
-        git("commit", "-qm", "data: 前の四半期のセグメント・受注・会社予想・発表時刻を補完(手元・IRBANK)", check=False)
+        git("commit", "-qm", "data: 前の四半期のセグメント・受注・会社予想・発表時刻(IRBANK・各社IR)を補完(手元)", check=False)
         if git("push", "-q", "origin", "HEAD:main", check=False).returncode == 0:
             log.info("push ok")
             return 0

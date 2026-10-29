@@ -14,7 +14,7 @@ from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader
 
-from . import announce_times, backtest, breakdown, calendar_fetch, consensus, disclosures, earnings, history, irdocs, judge, order_adjust, orders, reaction, revisions, segments, universe
+from . import announce_times, backtest, breakdown, calendar_fetch, consensus, disclosures, earnings, history, ir_times, irdocs, judge, order_adjust, orders, reaction, revisions, segments, universe
 from .config import DATA_DIR, ROOT, now_jst
 
 DOCS_DIR = ROOT / "docs"
@@ -796,7 +796,8 @@ def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:
 
 
 def calendar_rows(data_dir: Path = DATA_DIR, cutoff: str = "15:00") -> list[dict]:
-    """決算予定(今日以降)。時刻は TDnet に出ていればその時刻(済)、まだなら過去の短信の時刻(目安: announce_times.estimate)。日ごとに時刻順"""
+    """決算予定(今日以降)。時刻は TDnet に出ていればその時刻(済)、次に会社の IR カレンダーの時刻(IR)、
+    どちらも無ければ過去の短信の時刻(目安: announce_times.estimate)。日ごとに時刻順"""
     cal, uni = calendar_fetch.load(data_dir), universe.load(data_dir)
     if cal.empty or uni.empty:
         return []
@@ -804,14 +805,21 @@ def calendar_rows(data_dir: Path = DATA_DIR, cutoff: str = "15:00") -> list[dict
     done = announce_times.from_disclosures(disc).drop_duplicates(["code", "announce_date"]) \
         .set_index(["code", "announce_date"])["announce_time"].to_dict()
     hist = announce_times.histories(data_dir, disc)
+    irt = ir_times.load(data_dir)
+    irt = irt[irt["status"] == "found"].set_index(["code", "announce_date"])[["ir_time", "source_url"]].to_dict("index")
     df = cal[cal["announce_date"] >= now_jst().strftime("%Y-%m-%d")]
     df = df.merge(uni[["code", "name", "avg_turnover_20d"]], on="code", how="inner")
     rows = []
     for r in df.sort_values("avg_turnover_20d", ascending=False).itertuples():
         actual = done.get((r.code, r.announce_date)) or r.announce_time
         e = announce_times.estimate(hist.get(r.code, []), on=r.announce_date)   # 今回の発表そのものは除く
-        time = actual or (e["time"] if e else "")
+        ir = None if actual else irt.get((r.code, r.announce_date))
+        time = actual or (ir["ir_time"] if ir else "") or (e["time"] if e else "")
         rows.append({"date": r.announce_date, "time": time, "done": bool(actual), "intraday": bool(time) and time < cutoff,
+                     "src": "tdnet" if actual else "ir" if ir else "est" if e else "",
+                     "ir_url": ir["source_url"] if ir else "",
+                     # IR の時刻が前回と違う(時刻を変えた)ときの前回の時刻
+                     "prev": e["prev"] if ir and e and e["prev"] != ir["ir_time"] else "",
                      "code": r.code, "name": r.name, "kind": f"決算{r.fiscal_q}",
                      "same": f"{e['same']}/{e['n']}" if e and not actual else "",
                      "steady": bool(e) and e["same"] * 4 >= e["n"] * 3,
