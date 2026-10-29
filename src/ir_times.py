@@ -283,10 +283,15 @@ def targets(data_dir: Path = DATA_DIR, today: date | None = None) -> list[tuple[
     cal = cal[cal["announce_date"] >= today.isoformat()]
     done = set(announce_times.from_disclosures(disclosures.load(data_dir))[["code", "announce_date"]]
                .itertuples(index=False, name=None))
-    cur = load(data_dir).set_index(["code", "announce_date"])["checked_at"].to_dict()
-    limit = (now_jst() - pd.Timedelta(hours=RECHECK_HOURS)).strftime("%Y-%m-%dT%H:%M")
-    out = [(c, d) for c, d in zip(cal["code"], cal["announce_date"])
-           if (c, d) not in done and cur.get((c, d), "") < limit]
+    cur = load(data_dir).set_index(["code", "announce_date"])[["status", "checked_at"]].to_dict("index")
+    ago = lambda h: (now_jst() - pd.Timedelta(hours=h)).strftime("%Y-%m-%dT%H:%M")  # noqa: E731
+    limit, retry = ago(RECHECK_HOURS), ago(1)                 # 取得に失敗したものは1時間後に取り直す
+
+    def due(key) -> bool:
+        x = cur.get(key)
+        return x is None or x["checked_at"] < (retry if x["status"] == "error" else limit)
+
+    out = [(c, d) for c, d in zip(cal["code"], cal["announce_date"]) if (c, d) not in done and due((c, d))]
     return sorted(out, key=lambda x: (x[1], x[0]))
 
 
