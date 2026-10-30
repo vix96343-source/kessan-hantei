@@ -1,4 +1,6 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261029559963,2026-10-30T16:20,4685,菱友システム,通期連結業績予想の修正に関するお知らせ,forecast_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261029559963.pdf,,東,2026-10-30T16:20
+140120261029559755,2026-10-30T16:20,4685,菱友システム,2027年３月期　第２四半期（中間期）決算短信[日本基準](連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261029559755.pdf,https://www.release.tdnet.info/inbs/081220261029559755.zip,東,2026-10-30T16:20
 140120261030561484,2026-10-30T16:00,8052,椿本興,2027年３月期　第２四半期（中間期）決算補足説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261030561484.pdf,,東,2026-10-30T16:00
 140120261030561475,2026-10-30T16:00,8052,椿本興,剰余金の配当（中間配当の増配）に関するお知らせ,dividend_revision,False,up,,,,,https://www.release.tdnet.info/inbs/140120261030561475.pdf,,東,2026-10-30T16:00
 140120261030561438,2026-10-30T16:00,9362,兵機海運,2027年３月期　第２四半期（中間期）決算短信[日本基準」(非連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261030561438.pdf,https://www.release.tdnet.info/inbs/081220261030561438.zip,東,2026-10-30T16:00
