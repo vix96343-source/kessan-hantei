@@ -1,4 +1,10 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261030560588,2026-10-30T12:00,9687,ＫＳＫ,2027年３月期　第２四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261030560588.pdf,https://www.release.tdnet.info/inbs/081220261030560588.zip,東,2026-10-30T12:00
+140120261030560354,2026-10-30T12:00,7570,橋本総業ＨＤ,2027年３月期 第２四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261030560354.pdf,https://www.release.tdnet.info/inbs/081220261030560354.zip,東,2026-10-30T12:00
+140120261029559203,2026-10-30T12:00,3004,神栄,2027年３月期第２四半期（中間期）決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261029559203.pdf,,東,2026-10-30T12:00
+140120261029559154,2026-10-30T12:00,3004,神栄,通期連結業績予想の修正に関するお知らせ,forecast_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261029559154.pdf,,東,2026-10-30T12:00
+140120261029559134,2026-10-30T12:00,3004,神栄,2027年３月期第２四半期（中間期）決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261029559134.pdf,https://www.release.tdnet.info/inbs/081220261029559134.zip,東,2026-10-30T12:00
+140120261028557407,2026-10-30T12:00,6292,カワタ,2027年３月期第２四半期（中間期）決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261028557407.pdf,https://www.release.tdnet.info/inbs/081220261028557407.zip,東,2026-10-30T12:00
 140120261030560675,2026-10-30T11:30,8601,大和証Ｇ,2026年度 第2四半期 決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261030560675.pdf,,東名,2026-10-30T11:30
 140120261029560239,2026-10-30T11:30,5929,三和ＨＤ,配当方針の変更および期末配当予想の修正（増配）に関するお知らせ,dividend_revision,False,up,,,,,https://www.release.tdnet.info/inbs/140120261029560239.pdf,,東,2026-10-30T11:30
 140120261029560190,2026-10-30T11:30,4709,ＩＤホールディングス,2027年３月期 第２四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261029560190.pdf,https://www.release.tdnet.info/inbs/081220261029560190.zip,東,2026-10-30T11:30
