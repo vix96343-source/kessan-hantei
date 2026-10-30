@@ -1,4 +1,5 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261029560240,2026-10-30T15:35,7735,スクリン,2027年3月期 第2四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261029560240.pdf,https://www.release.tdnet.info/inbs/081220261029560240.zip,東,2026-10-30T15:35
 140120261030561404,2026-10-30T15:31,7177,ＧＭＯＦＨＤ,2026年12月期第３四半期 決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261030561404.pdf,,東,2026-10-30T15:31
 140120261030561356,2026-10-30T15:31,7177,ＧＭＯＦＨＤ,2026年12月期第３四半期決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261030561356.pdf,https://www.release.tdnet.info/inbs/081220261030561356.zip,東,2026-10-30T15:31
 140120261030561528,2026-10-30T15:30,8704,トレイダーズＨＤ,通期連結業績予想の修正(上方修正)に関するお知らせ,forecast_revision,False,up,,,,,https://www.release.tdnet.info/inbs/140120261030561528.pdf,,東,2026-10-30T15:30
