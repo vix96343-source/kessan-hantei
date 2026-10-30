@@ -1,4 +1,5 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261030560410,2026-10-30T11:10,7883,サンメッセ,業績予想の修正に関するお知らせ,forecast_revision,False,up,OperatingIncome,19.3,CurrentYearDuration,"{""NetSales"": 0.5, ""OperatingIncome"": 19.3, ""OrdinaryIncome"": 15.7, ""ProfitAttributableToOwnersOfParent"": 9.2}",https://www.release.tdnet.info/inbs/140120261030560410.pdf,https://www.release.tdnet.info/inbs/091220261030560410.zip,東,2026-10-30T11:10
 140120261030560537,2026-10-30T11:00,8616,東海東京,2026年３月期 第２四半期決算ハイライト,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261030560537.pdf,,東名,2026-10-30T11:00
 140120261030560530,2026-10-30T11:00,6897,ツインバード,2027年２月期第２四半期決算説明会及び新中期経営計画2026-2030説明会,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261030560530.pdf,,東,2026-10-30T11:00
 140120261029560186,2026-10-30T11:00,8616,東海東京,2027年３月期 第２四半期（中間期）決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261029560186.pdf,https://www.release.tdnet.info/inbs/081220261029560186.zip,東名,2026-10-30T11:00
