@@ -1,4 +1,6 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261029559447,2026-10-30T15:10,7464,セフテック,第２四半期（中間期）の連結業績予想値と実績値との差異 および通期連結業績予想の修正に関するお知らせ,forecast_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261029559447.pdf,,東,2026-10-30T15:10
+140120261029559398,2026-10-30T15:10,7464,セフテック,2027年３月期 第２四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261029559398.pdf,https://www.release.tdnet.info/inbs/081220261029559398.zip,東,2026-10-30T15:10
 140120261030561558,2026-10-30T15:00,6557,Ｇ－ＡＩＡＩ,2027年３月期第２四半期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261030561558.pdf,,東,2026-10-30T15:00
 140120261030561168,2026-10-30T15:00,4531,有機薬,2027年3月期通期業績予想の修正に関するお知らせ,forecast_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261030561168.pdf,,東,2026-10-30T15:00
 140120261030561148,2026-10-30T15:00,4531,有機薬,2027年3月期 第2四半期(中間期) 決算短信〔日本基準〕（非連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261030561148.pdf,https://www.release.tdnet.info/inbs/081220261030561148.zip,東,2026-10-30T15:00
