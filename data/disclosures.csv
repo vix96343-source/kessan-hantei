@@ -1,4 +1,5 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261030561307,2026-10-30T14:10,5994,ファインシンター,2027年3月期第２四半期決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261030561307.pdf,,東名,2026-10-30T14:10
 140120261030561242,2026-10-30T14:00,1972,三晃金,2027年3月期第2四半期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261030561242.pdf,,東,2026-10-30T14:00
 140120261030561190,2026-10-30T14:00,1878,大東建,業績予想および配当予想の修正に関するお知らせ,forecast_dividend_revision,False,flat,OrdinaryIncome,0.0,CurrentYearDuration,"{""NetIncome"": 0.0, ""NetSales"": -3.5, ""OrdinaryIncome"": 0.0}",https://www.release.tdnet.info/inbs/140120261030561190.pdf,https://www.release.tdnet.info/inbs/091220261030561190.zip,東名,2026-10-30T14:00
 140120261030560941,2026-10-30T14:00,7218,田中精密,2027年３月期通期連結業績予想の修正並びに剰余金の配当（中間配当）及び期末配当予想の修正（増配）に関するお知らせ,forecast_dividend_revision,False,up,,,,,https://www.release.tdnet.info/inbs/140120261030560941.pdf,,東,2026-10-30T14:00
