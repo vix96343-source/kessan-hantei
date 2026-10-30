@@ -45,11 +45,11 @@ def update(cfg: dict, data_dir: Path = DATA_DIR, session: RateLimitedSession | N
     rows = []
     for r in todo.itertuples():
         try:
-            resp = session.get(r.xbrl_url)
+            content = tdnet.get_zip(session, r.xbrl_url)   # 取り込みで読んだ zip を使い回す
         except Exception as e:
             log.warning("修正XBRL取得失敗 %s: %s", r.code, e)
             continue
-        x = tdnet.parse_revision_values(resp.content) if resp is not None else {}
+        x = tdnet.parse_revision_values(content) if content is not None else {}
         row = {"disclosure_id": r.disclosure_id, "period": x.get("period", "-"),
                "periods": json.dumps(x.get("periods") or {}, ensure_ascii=False)}
         for w in ("cur", "prev", "prior"):

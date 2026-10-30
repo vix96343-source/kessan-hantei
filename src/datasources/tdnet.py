@@ -11,6 +11,7 @@ import re
 import zipfile
 from dataclasses import asdict, dataclass
 from datetime import date
+from pathlib import Path
 
 from bs4 import BeautifulSoup
 
@@ -285,10 +286,8 @@ def parse_forecast_revision_xbrl(zip_bytes: bytes) -> dict:
 
 
 def fetch_forecast_revision(session: RateLimitedSession, xbrl_url: str) -> dict:
-    r = session.get(xbrl_url)
-    if r is None:
-        return {}
-    return parse_forecast_revision_xbrl(r.content)
+    b = get_zip(session, xbrl_url)              # revisions.update で同じ zip をもう一度使う
+    return parse_forecast_revision_xbrl(b) if b is not None else {}
 
 
 def changes_json(changes: dict) -> str:
@@ -472,13 +471,30 @@ _ZIP_CACHE: dict[str, bytes] = {}
 _ZIP_CACHE_MAX = 400                 # 1回の実行で読む短信の上限(earnings.max_per_run)より多く。1件 約75KB
 
 
+ZIP_DIR = Path(__file__).resolve().parents[2] / "data" / "cache" / "zips"   # gitignore。監視の間だけ使う
+
+
 def get_zip(session: RateLimitedSession, xbrl_url: str) -> bytes | None:
-    """決算短信の XBRL(zip)。同じ実行の中では2度取りに行かない(決算の数値と受注の表で同じ zip を使う)。"""
+    """決算短信・修正の XBRL(zip)。2度取りに行かない(決算の数値・受注の表・セグメントで同じ zip を使う)。
+    監視は「数値」と「受注・セグメント等」を別のプロセスで回すので、ディスクにも置く(直近 _ZIP_CACHE_MAX 件)。"""
     if xbrl_url in _ZIP_CACHE:
+        return _ZIP_CACHE[xbrl_url]
+    f = ZIP_DIR / xbrl_url.rsplit("/", 1)[-1]
+    if f.exists():
+        _ZIP_CACHE[xbrl_url] = f.read_bytes()
         return _ZIP_CACHE[xbrl_url]
     r = session.get(xbrl_url)
     if r is None:
         return None
+    if r.content[:2] == b"PK":
+        try:
+            ZIP_DIR.mkdir(parents=True, exist_ok=True)
+            f.write_bytes(r.content)
+            old = sorted(ZIP_DIR.iterdir(), key=lambda x: x.stat().st_mtime)
+            for x in old[:max(0, len(old) - _ZIP_CACHE_MAX)]:
+                x.unlink()
+        except OSError:
+            pass
     if len(_ZIP_CACHE) >= _ZIP_CACHE_MAX:
         _ZIP_CACHE.pop(next(iter(_ZIP_CACHE)))
     _ZIP_CACHE[xbrl_url] = r.content

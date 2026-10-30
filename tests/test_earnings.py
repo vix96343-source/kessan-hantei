@@ -92,7 +92,7 @@ def test_update_archives_and_uses_previous_disclosure(tmp_path, monkeypatch):
           "q2.zip": _x(2, "2026-09-30", (230, 30), (205, 21), prior_change=0.0)}
     monkeypatch.setattr(earnings.tdnet, "fetch_earnings", lambda s, url: xs[url])
     st = earnings.update({"earnings": {"max_per_run": 10, "types": TYPES}}, data_dir=tmp_path, tdnet_session=object())
-    assert st == {"evaluated": 2, "archived": 2, "status": {"ok": 2}}
+    assert st == {"evaluated": 2, "archived": 2, "remaining": 0, "status": {"ok": 2}}
     f = earnings.load(tmp_path).set_index("disclosure_id")
     assert float(f.loc["q2", "sales_qoq"]) == 30.0                # 古い順に処理して 1Q の短信を使えた
     assert len(earnings.load_archive(tmp_path)) == 2

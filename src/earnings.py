@@ -147,7 +147,7 @@ def conservatism(x: dict) -> float | None:
     prior_full = fc / (1 + chg / 100)          # 前期(1Qで上期予想を使う場合は前年上期)の実績
     ly_rest = prior_full - prior                # 前年の残り期間の実績
     implied = fc - cum                          # 会社予想が想定する残り期間
-    if ly_rest <= 0:
+    if ly_rest <= 0 or growth == 0:          # 営業利益の累計が0(2026-10-30 に監視が止まった)
         return None
     return implied / (ly_rest * growth)
 
@@ -203,7 +203,11 @@ def evaluate(code: str, disclosed_at: str, x: dict, idx: dict, tcfg: dict) -> di
         return {**row, "status": "no_xbrl"}
     if x["cum"].get("sales") is None and x["cum"].get("op") is None:
         return {**row, "status": "no_data"}
-    f = compute(x, idx, code, tcfg)
+    try:
+        f = compute(x, idx, code, tcfg)
+    except Exception as e:                  # 型判定の1件の失敗で、あとの短信の数値を止めない(数値は archive に入っている)
+        log.warning("型判定失敗 %s %s: %s", code, disclosed_at, e)
+        f = {}
     return {**row, **{k: (round(v, 2) if isinstance(v, float) else v) for k, v in f.items()}, "status": "ok"}
 
 
@@ -232,7 +236,11 @@ def update(cfg: dict, data_dir: Path = DATA_DIR, tdnet_session: RateLimitedSessi
     done = set(feats.loc[feats["status"].isin(["ok", "no_data"]), "disclosure_id"]) |         set(feats.loc[waiting & ~feats["disclosure_id"].isin(has_xbrl | pdf_due), "disclosure_id"])
     todo = disc[(disc["kind"] == "earnings_report") & (disc["is_correction"] != "True")
                 & ~disc["disclosure_id"].isin(done)]
-    todo = todo.sort_values("disclosed_at").head(limit or ecfg["max_per_run"])   # 古い順: 前の短信を先に蓄積
+    # 古い順(前の短信を先に蓄積)。同じ時刻(15:30 に100社以上)は売買代金の大きい会社から
+    turnover = _turnover(data_dir)
+    todo = todo.assign(_t=todo["code"].map(turnover).fillna(0)).sort_values(["disclosed_at", "_t"], ascending=[True, False])
+    backlog = len(todo)
+    todo = todo.head(limit or ecfg["max_per_run"])
 
     arch_rows = arch.to_dict("records")
     idx = archive_index(arch_rows)
@@ -269,10 +277,17 @@ def update(cfg: dict, data_dir: Path = DATA_DIR, tdnet_session: RateLimitedSessi
         arch = pd.concat([arch[~arch["disclosure_id"].isin(na["disclosure_id"])], na])
         arch.sort_values(["code", "period_end", "disclosed_at"]).to_csv(archive_path(data_dir), index=False,
                                                                        encoding="utf-8")
-    stats = {"evaluated": len(rows), "archived": len(new_arch),
+    stats = {"evaluated": len(rows), "archived": len(new_arch), "remaining": backlog - len(todo),
              "status": pd.Series([r["status"] for r in rows]).value_counts().to_dict() if rows else {}}
     log.info("earnings: %s", stats)
     return stats
+
+
+def _turnover(data_dir: Path) -> dict[str, float]:
+    """code -> 直近20日平均売買代金(universe.csv。無ければ空)"""
+    from . import universe
+    u = universe.load(data_dir)
+    return {} if u.empty else pd.to_numeric(u.set_index("code")["avg_turnover_20d"], errors="coerce").dropna().to_dict()
 
 
 def append_history(arch_rows: list[dict], data_dir: Path = DATA_DIR) -> int:

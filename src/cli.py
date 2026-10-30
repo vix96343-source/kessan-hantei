@@ -6,23 +6,44 @@ import sys
 from datetime import date, timedelta
 
 from . import backtest, breakdown, calendar_fetch, consensus, disclosures, earnings, forecasts, irdocs, judge, order_adjust, orders, pres_orders, reaction, revisions, segments, site, universe
-from .config import load_config, now_jst
+from .config import DATA_DIR, load_config, now_jst
+
+
+BACKLOG = DATA_DIR / "cache" / "earnings_backlog.txt"   # 数値をまだ読んでいない短信の数(watch.yml が見る)
+FAST_LIMIT = 20     # --fast の1回に読む短信の数(1秒/件なので約20秒ごとに公開できる)
 
 
 def cmd_disclosures(args, cfg):
-    """15分おき: TDnet取り込み → 新しい決算短信の型判定 → (変化があれば)サイト再生成"""
+    """監視の1回: TDnet取り込み → 短信・修正の数値 → (変化があれば)サイト再生成。
+    --fast は数値だけ(短信は FAST_LIMIT 件ずつ、すぐ公開するため)。受注・セグメント等は cmd_details"""
     stats = disclosures.ingest(cfg, days=args.days)
-    stats["earnings"] = earnings.update(cfg)
+    stats["earnings"] = earnings.update(cfg, limit=FAST_LIMIT if args.fast else None)
     stats["revisions"] = revisions.update(cfg)    # 修正の行に出す修正後の予想など
+    BACKLOG.parent.mkdir(parents=True, exist_ok=True)
+    BACKLOG.write_text(str(stats["earnings"]["remaining"]), encoding="utf-8")
+    changed = stats["new_rows"] or stats["xbrl_parsed"] or stats["earnings"]["evaluated"] or stats["revisions"]
+    if not args.fast:
+        changed = _details(cfg, stats) or changed
+    # 変化が無い回はページも作り直さない(生成時刻だけ変わる無駄なコミットを防ぐ)
+    # (IRサイトの説明資料探しは固まっても監視を止めないよう、watch.yml で別プロセスとして実行する)
+    if changed or not (site.DOCS_DIR / "index.html").exists() or manual_changed():
+        stats["pages"] = site.render_all(cfg)
+    print(json.dumps(stats, ensure_ascii=False))
+
+
+def _details(cfg, stats) -> bool:
     stats["orders"] = orders.update(cfg)          # 短信の受注高・受注残高の表
     stats["orders"] += pres_orders.update(cfg)   # 短信に受注が無い会社は説明資料の「前年/今年/増減額/増減率」の表から
     stats["order_adjust"] = order_adjust.update(cfg)   # 受注の3か月の値の1の誤差を説明資料で直す
     stats["segments"] = segments.update(cfg)      # 短信のセグメント別の売上・利益
     stats["segments"] += breakdown.update(cfg)    # 品目別・製品別などの売上の内訳(セグメントが1つの会社など)
-    # 変化が無い回はページも作り直さない(生成時刻だけ変わる無駄なコミットを防ぐ)
-    # (IRサイトの説明資料探しは固まっても監視を止めないよう、watch.yml で別プロセスとして実行する)
-    if stats["new_rows"] or stats["xbrl_parsed"] or stats["earnings"]["evaluated"] or stats["revisions"] or stats["orders"] or stats["segments"] or stats["order_adjust"] \
-            or not (site.DOCS_DIR / "index.html").exists() or manual_changed():
+    return bool(stats["orders"] or stats["segments"] or stats["order_adjust"])
+
+
+def cmd_details(args, cfg):
+    """監視の1回の後半: 受注・セグメント・品目別など(短信の zip は数値を読んだときのものを使う)"""
+    stats = {}
+    if _details(cfg, stats):
         stats["pages"] = site.render_all(cfg)
     print(json.dumps(stats, ensure_ascii=False))
 
@@ -153,7 +174,11 @@ def main(argv=None):
 
     s = sub.add_parser("disclosures", help="TDnetから適時開示(修正・短信・説明資料)を取り込む")
     s.add_argument("--days", type=int, help="当日から遡る日数(初回バックフィルは 31)")
+    s.add_argument("--fast", action="store_true", help="数値だけ(短信は20件ずつ)。受注・セグメント等は details")
     s.set_defaults(func=cmd_disclosures)
+
+    s = sub.add_parser("details", help="受注・セグメント・品目別など(監視の後半)")
+    s.set_defaults(func=cmd_details)
 
     s = sub.add_parser("universe", help="M1: プライム・スタンダード銘柄一覧と平均売買代金を更新")
     s.set_defaults(func=cmd_universe)
