@@ -1,4 +1,7 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261030561627,2026-10-30T15:50,3388,明治電機,2027年３月期第２四半期（中間期）連結業績予想と実績との差異及び通期連結業績予想の修正並びに剰余金の配当及び配当予想の修正に関するお知らせ,forecast_dividend_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261030561627.pdf,,東,2026-10-30T15:50
+140120261030561358,2026-10-30T15:50,3388,明治電機,2027年3月期　第2四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261030561358.pdf,https://www.release.tdnet.info/inbs/081220261030561358.zip,東,2026-10-30T15:50
+140120261029558714,2026-10-30T15:50,3640,電算,2027年３月期 第２四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261029558714.pdf,https://www.release.tdnet.info/inbs/081220261029558714.zip,東,2026-10-30T15:50
 140120261030560619,2026-10-30T15:45,2208,ブルボン,2027年３月期第２四半期（中間期）決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261030560619.pdf,,東,2026-10-30T15:45
 140120261030560590,2026-10-30T15:45,2208,ブルボン,2027年３月期第２四半期（中間期）連結業績予想と実績値との差異及び通期連結業績予想の修正に関するお知らせ,forecast_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261030560590.pdf,,東,2026-10-30T15:45
 140120261030560483,2026-10-30T15:45,2208,ブルボン,2027年３月期 第２四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261030560483.pdf,https://www.release.tdnet.info/inbs/081220261030560483.zip,東,2026-10-30T15:45
