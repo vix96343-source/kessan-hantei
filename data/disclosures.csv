@@ -1,4 +1,11 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261030560619,2026-10-30T15:45,2208,ブルボン,2027年３月期第２四半期（中間期）決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261030560619.pdf,,東,2026-10-30T15:45
+140120261030560590,2026-10-30T15:45,2208,ブルボン,2027年３月期第２四半期（中間期）連結業績予想と実績値との差異及び通期連結業績予想の修正に関するお知らせ,forecast_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261030560590.pdf,,東,2026-10-30T15:45
+140120261030560483,2026-10-30T15:45,2208,ブルボン,2027年３月期 第２四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261030560483.pdf,https://www.release.tdnet.info/inbs/081220261030560483.zip,東,2026-10-30T15:45
+140120261030560435,2026-10-30T15:45,6920,レーザーテック,2027年6月期　第1四半期決算短信〔日本基準〕　（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261030560435.pdf,https://www.release.tdnet.info/inbs/081220261030560435.zip,東,2026-10-30T15:45
+140120261022554586,2026-10-30T15:45,6632,ＪＶＣＫＷ,2027年3月期通期連結業績予想の修正に関するお知らせ,forecast_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261022554586.pdf,,東,2026-10-30T15:45
+140120261020553608,2026-10-30T15:45,6632,ＪＶＣＫＷ,2027年３月期　第２四半期（中間期）決算短信〔IFRS〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261020553608.pdf,https://www.release.tdnet.info/inbs/081220261020553608.zip,東,2026-10-30T15:45
+140120261020553606,2026-10-30T15:45,6632,ＪＶＣＫＷ,2027年３月期　第２四半期（中間期）決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261020553606.pdf,,東,2026-10-30T15:45
 140120261030561294,2026-10-30T15:40,7575,日本ライフライン,第2四半期（中間期）連結業績予想と実績値との差異に関するお知らせ,actual_vs_forecast,False,,,,,,https://www.release.tdnet.info/inbs/140120261030561294.pdf,,東,2026-10-30T15:40
 140120261029559949,2026-10-30T15:40,5333,ＮＧＫ,剰余金の配当（中間配当）及び期末配当予想の修正（増配）に関するお知らせ,dividend_revision,False,up,,,,,https://www.release.tdnet.info/inbs/140120261029559949.pdf,,東名,2026-10-30T15:40
 140120261029559926,2026-10-30T15:40,5333,ＮＧＫ,2027年３月期中間連結会計期間の業績予想値と実績値との差異及び2027年３月期通期業績予想の修正に関するお知らせ,forecast_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261029559926.pdf,,東名,2026-10-30T15:40
