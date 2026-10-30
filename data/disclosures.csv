@@ -1,4 +1,7 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261029558868,2026-10-30T14:40,6623,愛知電,通期業績予想の修正及び配当予想の修正に関するお知らせ,forecast_dividend_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261029558868.pdf,,名,2026-10-30T14:40
+140120261029558794,2026-10-30T14:40,6623,愛知電,第2四半期（中間期）業績予想と実績の差異に関するお知らせ,actual_vs_forecast,False,,,,,,https://www.release.tdnet.info/inbs/140120261029558794.pdf,,名,2026-10-30T14:40
+140120261028558349,2026-10-30T14:40,6623,愛知電,2027年3月期 第2四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261028558349.pdf,https://www.release.tdnet.info/inbs/081220261028558349.zip,名,2026-10-30T14:40
 140120261030561005,2026-10-30T14:30,6331,菱化工機,2027年3月期第２四半期（中間期）連結業績予想と実績値との差異及び通期連結業績予想の修正に関するお知らせ,forecast_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261030561005.pdf,,東,2026-10-30T14:30
 140120261030560924,2026-10-30T14:30,6331,菱化工機,2027年３月期第２四半期（中間期）決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261030560924.pdf,https://www.release.tdnet.info/inbs/081220261030560924.zip,東,2026-10-30T14:30
 140120261030560859,2026-10-30T14:30,9110,ユナイテド海,2027年３月期 第２四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261030560859.pdf,https://www.release.tdnet.info/inbs/081220261030560859.zip,東,2026-10-30T14:30

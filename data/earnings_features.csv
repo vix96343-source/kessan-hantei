@@ -1,4 +1,5 @@
 disclosure_id,code,disclosed_at,n_q,period_end,revised,sales_ytd_yoy,sales_ytd_yoy_ly,accel,margin,margin_delta,op_ytd_yoy,sales_q,op_q,sales_qoq,op_qoq,sales_qoq_ly,conservatism,progress,recruit,kioxia,rorze_b,types,status,computed_at
+140120261028558349,6623,2026-10-30T14:40,2,2026-09-30,True,20.22,3.8,16.42,9.89,1.36,39.33,,,,,,0.94,47.69,True,False,False,①,ok,2026-10-30T14:40
 140120261030560924,6331,2026-10-30T14:30,2,2026-09-30,True,5.25,35.7,-30.45,10.3,0.11,6.41,,,,,,0.95,41.23,False,False,False,,ok,2026-10-30T14:30
 140120261030560859,9110,2026-10-30T14:30,2,2026-09-30,True,22.94,-13.4,36.34,12.91,4.63,91.62,,,,,,0.67,54.99,True,False,False,①,ok,2026-10-30T14:30
 140120261030560795,7475,2026-10-30T14:30,2,2026-09-30,False,-0.66,3.9,-4.56,1.37,-0.06,-4.74,,,,,,0.94,34.72,False,False,False,,ok,2026-10-30T14:30
