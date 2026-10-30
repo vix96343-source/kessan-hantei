@@ -1,4 +1,6 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261030560433,2026-10-30T13:20,7896,セブン工,参考資料（2027年3月期第2四半期（中間期）決算短信（非連結））,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261030560433.pdf,,東名,2026-10-30T13:20
+140120261030560407,2026-10-30T13:20,7896,セブン工,2027年３月期 第２四半期（中間期）決算短信〔日本基準〕（非連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261030560407.pdf,https://www.release.tdnet.info/inbs/081220261030560407.zip,東名,2026-10-30T13:20
 140120261030560918,2026-10-30T13:00,6832,アオイ電子,2027年３月期 第２四半期（中間期）業績予想と実績値との差異に関するお知らせ,actual_vs_forecast,False,,,,,,https://www.release.tdnet.info/inbs/140120261030560918.pdf,,東,2026-10-30T13:00
 140120261030560895,2026-10-30T13:00,6832,アオイ電子,2027年３月期 第２四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261030560895.pdf,https://www.release.tdnet.info/inbs/081220261030560895.zip,東,2026-10-30T13:00
 140120261030560825,2026-10-30T13:00,7988,ニフコ,2027年３月期  第２四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261030560825.pdf,https://www.release.tdnet.info/inbs/081220261030560825.zip,東,2026-10-30T13:00
