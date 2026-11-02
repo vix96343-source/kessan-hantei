@@ -1,4 +1,13 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261102562591,2026-11-02T16:00,7236,ティラド,通期業績予想（連結）の修正に関するお知らせ,forecast_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261102562591.pdf,,東,2026-11-02T16:00
+140120261102562435,2026-11-02T16:00,7162,アストマックス,2027年3月期中間期【第15期】決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261102562435.pdf,,東,2026-11-02T16:00
+140120261102562430,2026-11-02T16:00,7162,アストマックス,2027年3月期第2四半期（中間期）決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261102562430.pdf,https://www.release.tdnet.info/inbs/081220261102562430.zip,東,2026-11-02T16:00
+140120261102562330,2026-11-02T16:00,7236,ティラド,2026年度第2四半期決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261102562330.pdf,,東,2026-11-02T16:00
+140120261102562230,2026-11-02T16:00,2551,マルサンアイ,2026年９月期 決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261102562230.pdf,https://www.release.tdnet.info/inbs/081220261102562230.zip,名,2026-11-02T16:00
+140120261030561778,2026-11-02T16:00,9768,いであ,2026年12月期　第３四半期決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261030561778.pdf,https://www.release.tdnet.info/inbs/081220261030561778.zip,東,2026-11-02T16:00
+140120261030560656,2026-11-02T16:00,3914,Ｇ－ＪＩＧ－ＳＡＷ,2026年12月期 第３四半期決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261030560656.pdf,https://www.release.tdnet.info/inbs/081220261030560656.zip,東,2026-11-02T16:00
+140120261021554208,2026-11-02T16:00,9351,東洋埠頭,2027年３月期 第２四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261021554208.pdf,https://www.release.tdnet.info/inbs/081220261021554208.zip,東,2026-11-02T16:00
+140120261020553781,2026-11-02T16:00,7236,ティラド,2027年3月期第2四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261020553781.pdf,https://www.release.tdnet.info/inbs/081220261020553781.zip,東,2026-11-02T16:00
 140120261101562011,2026-11-02T15:40,2282,日ハム,決算説明会資料～2027年3月期 第2四半期～,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261101562011.pdf,,東,2026-11-02T15:40
 140120261101562008,2026-11-02T15:40,2282,日ハム,業績予想及び配当予想の修正に関するお知らせ,forecast_dividend_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261101562008.pdf,,東,2026-11-02T15:40
 140120261101562006,2026-11-02T15:40,2282,日ハム,2027年３月期第２四半期（中間期）決算短信〔ＩＦＲＳ〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261101562006.pdf,https://www.release.tdnet.info/inbs/081220261101562006.zip,東,2026-11-02T15:40
