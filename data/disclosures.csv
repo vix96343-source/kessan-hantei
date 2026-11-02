@@ -1,4 +1,5 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261018552573,2026-11-02T16:30,5905,日缶,2027年3月期 第2四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261018552573.pdf,https://www.release.tdnet.info/inbs/081220261018552573.zip,東,2026-11-02T16:30
 140120261102562591,2026-11-02T16:00,7236,ティラド,通期業績予想（連結）の修正に関するお知らせ,forecast_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261102562591.pdf,,東,2026-11-02T16:00
 140120261102562435,2026-11-02T16:00,7162,アストマックス,2027年3月期中間期【第15期】決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261102562435.pdf,,東,2026-11-02T16:00
 140120261102562430,2026-11-02T16:00,7162,アストマックス,2027年3月期第2四半期（中間期）決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261102562430.pdf,https://www.release.tdnet.info/inbs/081220261102562430.zip,東,2026-11-02T16:00
