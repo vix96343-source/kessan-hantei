@@ -1,4 +1,5 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261030561601,2026-11-02T15:15,8377,ほくほく,業績予想および配当予想の修正に関するお知らせ,forecast_dividend_revision,False,up,OrdinaryIncome,21.9,CurrentYearDuration,"{""OrdinaryIncome"": 21.9, ""ProfitAttributableToOwnersOfParent"": 21.0}",https://www.release.tdnet.info/inbs/140120261030561601.pdf,https://www.release.tdnet.info/inbs/091220261030561601.zip,東札,2026-11-02T15:15
 140120261102562800,2026-11-02T15:00,3580,小松マテーレ,2027年３月期 第２四半期（中間期）決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261102562800.pdf,https://www.release.tdnet.info/inbs/081220261102562800.zip,東,2026-11-02T15:00
 140120261102562401,2026-11-02T15:00,3580,小松マテーレ,業績予想の修正及び剰余金の配当（中間配当の増配) に関するお知らせ,forecast_dividend_revision,False,up,,,,,https://www.release.tdnet.info/inbs/140120261102562401.pdf,,東,2026-11-02T15:00
 140120261102562397,2026-11-02T15:00,3580,小松マテーレ,2027年３月期 第２四半期(中間期)決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261102562397.pdf,,東,2026-11-02T15:00
