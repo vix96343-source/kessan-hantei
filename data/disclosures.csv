@@ -1,4 +1,6 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261030561075,2026-11-02T13:30,4005,住友化,2027年３月期通期業績予想及び配当予想の修正に関するお知らせ,forecast_dividend_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261030561075.pdf,,東,2026-11-02T13:30
+140120261030560852,2026-11-02T13:30,4005,住友化,2026年３月期第２四半期決算短信〔ＩＦＲＳ〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261030560852.pdf,https://www.release.tdnet.info/inbs/081220261030560852.zip,東,2026-11-02T13:30
 140120261102562455,2026-11-02T13:00,2003,日東富士,2027年3月期　第２四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261102562455.pdf,https://www.release.tdnet.info/inbs/081220261102562455.zip,東,2026-11-02T13:00
 140120261030561927,2026-11-02T13:00,8053,住友商,2027年3月期 連結業績予想の修正 並びに 剰余金の配当（中間配当）及び 配当予想の修正（増配）に関するお知らせ,forecast_dividend_revision,False,up,,,,,https://www.release.tdnet.info/inbs/140120261030561927.pdf,,東,2026-11-02T13:00
 140120261030561906,2026-11-02T13:00,8053,住友商,2027年3月期第2四半期決算短信〔IFRS〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261030561906.pdf,https://www.release.tdnet.info/inbs/081220261030561906.zip,東,2026-11-02T13:00
