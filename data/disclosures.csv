@@ -1,4 +1,7 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261102562653,2026-11-02T14:30,2489,ＡＤＷＡＹＳ,2026年12月期 第3四半期決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261102562653.pdf,,東,2026-11-02T14:30
+140120261102562648,2026-11-02T14:30,2489,ＡＤＷＡＹＳ,2026年12月期 第3四半期決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261102562648.pdf,https://www.release.tdnet.info/inbs/081220261102562648.zip,東,2026-11-02T14:30
+140120261102562646,2026-11-02T14:30,2489,ＡＤＷＡＹＳ,特別損失（減損損失）の計上並びに業績予想及び配当予想の修正に関するお知らせ,forecast_dividend_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261102562646.pdf,,東,2026-11-02T14:30
 140120261030560986,2026-11-02T14:20,7723,愛知時,2027年３月期 第２四半期（中間期）決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261030560986.pdf,,東名,2026-11-02T14:20
 140120261030560739,2026-11-02T14:20,7723,愛知時,2027年３月期 第２四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261030560739.pdf,https://www.release.tdnet.info/inbs/081220261030560739.zip,東名,2026-11-02T14:20
 140120261102562675,2026-11-02T14:00,5703,日軽金ＨＤ,2026年度中間期決算　通期業績予想,forecast_initial,False,,,,,,https://www.release.tdnet.info/inbs/140120261102562675.pdf,,東,2026-11-02T14:00
