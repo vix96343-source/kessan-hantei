@@ -1,4 +1,10 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261105565220,2026-11-05T13:20,4202,ダイセル,期末配当予想の修正に関するお知らせ（増配）,dividend_revision,False,up,,,,,https://www.release.tdnet.info/inbs/140120261105565220.pdf,,東,2026-11-05T13:20
+140120261105565190,2026-11-05T13:20,4202,ダイセル,2027年３月期第２四半期（中間期）の業績予想値と実績値との差異および通期業績予想の修正に関するお知らせ,forecast_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261105565190.pdf,,東,2026-11-05T13:20
+140120261105565073,2026-11-05T13:20,4202,ダイセル,2027年3月期 第2四半期(中間期)決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261105565073.pdf,,東,2026-11-05T13:20
+140120261105565046,2026-11-05T13:20,4202,ダイセル,2027年3月期 第2四半期(中間期)決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261105565046.pdf,https://www.release.tdnet.info/inbs/081220261105565046.zip,東,2026-11-05T13:20
+140120261105564950,2026-11-05T13:20,9303,住友倉,2027年3月期 第2四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261105564950.pdf,https://www.release.tdnet.info/inbs/081220261105564950.zip,東,2026-11-05T13:20
+140120261026555838,2026-11-05T13:20,9057,遠州トラック,2027年3月期 第2四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261026555838.pdf,https://www.release.tdnet.info/inbs/081220261026555838.zip,東,2026-11-05T13:20
 140120261105565564,2026-11-05T13:00,4042,東ソー,2026年度第2四半期　決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261105565564.pdf,,東,2026-11-05T13:00
 140120261105565483,2026-11-05T13:00,9362,兵機海運,2027年3月期 第2四半期 決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261105565483.pdf,,東,2026-11-05T13:00
 140120261105565199,2026-11-05T13:00,6703,ＯＫＩ,2027年３月期通期連結業績予想の修正に関するお知らせ,forecast_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261105565199.pdf,,東,2026-11-05T13:00
