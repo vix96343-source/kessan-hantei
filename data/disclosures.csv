@@ -1,4 +1,7 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261105565727,2026-11-05T17:30,3034,クオールＨＤ,2027年３月期　第２四半期決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261105565727.pdf,,東,2026-11-05T17:30
+140120261029559204,2026-11-05T17:30,4310,ＤＩ,2027年３月期 第２四半期決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261029559204.pdf,,東,2026-11-05T17:30
+140120261029559186,2026-11-05T17:30,4310,ＤＩ,2027年３月期 第２四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261029559186.pdf,https://www.release.tdnet.info/inbs/081220261029559186.zip,東,2026-11-05T17:30
 140120261105566241,2026-11-05T16:50,6867,リーダ電子,2027年３月期 第２四半期 決算補足説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261105566241.pdf,,東,2026-11-05T16:50
 140120261105566137,2026-11-05T16:45,6867,リーダ電子,2027年3月期第2四半期（中間期）連結業績予想数値と実績数値との差異、営業外収益の計上及び通期予想に関するお知らせ,actual_vs_forecast,False,,,,,,https://www.release.tdnet.info/inbs/140120261105566137.pdf,,東,2026-11-05T16:45
 140120261028558674,2026-11-05T16:45,6867,リーダ電子,2027年３月期 第２四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261028558674.pdf,https://www.release.tdnet.info/inbs/081220261028558674.zip,東,2026-11-05T16:45
