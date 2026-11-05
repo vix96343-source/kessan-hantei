@@ -1,4 +1,6 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261104563510,2026-11-05T13:55,7203,トヨタ自,2027年3月期第２四半期決算報告プレゼンテーション資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261104563510.pdf,,東名,2026-11-05T13:55
+140120261030561115,2026-11-05T13:55,7203,トヨタ自,2027年3月期 第2四半期（中間期）決算短信〔IFRS〕（連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261030561115.pdf,https://www.release.tdnet.info/inbs/081220261030561115.zip,東名,2026-11-05T13:55
 140120261105565291,2026-11-05T13:30,4188,三菱ケミカルグループ,2027 年３月期通期業績予想の修正に関するお知らせ,forecast_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261105565291.pdf,,東,2026-11-05T13:30
 140120261105565282,2026-11-05T13:30,4188,三菱ケミカルグループ,2027年3月期 第2四半期（中間期） 決算説明,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261105565282.pdf,,東,2026-11-05T13:30
 140120261105565258,2026-11-05T13:30,4188,三菱ケミカルグループ,2027年３月期第２四半期（中間期）決算短信〔ＩＦＲＳ〕,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261105565258.pdf,https://www.release.tdnet.info/inbs/081220261105565258.zip,東,2026-11-05T13:30
