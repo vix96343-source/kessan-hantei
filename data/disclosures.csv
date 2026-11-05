@@ -1,4 +1,11 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261105565322,2026-11-05T12:00,4012,アクシス,2026年12月期第３四半期決算補足説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261105565322.pdf,,東,2026-11-05T12:00
+140120261105564979,2026-11-05T12:00,9101,郵船,2027年３月期 剰余金の配当（中間配当）及び配当予想（期末配当）の修正に関するお知らせ,dividend_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261105564979.pdf,,東,2026-11-05T12:00
+140120261104564540,2026-11-05T12:00,2222,寿スピリッツ,2027年3月期第2四半期（中間期）決算説明会補足資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261104564540.pdf,,東,2026-11-05T12:00
+140120261104564536,2026-11-05T12:00,2222,寿スピリッツ,2027年3月期第2四半期（中間期）決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261104564536.pdf,,東,2026-11-05T12:00
+140120261104563983,2026-11-05T12:00,9101,郵船,2027年3月期　第2四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261104563983.pdf,https://www.release.tdnet.info/inbs/081220261104563983.zip,東,2026-11-05T12:00
+140120261102562838,2026-11-05T12:00,4012,アクシス,2026年12月期第３四半期決算短信〔日本基準〕(非連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261102562838.pdf,https://www.release.tdnet.info/inbs/081220261102562838.zip,東,2026-11-05T12:00
+140120261101562004,2026-11-05T12:00,5355,日坩堝,2027年3月期第2四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261101562004.pdf,https://www.release.tdnet.info/inbs/081220261101562004.zip,東,2026-11-05T12:00
 140120261104564385,2026-11-05T11:30,3401,帝人,2026年度第2四半期決算 および 2026年度業績見通し,forecast_initial,False,,,,,,https://www.release.tdnet.info/inbs/140120261104564385.pdf,,東,2026-11-05T11:30
 140120261104564335,2026-11-05T11:30,6417,ＳＡＮＫＹＯ,2027年３月期 第２四半期（中間期）決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261104564335.pdf,,東,2026-11-05T11:30
 140120261104564276,2026-11-05T11:30,3401,帝人,2027年3月期 第2四半期（中間期）決算短信〔ＩＦＲＳ〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261104564276.pdf,https://www.release.tdnet.info/inbs/081220261104564276.zip,東,2026-11-05T11:30
