@@ -1,4 +1,12 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261105566095,2026-11-05T15:40,7991,マミヤオーピー,2027年3月期 第２四半期 決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261105566095.pdf,,東,2026-11-05T15:40
+140120261105566078,2026-11-05T15:40,7991,マミヤオーピー,2027年３月期 第２四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261105566078.pdf,https://www.release.tdnet.info/inbs/081220261105566078.zip,東,2026-11-05T15:40
+140120261105565280,2026-11-05T15:40,3712,情報企画,2026年９月期　決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261105565280.pdf,https://www.release.tdnet.info/inbs/081220261105565280.zip,東,2026-11-05T15:40
+140120261105565216,2026-11-05T15:40,9514,ＥＦ－ＯＮ,中間配当の実施及び配当予想の修正に関するお知らせ,dividend_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261105565216.pdf,,東,2026-11-05T15:40
+140120261105565197,2026-11-05T15:40,9514,ＥＦ－ＯＮ,2027年６月期 第１四半期決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261105565197.pdf,https://www.release.tdnet.info/inbs/081220261105565197.zip,東,2026-11-05T15:40
+140120261104564185,2026-11-05T15:40,6622,ダイヘン,2027年３月期 第２四半期(中間期)決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261104564185.pdf,https://www.release.tdnet.info/inbs/081220261104564185.zip,東福,2026-11-05T15:40
+140120261019552893,2026-11-05T15:40,6339,新東工,2027年3月期 第2四半期 決算資料（概要）,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261019552893.pdf,,東名,2026-11-05T15:40
+140120261019552890,2026-11-05T15:40,6339,新東工,2027年3月期第2四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261019552890.pdf,https://www.release.tdnet.info/inbs/081220261019552890.zip,東名,2026-11-05T15:40
 140120261105565994,2026-11-05T15:35,6644,大崎電,2026年度 上期（第2四半期）決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261105565994.pdf,,東,2026-11-05T15:35
 140120261105565827,2026-11-05T15:35,6644,大崎電,2027年3月期第2四半期（中間期）決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261105565827.pdf,https://www.release.tdnet.info/inbs/081220261105565827.zip,東,2026-11-05T15:35
 140120261104564681,2026-11-05T15:35,6644,大崎電,業績予想の修正に関するお知らせ,forecast_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261104564681.pdf,,東,2026-11-05T15:35
