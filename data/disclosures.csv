@@ -1,4 +1,5 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261105564927,2026-11-05T10:30,9142,ＪＲ九州,2027年３月期　第２四半期決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261105564927.pdf,,東福,2026-11-05T10:30
 140120261105565035,2026-11-05T10:00,9698,クレオ,2027年３月期 第2四半期 決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261105565035.pdf,,東,2026-11-05T10:00
 140120261105564945,2026-11-05T10:00,6806,ヒロセ電,2027年3月期第2四半期決算説明会,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261105564945.pdf,,東,2026-11-05T10:00
 140120261104564416,2026-11-05T10:00,8111,ゴルドウイン,第２四半期（中間期）業績予想値と決算値との差異及び通期業績予想の修正に関するお知らせ,forecast_revision,False,down,OperatingIncome,-8.8,CurrentYearDuration,"{""NetSales"": -2.7, ""OperatingIncome"": -8.8, ""OrdinaryIncome"": -4.7, ""ProfitAttributableToOwnersOfParent"": -5.1}",https://www.release.tdnet.info/inbs/140120261104564416.pdf,https://www.release.tdnet.info/inbs/091220261104564416.zip,東,2026-11-05T10:00
