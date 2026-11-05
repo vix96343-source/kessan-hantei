@@ -1,4 +1,7 @@
 disclosure_id,code,disclosed_at,n_q,period_end,status,data
+140120261104564379,6370,2026-11-05T16:20,2,2026-09-30,ok,"{""total"": {""name"": ""合計"", ""orders"": 359587000000.0, ""orders_yoy"": 81.8, ""backlog"": null, ""backlog_yoy"": null, ""backlog_fy"": null}, ""segments"": [], ""src"": ""narrative""}"
+140120261104563855,3232,2026-11-05T16:20,2,2026-09-30,ok,"{""segments"": [], ""total"": {""name"": ""建築事業"", ""orders"": 2022000000.0, ""orders_prior"": null, ""orders_fy"": null, ""backlog"": 2816000000.0, ""backlog_prior"": null, ""backlog_fy"": null, ""orders_yoy"": -23.1, ""backlog_yoy"": -20.0}, ""unit"": 1000000.0, ""tpl"": [{""header"": [[""区分"", ""受注高 （百万円）"", ""前年同期比 （％）"", ""受注残高 （百万円）"", ""前年同期比 （％）""]], ""width"": 5, ""numeric_cols"": [1, 2, 3, 4], ""unit"": 1000000.0, ""rows"": [[""建築事業""]], ""parents"": [null]}]}"
+140120261102563003,5384,2026-11-05T16:20,2,2026-09-30,none,
 140120261105565582,6413,2026-11-05T16:00,2,2026-09-30,none,
 140120261105565401,3566,2026-11-05T16:00,3,2026-09-30,none,
 140120261105565396,5261,2026-11-05T16:00,2,2026-09-30,none,
