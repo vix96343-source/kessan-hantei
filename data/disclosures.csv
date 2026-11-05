@@ -1,4 +1,5 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261104564096,2026-11-05T18:00,8524,北洋銀行,（訂正・数値データ訂正）「業績予想の修正及び配当予想の修正（増配）に関するお知らせ」の一部訂正について,forecast_dividend_revision,True,up,OrdinaryIncome,15.1,CurrentYearDuration,"{""OrdinaryIncome"": 15.1, ""OrdinaryRevenuesBK"": 12.3, ""ProfitAttributableToOwnersOfParent"": 15.3}",https://www.release.tdnet.info/inbs/140120261104564096.pdf,https://www.release.tdnet.info/inbs/091220261104564096.zip,東札,2026-11-05T18:00
 140120261105565727,2026-11-05T17:30,3034,クオールＨＤ,2027年３月期　第２四半期決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261105565727.pdf,,東,2026-11-05T17:30
 140120261029559204,2026-11-05T17:30,4310,ＤＩ,2027年３月期 第２四半期決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261029559204.pdf,,東,2026-11-05T17:30
 140120261029559186,2026-11-05T17:30,4310,ＤＩ,2027年３月期 第２四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261029559186.pdf,https://www.release.tdnet.info/inbs/081220261029559186.zip,東,2026-11-05T17:30
