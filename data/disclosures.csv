@@ -1,4 +1,7 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261105565659,2026-11-05T16:30,6349,小森,（差替）「2027 年３月期 第２四半期決算説明資料」の一部差替について,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261105565659.pdf,,東,2026-11-05T16:30
+140120261104564372,2026-11-05T16:30,3402,東レ,業績予想の修正に関するお知らせ,forecast_revision,False,up,ProfitAttributableToOwnersOfParentIFRS,53.6,CurrentAccumulatedQ2Duration,"{""ProfitAttributableToOwnersOfParentIFRS"": 53.6, ""SalesIFRS"": 0.7}",https://www.release.tdnet.info/inbs/140120261104564372.pdf,https://www.release.tdnet.info/inbs/091220261104564372.zip,東,2026-11-05T16:30
+140120261104563989,2026-11-05T16:30,1945,東京エネシス,2027年３月期 第２四半期（中間期）決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261104563989.pdf,https://www.release.tdnet.info/inbs/081220261104563989.zip,東,2026-11-05T16:30
 140120261105565865,2026-11-05T16:20,5384,ＦＵＪＩＭＩ,業績予想の修正並びに剰余金の配当（中間配当）に関するお知らせ,forecast_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261105565865.pdf,,東名,2026-11-05T16:20
 140120261104564478,2026-11-05T16:20,6370,栗田工,2027年3月期 第2四半期 決算補足資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261104564478.pdf,,東,2026-11-05T16:20
 140120261104564464,2026-11-05T16:20,6370,栗田工,2027年3月期 第2四半期 決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261104564464.pdf,,東,2026-11-05T16:20
