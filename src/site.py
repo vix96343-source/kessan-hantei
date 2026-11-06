@@ -586,8 +586,8 @@ def segment_numbers(rec: dict | None, past: list[dict], main: dict | None, ords:
 
 
 def consensus_panel(snap: dict | None, arch: dict | None) -> dict | None:
-    """アナリスト予想の平均(Yahoo Finance)。列: 四半期(3か月)の予想2つと今期・来期の通期、行: 売上(百万円)・EPS(円)。
-    取れるのは売上と EPS だけ(営業利益・経常利益・純利益の予想は無い)。
+    """アナリスト予想の平均。列: 四半期(3か月)の予想2つと今期・来期の通期、行: 売上・営業利益・経常利益・純利益(百万円)・EPS(円)。
+    通期の売上・利益は Yahoo!ファイナンス(日本)、EPS と四半期の売上・EPS は yfinance。
     四半期の名前は、発表前に取った値なら「今回発表の四半期・その次」、発表後なら「次・その次」。"""
     if not snap:
         return None
@@ -608,17 +608,34 @@ def consensus_panel(snap: dict | None, arch: dict | None) -> dict | None:
     next_fy = _ym_shift(fy_end, 12) if fy_end else None
     cols = [(qlabel(0), "0q"), (qlabel(1), "1q"),
             ("今期通期", None if shifted else "0y"), ("来期通期", "0y" if shifted else "1y")]
+
+    def yj(m, k):                                      # Yahoo!ファイナンスの通期(決算期で今期・来期を合わせる)
+        if not fy_end:
+            return _f0(snap.get(f"yj_{m}_{k}"))
+        want = next_fy if shifted or k == "1y" else fy_end
+        y = next((y for y in ("0y", "1y") if str(snap.get(f"yj_ym_{y}") or "") == want.replace("-", "")), None)
+        return _f0(snap.get(f"yj_{m}_{y}")) if y else None
+
     rows = []
-    for m, label in (("rev", "売上"), ("eps", "EPS")):
+    for m, label in (("sales", "売上"), ("op", "営業利益"), ("ord", "経常利益"), ("net", "純利益"), ("eps", "EPS")):
         vals = []
         for _, k in cols:
-            v = _f0(snap.get(f"{m}_{k}")) if k else None
-            vals.append(None if v is None else (round(v, 1) if m == "eps" else _mil(v)))
+            v = None
+            if k and k.endswith("y") and m != "eps":
+                v = yj(m, k)
+                if v is None and m == "sales":         # Yahoo!ファイナンスに無ければ yfinance の売上
+                    v = _mil(snap.get(f"rev_{k}"))
+                v = None if v is None else round(v)
+            elif k and m in ("sales", "eps"):
+                x = _f0(snap.get(f"{'rev' if m == 'sales' else 'eps'}_{k}"))
+                v = None if x is None else (round(x, 1) if m == "eps" else _mil(x))
+            vals.append(v)
         if any(v is not None for v in vals):
             rows.append({"label": label, "vals": vals})
     if not rows:
         return None
-    return {"date": str(snap["fetched_at"])[:10], "before": before, "n": _f0(snap.get("n_0y")),
+    n = _f0(snap.get("yj_n_0y")) or _f0(snap.get("n_0y"))
+    return {"date": str(snap["fetched_at"])[:10], "before": before, "n": None if n is None else int(n),
             "next_fy": f"{next_fy[:4]}/{next_fy[5:7]}" if next_fy else "", "cols": [c for c, _ in cols], "rows": rows}
 
 
