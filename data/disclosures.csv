@@ -1,4 +1,10 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261105566364,2026-11-06T10:00,2815,アリアケ,2027年3月期 第２四半期 決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261105566364.pdf,,東,2026-11-06T10:00
+140120261105566349,2026-11-06T10:00,2815,アリアケ,2027年３月期 第２四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261105566349.pdf,https://www.release.tdnet.info/inbs/081220261105566349.zip,東,2026-11-06T10:00
+140120261105565701,2026-11-06T10:00,5576,オービーシステム,2027年３月期 第２四半期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261105565701.pdf,,東,2026-11-06T10:00
+140120261104564682,2026-11-06T10:00,6963,ローム,FY2026 1H 決算説明会,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261104564682.pdf,,東,2026-11-06T10:00
+140120261102563177,2026-11-06T10:00,2193,ＣＯＯＫＰＡＤ,2026年12月期 第３四半期決算補足説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261102563177.pdf,,東,2026-11-06T10:00
+140120261102563173,2026-11-06T10:00,2193,ＣＯＯＫＰＡＤ,2026年12月期 第３四半期決算短信〔ＩＦＲＳ〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261102563173.pdf,https://www.release.tdnet.info/inbs/081220261102563173.zip,東,2026-11-06T10:00
 140120261106566684,2026-11-06T09:00,5301,東海カーボン,2026年12月期第3四半期決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261106566684.pdf,,東,2026-11-06T09:00
 140120261104564096,2026-11-05T18:00,8524,北洋銀行,（訂正・数値データ訂正）「業績予想の修正及び配当予想の修正（増配）に関するお知らせ」の一部訂正について,forecast_dividend_revision,True,up,OrdinaryIncome,15.1,CurrentYearDuration,"{""OrdinaryIncome"": 15.1, ""OrdinaryRevenuesBK"": 12.3, ""ProfitAttributableToOwnersOfParent"": 15.3}",https://www.release.tdnet.info/inbs/140120261104564096.pdf,https://www.release.tdnet.info/inbs/091220261104564096.zip,東札,2026-11-05T18:00
 140120261105565727,2026-11-05T17:30,3034,クオールＨＤ,2027年３月期　第２四半期決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261105565727.pdf,,東,2026-11-05T17:30
