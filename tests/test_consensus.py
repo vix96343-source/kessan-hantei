@@ -1,26 +1,34 @@
 from src import consensus, site
 
-# Yahoo!ファイナンスの業績ページに埋め込まれている「業績予想(連結・確定)」の形(エスケープされた JSON)
-HTML = ('...ConsensusContainer__updateDate\\",\\"dateTime\\":\\"2026-11-05T13:07:33+09:00\\"...'
-        '{\\"settlementYm\\":\\"202703\\",\\"totalSampleCount\\":14,\\"netSales\\":53990285.71,'
-        '\\"operatingIncome\\":3842242.86,\\"ordinaryIncome\\":5255242.86,\\"netProfit\\":3770185.71},'
-        '{\\"settlementYm\\":\\"202803\\"}]...')
+# 株予報「アナリスト予想」の決算期の表(予 = 会社予想、コ = コンセンサス)と日付
+ANALYST = """<table><tr><th>日付</th><td>2026/11/05</td><td>1週間前</td></tr></table>
+<table><tr><th>決算期</th><th>売上高</th><th>営業利益</th><th>経常利益</th><th>当期利益</th></tr>
+<tr><td>202603</td><td>139,364 （6.3%)</td><td>17,437 （13.4%)</td><td>17,840 （8.2%)</td><td>10,995 （-19.9%)</td></tr>
+<tr><td>202703
+        予</td><td>160,000 （14.8%)</td><td>20,000 （14.7%)</td><td>20,500 （14.9%)</td><td>13,000 （18.2%)</td></tr>
+<tr><td>202703
+        コ</td><td>148,500 （6.6%)</td><td>18,300 （4.9%)</td><td>19,200 （7.6%)</td><td>13,100 （19.1%)</td></tr></table>"""
+# 株予報「業績」の経常利益の四半期累計
+REPORT = """<table><tr><th></th><th>第1四半期</th><th>中間</th><th>第3四半期</th><th>通期</th></tr>
+<tr><td>会社予想</td><td>--</td><td>--</td><td>--</td><td>(10/30) 20,500</td></tr>
+<tr><td>コンセンサス予想</td><td>4,100</td><td>9,000</td><td>14,000</td><td>19,200</td></tr></table>"""
 
 
-def test_parse_yj_reads_annual_consensus():
-    x = consensus.parse_yj(HTML)
-    assert x == {"yj_ym_0y": "202703", "yj_n_0y": 14, "yj_sales_0y": 53990285.7, "yj_op_0y": 3842242.9,
-                 "yj_ord_0y": 5255242.9, "yj_net_0y": 3770185.7, "yj_updated": "2026-11-05"}
-    assert consensus.parse_yj("<html>予想なし</html>") == {}
+def test_parse_kabuyoho_consensus_rows():
+    assert consensus.parse_kb_analyst(ANALYST) == {
+        "kb_ym_0y": "202703", "kb_sales_0y": 148500.0, "kb_op_0y": 18300.0, "kb_ord_0y": 19200.0,
+        "kb_net_0y": 13100.0, "kb_date": "2026-11-05"}
+    assert consensus.parse_kb_analyst(ANALYST.replace("コ</td>", "</td>")) == {}      # 予想の無い会社
+    assert consensus.parse_kb_report(REPORT) == {"kb_ord_q1": 4100.0, "kb_ord_q2": 9000.0, "kb_ord_q3": 14000.0}
 
 
-def test_panel_shows_operating_profit_for_this_fiscal_year():
-    snap = {**consensus.parse_yj(HTML), "fetched_at": "2026-11-04T20:05", "before": True,
-            "eps_0y": 250.5, "rev_0q": 13.5e12, "n_0y": 19}
-    p = site.consensus_panel(snap, {"n_q": "2", "period_end": "2026-09-30"})   # 3月期の2Q → 今期 = 2027/03
+def test_panel_shows_kabuyoho_and_eps_from_shares():
+    snap = {**consensus.parse_kb_analyst(ANALYST), **consensus.parse_kb_report(REPORT),
+            "fetched_at": "2026-11-05T20:05", "before": True}
+    p = site.consensus_panel(snap, {"n_q": "2", "period_end": "2026-09-30"}, shares=50_000_000)
     rows = {r["label"]: r["vals"] for r in p["rows"]}
-    assert p["cols"] == ["今期2Q", "今期3Q", "今期通期", "来期通期"]
-    assert rows["営業利益"] == [None, None, 3842243, None]
-    assert rows["売上"] == [13500000, None, 53990286, None]
-    assert rows["EPS"] == [None, None, 250.5, None]
-    assert p["n"] == 14
+    assert p["cols"] == ["1Q累計", "中間累計", "3Q累計", "今期通期", "来期通期"]
+    assert rows["営業利益"] == [None, None, None, 18300, None]
+    assert rows["経常利益"] == [4100, 9000, 14000, 19200, None]
+    assert rows["EPS"] == [None, None, None, 262.0, None]                         # 13,100百万円 ÷ 5千万株
+    assert (p["src"], p["date"]) == ("株予報", "2026-11-05")

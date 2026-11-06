@@ -1,8 +1,9 @@
 """アナリスト予想の平均(コンセンサス)を取り、data/consensus.csv にためる。
 
-- Yahoo!ファイナンス(日本)の「業績予想」のアナリスト平均: 今期・来期の通期の売上・営業利益・経常利益・純利益(百万円)と人数
-- yfinance(米 Yahoo Finance): EPS と、四半期(3か月)の売上・EPS
-取れるのは担当アナリストがいる銘柄だけ(プライム・スタンダードの決算予定のおよそ4割。残りはどのサイトにも予想が無い)。
+- 株予報(kabuyoho.jp、IFIS コンセンサス): 今期・来期の通期の売上・営業利益・経常利益・当期利益(百万円)、
+  経常利益の四半期累計(1Q・中間・3Q)。EPS は当期利益 ÷ 株数(site.py で短信の株数から出す)
+- yfinance(米 Yahoo Finance): 株予報に無いときの EPS と、四半期(3か月)の売上・EPS
+取れるのは担当アナリストがいる銘柄だけ。
 発表前の値が「サプライズ」の比べる相手なので、決算予定(calendar.csv)の銘柄を毎日取り直して日付つきで残す。
 """
 import logging
@@ -13,19 +14,22 @@ from pathlib import Path
 
 import pandas as pd
 import requests
+from bs4 import BeautifulSoup
 
 from .config import DATA_DIR, now_jst
 
 log = logging.getLogger(__name__)
 
-YJ_METRICS = {"netSales": "sales", "operatingIncome": "op", "ordinaryIncome": "ord", "netProfit": "net"}
+KB_METRICS = ["sales", "op", "ord", "net"]
 COLUMNS = ["code", "fetched_at", "n_0y", "eps_0y", "rev_0y", "n_1y", "eps_1y", "rev_1y",
            "n_0q", "eps_0q", "rev_0q", "n_1q", "eps_1q", "rev_1q",
-           # Yahoo!ファイナンス(日本): 決算期(YYYYMM)・人数・通期の予想(百万円)・Yahoo の更新日
-           "yj_ym_0y", "yj_n_0y", *[f"yj_{m}_0y" for m in YJ_METRICS.values()],
-           "yj_ym_1y", "yj_n_1y", *[f"yj_{m}_1y" for m in YJ_METRICS.values()], "yj_updated"]
-YJ_URL = "https://finance.yahoo.co.jp/quote/{code}.T/performance"
-NO_COVER_DAYS = 7                                       # どちらにも予想が無かった銘柄は1週間取り直さない
+           # 株予報: 決算期(YYYYMM)・通期の予想(百万円)・経常利益の四半期累計の予想・株予報の日付
+           "kb_ym_0y", *[f"kb_{m}_0y" for m in KB_METRICS], "kb_ym_1y", *[f"kb_{m}_1y" for m in KB_METRICS],
+           "kb_ord_q1", "kb_ord_q2", "kb_ord_q3", "kb_date"]
+KB_ANALYST = "https://kabuyoho.jp/reportAnalyst?bcode={code}"
+KB_REPORT = "https://kabuyoho.jp/report?bcode={code}"
+KB_PAUSE = 2.0                                          # 株予報へは2秒に1回まで
+NO_COVER_DAYS = 14                                      # 予想が無かった銘柄は2週間取り直さない
 
 
 def path(data_dir: Path = DATA_DIR) -> Path:
@@ -65,27 +69,62 @@ def fetch(code: str) -> dict | None:
     return row
 
 
-def parse_yj(html: str) -> dict:
-    """Yahoo!ファイナンスの業績ページ → 「業績予想(連結・確定)」のアナリスト平均。予想が無ければ {}"""
-    t = html.replace('\\"', '"')
+def _cells(tr) -> list[str]:
+    return [re.sub(r"\s+", " ", c.get_text(" ", strip=True)) for c in tr.find_all(["th", "td"])]
+
+
+def _val(t: str) -> float | None:
+    m = re.match(r"\s*(-?[\d,]+(?:\.\d+)?)", t)
+    return float(m.group(1).replace(",", "")) if m else None
+
+
+def parse_kb_analyst(html: str) -> dict:
+    """株予報「アナリスト予想」→ 決算期の表の「コ」(コンセンサス)の行。予想が無ければ {}"""
+    s = BeautifulSoup(html, "html.parser")
     row, k = {}, 0
-    for m in re.finditer(r'\{"settlementYm":"(\d{6})","totalSampleCount":(\d+),([^{}]*)\}', t):
-        if k > 1 or not int(m.group(2)):
-            break
-        y = f"{k}y"
-        row[f"yj_ym_{y}"], row[f"yj_n_{y}"] = m.group(1), int(m.group(2))
-        for name, v in re.findall(r'"(netSales|operatingIncome|ordinaryIncome|netProfit)":(-?[\d.]+)', m.group(3)):
-            row[f"yj_{YJ_METRICS[name]}_{y}"] = round(float(v), 1)
-        k += 1
+    for t in s.find_all("table"):
+        trs = [_cells(tr) for tr in t.find_all("tr")]
+        if not trs or trs[0][:5] != ["決算期", "売上高", "営業利益", "経常利益", "当期利益"]:
+            continue
+        for c in trs[1:]:
+            m = re.match(r"(\d{6})\s*コ$", c[0]) if c else None
+            if not m or k > 1:
+                continue
+            y = f"{k}y"
+            row[f"kb_ym_{y}"] = m.group(1)
+            for name, v in zip(KB_METRICS, c[1:5]):
+                row[f"kb_{name}_{y}"] = _val(v)
+            k += 1
     if row:
-        d = re.search(r'ConsensusContainer__updateDate","dateTime":"([\d-]{10})', t)
-        row["yj_updated"] = d.group(1) if d else ""
+        d = re.search(r"日付\s*</t[hd]>\s*<t[hd][^>]*>\s*(\d{4}/\d{2}/\d{2})", html)
+        row["kb_date"] = d.group(1).replace("/", "-") if d else ""
     return row
 
 
-def fetch_yj(session: requests.Session, code: str) -> dict:
-    r = session.get(YJ_URL.format(code=code), timeout=20)
-    return parse_yj(r.text) if r.status_code == 200 else {}
+def parse_kb_report(html: str) -> dict:
+    """株予報「業績」→ 経常利益のコンセンサスの四半期累計(1Q・中間・3Q)"""
+    s = BeautifulSoup(html, "html.parser")
+    for t in s.find_all("table"):
+        trs = [_cells(tr) for tr in t.find_all("tr")]
+        if not trs or trs[0][1:5] != ["第1四半期", "中間", "第3四半期", "通期"]:
+            continue
+        for c in trs:
+            if c and c[0] == "コンセンサス予想":
+                return {f"kb_ord_q{i}": _val(v) for i, v in zip((1, 2, 3), c[1:4])}
+    return {}
+
+
+def fetch_kb(session: requests.Session, code: str) -> dict:
+    r = session.get(KB_ANALYST.format(code=code), timeout=20)
+    r.raise_for_status()
+    x = parse_kb_analyst(r.text)
+    time.sleep(KB_PAUSE)
+    if x:                                              # 予想がある会社だけ四半期累計も
+        r = session.get(KB_REPORT.format(code=code), timeout=20)
+        r.raise_for_status()
+        x.update(parse_kb_report(r.text))
+        time.sleep(KB_PAUSE)
+    return x
 
 
 def update(cfg: dict, codes: list[str] | None = None, data_dir: Path = DATA_DIR,
@@ -115,10 +154,9 @@ def update(cfg: dict, codes: list[str] | None = None, data_dir: Path = DATA_DIR,
             break
         x, failed = {}, False
         try:
-            x = fetch_yj(session, c)
-            time.sleep(1.0)                            # Yahoo!ファイナンスは1秒に1回まで
+            x = fetch_kb(session, c)
         except Exception as e:                         # 1銘柄の失敗で止めない
-            log.warning("コンセンサス(Yahoo!ファイナンス)取得失敗 %s: %s", c, e)
+            log.warning("コンセンサス(株予報)取得失敗 %s: %s", c, e)
             failed = True
         if yf_errors < 3:                              # yfinance が続けて断られたら、この回はもう使わない
             try:
@@ -163,7 +201,7 @@ def by_code(data_dir: Path = DATA_DIR) -> dict[str, list[dict]]:
 
 def snapshot(recs: list[dict], disclosed_at: str) -> dict | None:
     """決算の発表より前に取った一番新しい値。四半期の予想が入っていない古い記録しか無ければ、発表後の一番新しい値。"""
-    has_q = lambda r: any(str(r.get(k, "")) not in ("", "nan") for k in ("rev_0q", "eps_0q", "yj_n_0y"))
+    has_q = lambda r: any(str(r.get(k, "")) not in ("", "nan") for k in ("rev_0q", "eps_0q", "kb_ym_0y"))
     before = [r for r in recs if r["fetched_at"] < disclosed_at]
     after = [r for r in recs if r["fetched_at"] >= disclosed_at]
     if before and (has_q(before[-1]) or not any(has_q(r) for r in after)):

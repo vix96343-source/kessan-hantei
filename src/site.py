@@ -585,9 +585,42 @@ def segment_numbers(rec: dict | None, past: list[dict], main: dict | None, ords:
     return {"cols": cols, "segments": rows, "total": total or None, "unit": "百万円", "hist": hist}
 
 
-def consensus_panel(snap: dict | None, arch: dict | None) -> dict | None:
-    """アナリスト予想の平均。列: 四半期(3か月)の予想2つと今期・来期の通期、行: 売上・営業利益・経常利益・純利益(百万円)・EPS(円)。
-    通期の売上・利益は Yahoo!ファイナンス(日本)、EPS と四半期の売上・EPS は yfinance。
+def consensus_panel(snap: dict | None, arch: dict | None, shares: float | None = None) -> dict | None:
+    """アナリスト予想の平均。株予報(IFIS)があればそれ: 列 = 経常利益の四半期累計(1Q・中間・3Q)と今期・来期の通期、
+    行 = 売上・営業利益・経常利益・純利益(百万円)・EPS(円 = 純利益 ÷ 短信の株数)。無ければ yfinance(_yf_panel)。"""
+    if not snap:
+        return None
+    if not str(snap.get("kb_ym_0y") or ""):
+        return _yf_panel(snap, arch)
+    n_q = int(float(arch["n_q"])) if arch and arch.get("n_q") else None
+    end = str(arch["period_end"])[:7] if arch and arch.get("period_end") else None
+    fy_end = _ym_shift(end, 3 * (4 - n_q)) if end and n_q else None
+    next_fy = _ym_shift(fy_end, 12) if fy_end else None
+    by_ym = {str(snap.get(f"kb_ym_{y}") or ""): y for y in ("0y", "1y")}
+    this_y = by_ym.get(fy_end.replace("-", "")) if fy_end else "0y"
+    next_y = by_ym.get(next_fy.replace("-", "")) if next_fy else "1y"
+
+    def eps(net):
+        return None if net is None or not shares else round(net * 1e6 / shares, 1)
+
+    cols = ["1Q累計", "中間累計", "3Q累計", "今期通期", "来期通期"]
+    rows = []
+    for m, label in (("sales", "売上"), ("op", "営業利益"), ("ord", "経常利益"), ("net", "純利益"), ("eps", "EPS")):
+        src = "net" if m == "eps" else m
+        y_vals = [_f0(snap.get(f"kb_{src}_{y}")) if y else None for y in (this_y, next_y)]
+        q_vals = [_f0(snap.get(f"kb_ord_q{i}")) if m == "ord" and this_y == "0y" else None for i in (1, 2, 3)]
+        vals = [eps(v) if m == "eps" else (None if v is None else round(v)) for v in q_vals + y_vals]
+        if any(v is not None for v in vals):
+            rows.append({"label": label, "vals": vals})
+    if not rows:
+        return None
+    return {"date": str(snap.get("kb_date") or snap["fetched_at"])[:10], "before": bool(snap["before"]), "n": None,
+            "src": "株予報", "next_fy": f"{next_fy[:4]}/{next_fy[5:7]}" if next_fy else "", "cols": cols, "rows": rows}
+
+
+def _yf_panel(snap: dict | None, arch: dict | None) -> dict | None:
+    """アナリスト予想の平均(Yahoo Finance)。列: 四半期(3か月)の予想2つと今期・来期の通期、行: 売上(百万円)・EPS(円)。
+    取れるのは売上と EPS だけ(営業利益・経常利益・純利益の予想は無い)。
     四半期の名前は、発表前に取った値なら「今回発表の四半期・その次」、発表後なら「次・その次」。"""
     if not snap:
         return None
@@ -608,34 +641,17 @@ def consensus_panel(snap: dict | None, arch: dict | None) -> dict | None:
     next_fy = _ym_shift(fy_end, 12) if fy_end else None
     cols = [(qlabel(0), "0q"), (qlabel(1), "1q"),
             ("今期通期", None if shifted else "0y"), ("来期通期", "0y" if shifted else "1y")]
-
-    def yj(m, k):                                      # Yahoo!ファイナンスの通期(決算期で今期・来期を合わせる)
-        if not fy_end:
-            return _f0(snap.get(f"yj_{m}_{k}"))
-        want = next_fy if shifted or k == "1y" else fy_end
-        y = next((y for y in ("0y", "1y") if str(snap.get(f"yj_ym_{y}") or "") == want.replace("-", "")), None)
-        return _f0(snap.get(f"yj_{m}_{y}")) if y else None
-
     rows = []
-    for m, label in (("sales", "売上"), ("op", "営業利益"), ("ord", "経常利益"), ("net", "純利益"), ("eps", "EPS")):
+    for m, label in (("rev", "売上"), ("eps", "EPS")):
         vals = []
         for _, k in cols:
-            v = None
-            if k and k.endswith("y") and m != "eps":
-                v = yj(m, k)
-                if v is None and m == "sales":         # Yahoo!ファイナンスに無ければ yfinance の売上
-                    v = _mil(snap.get(f"rev_{k}"))
-                v = None if v is None else round(v)
-            elif k and m in ("sales", "eps"):
-                x = _f0(snap.get(f"{'rev' if m == 'sales' else 'eps'}_{k}"))
-                v = None if x is None else (round(x, 1) if m == "eps" else _mil(x))
-            vals.append(v)
+            v = _f0(snap.get(f"{m}_{k}")) if k else None
+            vals.append(None if v is None else (round(v, 1) if m == "eps" else _mil(v)))
         if any(v is not None for v in vals):
             rows.append({"label": label, "vals": vals})
     if not rows:
         return None
-    n = _f0(snap.get("yj_n_0y")) or _f0(snap.get("n_0y"))
-    return {"date": str(snap["fetched_at"])[:10], "before": before, "n": None if n is None else int(n),
+    return {"date": str(snap["fetched_at"])[:10], "before": before, "n": _f0(snap.get("n_0y")),
             "next_fy": f"{next_fy[:4]}/{next_fy[5:7]}" if next_fy else "", "cols": [c for c, _ in cols], "rows": rows}
 
 
@@ -808,7 +824,7 @@ def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:
             if sum(n in sn for n in bn) * 2 >= len(bn):
                 rows[-1]["brk"] = None
         rows[-1]["cons"] = consensus_panel(consensus.snapshot(cons.get(r["code"], []), r["disclosed_at"]),
-                                           arch.get(r["disclosure_id"])) if r["kind"] == "earnings_report" else None
+                                           arch.get(r["disclosure_id"]), shares_at(r["code"], r["disclosed_at"]))             if r["kind"] == "earnings_report" else None
     return rows
 
 
