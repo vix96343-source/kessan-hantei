@@ -1,4 +1,7 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261105565288,2026-11-06T13:40,6507,シンフォニア,業績予想の修正及び配当予想の修正（増配）に関するお知らせ,forecast_dividend_revision,False,up,,,,,https://www.release.tdnet.info/inbs/140120261105565288.pdf,,東,2026-11-06T13:40
+140120261104564444,2026-11-06T13:40,5602,栗本鉄,2027年３月期第２四半期（中間期）決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261104564444.pdf,https://www.release.tdnet.info/inbs/081220261104564444.zip,東,2026-11-06T13:40
+140120261102562947,2026-11-06T13:40,6507,シンフォニア,2027年3月期 第2四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261102562947.pdf,https://www.release.tdnet.info/inbs/081220261102562947.zip,東,2026-11-06T13:40
 140120261105565541,2026-11-06T13:30,1905,テノックス,2027年3月期　第2四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261105565541.pdf,https://www.release.tdnet.info/inbs/081220261105565541.zip,東,2026-11-06T13:30
 140120261105565144,2026-11-06T13:30,7231,トピー工,2027年３月期第２四半期（中間期）連結業績予想と実績値との差異及び2027年３月期通期連結業績予想の修正に関するお知らせ,forecast_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261105565144.pdf,,東名,2026-11-06T13:30
 140120261105565116,2026-11-06T13:30,7231,トピー工,2027年３月期 第２四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261105565116.pdf,https://www.release.tdnet.info/inbs/081220261105565116.zip,東名,2026-11-06T13:30
