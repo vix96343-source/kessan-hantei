@@ -32,3 +32,14 @@ def test_panel_shows_kabuyoho_and_eps_from_shares():
     assert rows["経常利益"] == [4100, 9000, 14000, 19200, None]
     assert rows["EPS"] == [None, None, None, 262.0, None]                         # 13,100百万円 ÷ 5千万株
     assert (p["src"], p["date"]) == ("株予報", "2026-11-05")
+
+
+def test_snapshot_prefers_kabuyoho_even_after_the_announcement():
+    yf = {"fetched_at": "2026-10-20T20:05", "rev_0q": 1e9, "kb_ym_0y": ""}
+    kb1 = {"fetched_at": "2026-11-06T12:30", "kb_ym_0y": "202703"}
+    kb2 = {"fetched_at": "2026-11-07T20:05", "kb_ym_0y": "202703"}
+    s = consensus.snapshot([yf, kb1, kb2], "2026-10-30T15:30")      # 発表後に初めて株予報を取った会社
+    assert s["fetched_at"] == "2026-11-06T12:30" and s["before"] is False
+    s = consensus.snapshot([yf, kb1, kb2], "2026-11-07T15:00")
+    assert s["fetched_at"] == "2026-11-06T12:30" and s["before"] is True
+    assert consensus.snapshot([yf], "2026-10-30T15:30")["fetched_at"] == "2026-10-20T20:05"

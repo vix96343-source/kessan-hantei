@@ -170,14 +170,23 @@ def update(cfg: dict, codes: list[str] | None = None, data_dir: Path = DATA_DIR,
         if any(k != "code" for k in x):
             rows.append({**x, "code": c, "fetched_at": now.strftime("%Y-%m-%dT%H:%M")})
             none.pop(c, None)
+            if len(rows) % 50 == 0:                    # 長い回は途中でも保存(止まっても取った分は残す)
+                _save(df, rows, none, data_dir)
         elif not failed:                               # 取れたうえで予想が無い(担当アナリストがいない)
             none[c] = now.strftime("%Y-%m-%dT%H:%M")
-    if rows:
-        out = pd.concat([df, pd.DataFrame(rows).reindex(columns=COLUMNS)])
-        out.sort_values(["code", "fetched_at"]).to_csv(path(data_dir), index=False, encoding="utf-8")
-    pd.Series(none, name="checked_at").rename_axis("code").sort_index().to_csv(_none_path(data_dir), encoding="utf-8")
+    _save(df, rows, none, data_dir)
     log.info("consensus: %d / %d", len(rows), len(codes))
     return len(rows)
+
+
+def _save(df: pd.DataFrame, rows: list[dict], none: dict[str, str], data_dir: Path) -> None:
+    if rows:
+        out = pd.concat([df, pd.DataFrame(rows).reindex(columns=COLUMNS)])
+        out.sort_values(["code", "fetched_at"]).to_csv(path(data_dir), index=False, encoding="utf-8", lineterminator="
+")
+    pd.Series(none, name="checked_at").rename_axis("code").sort_index().to_csv(
+        _none_path(data_dir), encoding="utf-8", lineterminator="
+")
 
 
 def _none_path(data_dir: Path) -> Path:
@@ -200,8 +209,17 @@ def by_code(data_dir: Path = DATA_DIR) -> dict[str, list[dict]]:
 
 
 def snapshot(recs: list[dict], disclosed_at: str) -> dict | None:
-    """決算の発表より前に取った一番新しい値。四半期の予想が入っていない古い記録しか無ければ、発表後の一番新しい値。"""
-    has_q = lambda r: any(str(r.get(k, "")) not in ("", "nan") for k in ("rev_0q", "eps_0q", "kb_ym_0y"))
+    """決算と比べるコンセンサス。株予報の値があればそれを優先: 発表より前に取った一番新しい値、
+    無ければ発表のあとに取った一番早い値(発表後の値)。株予報が無ければ yfinance の値で、
+    発表より前の一番新しい値(四半期の予想が無い古い記録しか無ければ発表後の一番新しい値)。"""
+    has_kb = lambda r: str(r.get("kb_ym_0y", "")) not in ("", "nan")
+    kb_before = [r for r in recs if has_kb(r) and r["fetched_at"] < disclosed_at]
+    kb_after = [r for r in recs if has_kb(r) and r["fetched_at"] >= disclosed_at]
+    if kb_before:
+        return {**kb_before[-1], "before": True}
+    if kb_after:
+        return {**kb_after[0], "before": False}
+    has_q = lambda r: any(str(r.get(k, "")) not in ("", "nan") for k in ("rev_0q", "eps_0q"))
     before = [r for r in recs if r["fetched_at"] < disclosed_at]
     after = [r for r in recs if r["fetched_at"] >= disclosed_at]
     if before and (has_q(before[-1]) or not any(has_q(r) for r in after)):
