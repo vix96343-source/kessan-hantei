@@ -182,11 +182,9 @@ def update(cfg: dict, codes: list[str] | None = None, data_dir: Path = DATA_DIR,
 def _save(df: pd.DataFrame, rows: list[dict], none: dict[str, str], data_dir: Path) -> None:
     if rows:
         out = pd.concat([df, pd.DataFrame(rows).reindex(columns=COLUMNS)])
-        out.sort_values(["code", "fetched_at"]).to_csv(path(data_dir), index=False, encoding="utf-8", lineterminator="
-")
+        out.sort_values(["code", "fetched_at"]).to_csv(path(data_dir), index=False, encoding="utf-8", lineterminator="\n")
     pd.Series(none, name="checked_at").rename_axis("code").sort_index().to_csv(
-        _none_path(data_dir), encoding="utf-8", lineterminator="
-")
+        _none_path(data_dir), encoding="utf-8", lineterminator="\n")
 
 
 def _none_path(data_dir: Path) -> Path:
