@@ -105,7 +105,7 @@ def update(cfg: dict, codes: list[str] | None = None, data_dir: Path = DATA_DIR,
     recent |= {c for c, t in none.items() if t >= none_since}
     session = requests.Session()
     session.headers["User-Agent"] = cfg["http"]["user_agent"]
-    rows = []
+    rows, yf_errors = [], 0
     t0 = time.monotonic()
     for c in codes:
         if c in recent:
@@ -113,22 +113,27 @@ def update(cfg: dict, codes: list[str] | None = None, data_dir: Path = DATA_DIR,
         if time.monotonic() - t0 > time_budget_sec:
             log.info("コンセンサス: 時間切れ(残りは次回)")
             break
-        x = {}
+        x, failed = {}, False
         try:
             x = fetch_yj(session, c)
             time.sleep(1.0)                            # Yahoo!ファイナンスは1秒に1回まで
         except Exception as e:                         # 1銘柄の失敗で止めない
             log.warning("コンセンサス(Yahoo!ファイナンス)取得失敗 %s: %s", c, e)
-        try:
-            x = {**x, **(fetch(c) or {})}
-        except Exception as e:
-            log.warning("コンセンサス(yfinance)取得失敗 %s: %s", c, e)
-        if len(x) > 1 or (x and "code" not in x):
+            failed = True
+        if yf_errors < 3:                              # yfinance が続けて断られたら、この回はもう使わない
+            try:
+                x = {**x, **(fetch(c) or {})}
+                yf_errors = 0
+            except Exception as e:
+                log.warning("コンセンサス(yfinance)取得失敗 %s: %s", c, e)
+                yf_errors += 1
+                failed = True
+            time.sleep(pause_sec)
+        if any(k != "code" for k in x):
             rows.append({**x, "code": c, "fetched_at": now.strftime("%Y-%m-%dT%H:%M")})
             none.pop(c, None)
-        else:
+        elif not failed:                               # 取れたうえで予想が無い(担当アナリストがいない)
             none[c] = now.strftime("%Y-%m-%dT%H:%M")
-        time.sleep(pause_sec)
     if rows:
         out = pd.concat([df, pd.DataFrame(rows).reindex(columns=COLUMNS)])
         out.sort_values(["code", "fetched_at"]).to_csv(path(data_dir), index=False, encoding="utf-8")
