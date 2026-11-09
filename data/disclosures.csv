@@ -1,4 +1,5 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261109569739,2026-11-09T16:40,7722,国際計測,2027年３月期第２四半期（中間期）決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261109569739.pdf,https://www.release.tdnet.info/inbs/081220261109569739.zip,東,2026-11-09T16:40
 140120261109569627,2026-11-09T16:30,6094,Ｇ－フリークアウト,通期連結業績予想の修正に関するお知らせ,forecast_revision,False,down,OperatingIncome,-33.3,CurrentYearDuration,"{""NetIncome"": 67.6, ""NetSales"": 2.0, ""OperatingIncome"": -33.3, ""OrdinaryIncome"": 17.2}",https://www.release.tdnet.info/inbs/140120261109569627.pdf,https://www.release.tdnet.info/inbs/091220261109569627.zip,東,2026-11-09T16:30
 140120261109569275,2026-11-09T16:30,2915,ケンコーマヨ,2027年３月期 通期連結業績予想の修正に関するお知らせ,forecast_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261109569275.pdf,,東,2026-11-09T16:30
 140120261109569221,2026-11-09T16:30,9083,神姫バス,2027年３月期配当予想の修正(増配)に関するお知らせ,dividend_revision,False,up,,,,,https://www.release.tdnet.info/inbs/140120261109569221.pdf,,東,2026-11-09T16:30
