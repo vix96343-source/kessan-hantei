@@ -1,4 +1,5 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261109569743,2026-11-10T08:30,5310,東洋炭素,2026年12月期第3四半期 決算概要,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261109569743.pdf,,東,2026-11-10T08:30
 140120261109569877,2026-11-09T18:30,6993,大黒屋,2027年３月期第２四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261109569877.pdf,https://www.release.tdnet.info/inbs/081220261109569877.zip,東,2026-11-09T18:30
 140120261109569915,2026-11-09T18:00,3179,シュッピン,2027年３月期第２四半期決算補足資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261109569915.pdf,,東,2026-11-09T18:00
 140120261109569906,2026-11-09T18:00,3179,シュッピン,2027年３月期第２四半期（中間期）決算短信〔日本基準〕(非連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261109569906.pdf,https://www.release.tdnet.info/inbs/081220261109569906.zip,東,2026-11-09T18:00
