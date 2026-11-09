@@ -1,4 +1,9 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261109569915,2026-11-09T18:00,3179,シュッピン,2027年３月期第２四半期決算補足資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261109569915.pdf,,東,2026-11-09T18:00
+140120261109569906,2026-11-09T18:00,3179,シュッピン,2027年３月期第２四半期（中間期）決算短信〔日本基準〕(非連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261109569906.pdf,https://www.release.tdnet.info/inbs/081220261109569906.zip,東,2026-11-09T18:00
+140120261109569875,2026-11-09T18:00,3179,シュッピン,特別損失の計上および通期業績予想の修正に関するお知らせ,forecast_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261109569875.pdf,,東,2026-11-09T18:00
+140120261109568603,2026-11-09T18:00,3948,光ビジネス,2026年12月期通期業績予想の修正に関するお知らせ,forecast_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261109568603.pdf,,東,2026-11-09T18:00
+140120261109568535,2026-11-09T18:00,3948,光ビジネス,2026年12月期 第３四半期決算短信〔日本基準〕（非連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261109568535.pdf,https://www.release.tdnet.info/inbs/081220261109568535.zip,東,2026-11-09T18:00
 140120261109569357,2026-11-09T17:30,4415,Ｇ－ブロードエンター,連結業績予想及び個別業績予想の修正並びに配当予想の修正に関するお知らせ,forecast_dividend_revision,False,flat,NetSales,0.0,CurrentYearDuration,"{""NetSales"": 0.0}",https://www.release.tdnet.info/inbs/140120261109569357.pdf,https://www.release.tdnet.info/inbs/091220261109569357.zip,東,2026-11-09T17:30
 140120261109569838,2026-11-09T17:14,7128,ユニソルＨＤ,2026年12月期第３四半期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261109569838.pdf,,東,2026-11-09T17:14
 140120261109568868,2026-11-09T17:00,8897,ミラースＨＤ,FACT BOOK 2027年３月期第２四半期,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261109568868.pdf,,東,2026-11-09T17:00
