@@ -1,4 +1,8 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261106567859,2026-11-09T12:30,5941,中西製作所,2027年３月期第２四半期累計期間の業績予想と実績値の差異に関するお知らせ,actual_vs_forecast,False,,,,,,https://www.release.tdnet.info/inbs/140120261106567859.pdf,,東,2026-11-09T12:30
+140120261106567853,2026-11-09T12:30,5941,中西製作所,2027年３月期 第２四半期（中間期）決算短信〔日本基準〕（非連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261106567853.pdf,https://www.release.tdnet.info/inbs/081220261106567853.zip,東,2026-11-09T12:30
+140120261102563165,2026-11-09T12:30,7636,ハンズマン,2027年6月期 第1四半期決算短信〔日本基準〕(非連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261102563165.pdf,https://www.release.tdnet.info/inbs/081220261102563165.zip,東,2026-11-09T12:30
+140120261020553624,2026-11-09T12:30,7443,横浜魚類,2027年3月期　第2四半期（中間期）決算短信〔日本基準〕（非連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261020553624.pdf,https://www.release.tdnet.info/inbs/081220261020553624.zip,東,2026-11-09T12:30
 140120261109568649,2026-11-09T12:00,2790,ナフコ,2027年３月期 第２四半期（中間期）決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261109568649.pdf,,東,2026-11-09T12:00
 140120261106568106,2026-11-09T12:00,1803,清水建,2027年３月期 第２四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261106568106.pdf,https://www.release.tdnet.info/inbs/081220261106568106.zip,東名,2026-11-09T12:00
 140120261106568066,2026-11-09T12:00,2602,日清オイリオ,2027年３月期 第２四半期(中間期)決算補足資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261106568066.pdf,,東,2026-11-09T12:00
