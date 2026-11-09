@@ -1,4 +1,5 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261108568381,2026-11-09T16:20,9664,御園座,令和９年３月期　第２四半期（中間期）決算短信〔日本基準〕（非連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261108568381.pdf,https://www.release.tdnet.info/inbs/081220261108568381.zip,名,2026-11-09T16:20
 140120261109568805,2026-11-09T16:15,5840,Ｐ－日本総険,2026年11月期の通期連結業績予想について,forecast_initial,False,,,,,,https://www.release.tdnet.info/inbs/140120261109568805.pdf,,東,2026-11-09T16:15
 140120261109569657,2026-11-09T16:10,4094,日化学産,2027年３月期第２四半期決算概要,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261109569657.pdf,,東,2026-11-09T16:10
 140120261109569266,2026-11-09T16:00,3276,ＪＰＭＣ,2026年12月期 第３四半期決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261109569266.pdf,https://www.release.tdnet.info/inbs/081220261109569266.zip,東,2026-11-09T16:00
