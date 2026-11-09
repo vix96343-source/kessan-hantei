@@ -2,7 +2,7 @@
 
 - index.html: TDnet 決算速報(開示日を選んで決算・修正を一覧。data/index.json を1分ごとに確認して自動更新)
 - calendar.html: 決算時間サイト(kessan-jikan)への転送。中身は data/calendar.json
-- judge.html: 持ち越し判定(M3)と事後検証
+(判定ページ judge.html は 2026-11-09 にユーザー指示で廃止。判定の計算(predictions.csv)は続ける)
 上昇確度は score_of() に集約。決算短信は3つの型(earnings.py)への該当数ごとの過去の上昇率。
 """
 import hashlib
@@ -973,7 +973,6 @@ def render_all(cfg: dict, data_dir: Path = DATA_DIR, docs_dir: Path = DOCS_DIR) 
                                             proxy=(cfg.get("site") or {}).get("tdnet_proxy", ""),
                                             funds=sorted(universe.non_equity_codes(data_dir)))),
         "calendar.html": ("calendar.html.j2", {}),
-        "judge.html": ("judge.html.j2", dict(page="judge", **judge_context(cfg, data_dir))),
     }
     for name, (tpl, ctx) in pages.items():
         p = docs_dir / name
