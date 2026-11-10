@@ -1,4 +1,6 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261110571384,2026-11-10T16:50,5842,Ｇ－インテグラルＧ,2026年12月期 第3四半期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261110571384.pdf,,東,2026-11-10T16:50
+140120261110571355,2026-11-10T16:50,5842,Ｇ－インテグラルＧ,2026年12月期 第３四半期決算短信〔ＩＦＲＳ〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261110571355.pdf,https://www.release.tdnet.info/inbs/081220261110571355.zip,東,2026-11-10T16:50
 140120261110571686,2026-11-10T16:30,4554,富士製薬,2026年9月期決算補足資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261110571686.pdf,,東,2026-11-10T16:30
 140120261110571042,2026-11-10T16:30,3291,飯田ＧＨＤ,2027年３月期 第２四半期（中間期）決算短信〔ＩＦＲＳ〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261110571042.pdf,https://www.release.tdnet.info/inbs/081220261110571042.zip,東,2026-11-10T16:30
 140120261110570761,2026-11-10T16:30,8252,丸井Ｇ,2027年３月期 第２四半期決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261110570761.pdf,,東,2026-11-10T16:30
