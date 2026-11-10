@@ -1,4 +1,7 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261110571979,2026-11-10T20:00,6794,フォスター電,期末配当予想の修正に関するお知らせ,dividend_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261110571979.pdf,,東,2026-11-10T20:00
+140120261110571924,2026-11-10T20:00,6794,フォスター電,2027年3月期第2四半期（中間期）決算説明会,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261110571924.pdf,,東,2026-11-10T20:00
+140120261110571634,2026-11-10T20:00,6794,フォスター電,2027年３月期 第２四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261110571634.pdf,https://www.release.tdnet.info/inbs/081220261110571634.zip,東,2026-11-10T20:00
 140120261110572078,2026-11-10T18:00,6993,大黒屋,「2027年３月期第2四半期決算説明資料」の策定のお知らせ,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261110572078.pdf,,東,2026-11-10T18:00
 140120261110571511,2026-11-10T17:00,6849,日本光電,業績予想の修正に関するお知らせ,forecast_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261110571511.pdf,,東,2026-11-10T17:00
 140120261110571432,2026-11-10T17:00,259A,ケイ・ウノ,2026年９月期通期業績予想の修正、営業外費用（連結）及び特別損失（連結・個別）の計上に関するお知らせ,forecast_revision,False,up,OperatingIncome,43.5,CurrentYearDuration,"{""NetSales"": -0.2, ""OperatingIncome"": 43.5, ""OrdinaryIncome"": -30.5, ""ProfitAttributableToOwnersOfParent"": -137.2}",https://www.release.tdnet.info/inbs/140120261110571432.pdf,https://www.release.tdnet.info/inbs/091220261110571432.zip,名,2026-11-10T17:00
