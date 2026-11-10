@@ -1,4 +1,8 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261110571572,2026-11-10T16:10,7943,ニチハ,2027年3月期第2四半期（中間期）決算説明資料（速報版）,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261110571572.pdf,,東名,2026-11-10T16:10
+140120261110571473,2026-11-10T16:10,7943,ニチハ,2027年3月期第2四半期（中間期）決算概況 （参考資料）,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261110571473.pdf,,東名,2026-11-10T16:10
+140120261110571417,2026-11-10T16:10,7943,ニチハ,通期業績予想の修正に関するお知らせ,forecast_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261110571417.pdf,,東名,2026-11-10T16:10
+140120261110571373,2026-11-10T16:10,7943,ニチハ,2027年３月期　第２四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261110571373.pdf,https://www.release.tdnet.info/inbs/081220261110571373.zip,東名,2026-11-10T16:10
 140120261110571817,2026-11-10T16:00,2304,ＣＳＳＨＤ,剰余金の配当(増配)に関するお知らせ,dividend_revision,False,up,,,,,https://www.release.tdnet.info/inbs/140120261110571817.pdf,,東,2026-11-10T16:00
 140120261110571757,2026-11-10T16:00,2304,ＣＳＳＨＤ,2026年9月期決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261110571757.pdf,https://www.release.tdnet.info/inbs/081220261110571757.zip,東,2026-11-10T16:00
 140120261110571668,2026-11-10T16:00,9360,鈴与シンワ,2027年３月期 第２四半期（中間期）決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261110571668.pdf,https://www.release.tdnet.info/inbs/081220261110571668.zip,東,2026-11-10T16:00
