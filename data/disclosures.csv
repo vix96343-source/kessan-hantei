@@ -1,4 +1,6 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261106568313,2026-11-10T14:40,9306,東陽倉,2027年３月期 第２四半期（中間期）決算発表資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261106568313.pdf,,東名,2026-11-10T14:40
+140120261106568312,2026-11-10T14:40,9306,東陽倉,2027年３月期 第２四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261106568312.pdf,https://www.release.tdnet.info/inbs/081220261106568312.zip,東名,2026-11-10T14:40
 140120261110571338,2026-11-10T14:30,5570,Ｇ－ジェノバ,2026年９月期第　決算補足説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261110571338.pdf,,東,2026-11-10T14:30
 140120261110571140,2026-11-10T14:30,8043,スターゼン,2027年3月期中間期　決算補足資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261110571140.pdf,,東,2026-11-10T14:30
 140120261110571017,2026-11-10T14:30,5713,住友鉱,2027年３月期 第２四半期（中間期）決算短信〔ＩＦＲＳ〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261110571017.pdf,https://www.release.tdnet.info/inbs/081220261110571017.zip,東,2026-11-10T14:30
