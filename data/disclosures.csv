@@ -1,4 +1,6 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261109568871,2026-11-10T13:40,6718,アイホン,第２四半期（中間期）業績予想と実績値の差異に関するお知らせ,actual_vs_forecast,False,,,,,,https://www.release.tdnet.info/inbs/140120261109568871.pdf,,東名,2026-11-10T13:40
+140120261109568793,2026-11-10T13:40,6718,アイホン,2027年3月期第2四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261109568793.pdf,https://www.release.tdnet.info/inbs/081220261109568793.zip,東名,2026-11-10T13:40
 140120261110570630,2026-11-10T13:30,1793,大本組,2027年３月期 第２四半期（中間期）決算補足説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261110570630.pdf,,東,2026-11-10T13:30
 140120261110570505,2026-11-10T13:30,1793,大本組,2027年３月期 第２四半期（中間期）決算短信〔日本基準〕(非連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261110570505.pdf,https://www.release.tdnet.info/inbs/081220261110570505.zip,東,2026-11-10T13:30
 140120261110570320,2026-11-10T13:30,8560,宮崎太銀,2027年3月期　第２四半期（中間期）決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261110570320.pdf,https://www.release.tdnet.info/inbs/081220261110570320.zip,福,2026-11-10T13:30
