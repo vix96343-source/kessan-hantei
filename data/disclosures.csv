@@ -1,4 +1,6 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261110571812,2026-11-10T15:55,2477,手間いらず,2027年6月期（第24期）第1四半期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261110571812.pdf,,東,2026-11-10T15:55
+140120261110571667,2026-11-10T15:55,2477,手間いらず,2027年6月期　第1四半期決算短信[日本基準](非連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261110571667.pdf,https://www.release.tdnet.info/inbs/081220261110571667.zip,東,2026-11-10T15:55
 140120261109570044,2026-11-10T15:50,7220,武蔵精密,2027年３月期 第２四半期(中間期)決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261109570044.pdf,https://www.release.tdnet.info/inbs/081220261109570044.zip,東名,2026-11-10T15:50
 140120261109568907,2026-11-10T15:45,2432,ディーエヌエー,2027年３月期第２四半期（中間期）決算短信〔ＩＦＲＳ〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261109568907.pdf,https://www.release.tdnet.info/inbs/081220261109568907.zip,東,2026-11-10T15:45
 140120261023555063,2026-11-10T15:45,6648,かわでん,2027年3月期 第2四半期（中間期）決算短信〔日本基準〕（非連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261023555063.pdf,https://www.release.tdnet.info/inbs/081220261023555063.zip,東,2026-11-10T15:45
