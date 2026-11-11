@@ -473,8 +473,10 @@ def _parse_pdf_text(text: str, tpl: dict) -> dict | None:
                 break
             above = _key(lines[k]) + above
         # 本文が「計」で書かれている会社(inter)は外部顧客の行を使わず、計の行を使う
+        # 見出しが「外部顧客への売」「上高 29,246 …」のように語の途中で折り返す形も(2026-11-11 DOWA の1Q)
         if not inter and (_EXT_ROW.search(lab) or (_EXT_ROW.search(above) and
-                          (not lab or (re.search(r"売上|収益", lab) and not re.search(r"内部|セグメント間|振替", lab))))):
+                          (not lab or (re.search(r"売上|収益", above[-3:] + lab)
+                                       and not re.search(r"内部|セグメント間|振替", lab))))):
             ext = vals
         # 計の行(IFRS は「合計」)。「計」が無く「売上収益」「売上高」の1行だけの表(ファーストリテイリング等)はその行
         elif (lab.startswith("計") and len(lab) <= 3) or lab == "合計" or                 (re.fullmatch(r"売上(高|収益)|営業収益", lab) and not sales):
@@ -680,7 +682,7 @@ def backfill(cfg: dict, data_dir: Path = DATA_DIR, session: RateLimitedSession |
     df = load(data_dir)
     hist = {c: {q["end"]: q for q in v} for c, v in history.by_code(history.load(data_dir)).items()}
     arch = {a["disclosure_id"]: a for a in earnings.load_archive(data_dir).to_dict("records")}
-    # PDF が読めず status=none の期は、IRBANK のセグメント別業績(保存分)で補う。だめなら none_irb、次の回も保存分で試す
+    # PDF が読めず status=none の期は、次の回も保存した PDF(読み方を直した後)と IRBANK の保存分で読み直す
     # (IRBANK の上限で取れずに none_irb になった期を見捨てない。取りに行くのは1社1日1回まで)
     retry = {(r["code"], str(r["period_end"])[:7]): r["disclosure_id"] for r in df.to_dict("records")
              if r["period_end"] and r["status"] in ("none", "none_irb") and str(r["disclosed_at"]).endswith("T00:00")}
@@ -713,14 +715,6 @@ def backfill(cfg: dict, data_dir: Path = DATA_DIR, session: RateLimitedSession |
             if did is None:
                 continue
             x, bad = None, False
-            if (code, ym) in retry:                    # PDF は前に読めなかった: IRBANK の値だけで
-                x = irbank_record(code, ym, cur["data"])
-                if x:
-                    stats["ok"] += 1
-                rows.append({"disclosure_id": did, "code": code, "disclosed_at": f"{did[4:8]}-{did[8:10]}-{did[10:12]}T00:00",
-                             "n_q": str(nq), "period_end": ym, "status": "ok" if x else "none_irb",
-                             "data": json.dumps(x, ensure_ascii=False) if x else ""})
-                continue
             try:
                 text = past_pdf_text(session, code, did)
                 stats["pdfs"] += 1
@@ -739,7 +733,8 @@ def backfill(cfg: dict, data_dir: Path = DATA_DIR, session: RateLimitedSession |
             if x:
                 stats["ok"] += 1
             rows.append({"disclosure_id": did, "code": code, "disclosed_at": f"{did[4:8]}-{did[8:10]}-{did[10:12]}T00:00",
-                         "n_q": str(nq), "period_end": ym, "status": "ok" if x else ("bad" if bad else "none"),
+                         "n_q": str(nq), "period_end": ym,
+                         "status": "ok" if x else ("bad" if bad else ("none_irb" if (code, ym) in retry else "none")),
                          "data": json.dumps(x, ensure_ascii=False) if x else ""})
     if rows:
         new = pd.DataFrame(rows).reindex(columns=COLUMNS)
