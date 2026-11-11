@@ -168,6 +168,16 @@ def parse_table(table, ctx: str | None = None) -> tuple[list[dict], float | None
     parents = _parents(grid, is_data, numeric_cols)
     data = [row for i, row in enumerate(grid) if is_data[i]]
     facts, header_text = _grid_facts(grid[:first], data, numeric_cols, parents, ctx)
+    if ctx:
+        # 表の外の見出しで読む表は、同じ行・同じ期の値が2つ出たら読まない(年で分けた列・「民間/官公庁」が
+        # 事業ごとに繰り返す建設会社の表で、前年を今期と取り違える)
+        keys = [(f["seg"], f["parent"], f["metric"], f["period"], f["kind"]) for f in facts]
+        if len(keys) != len(set(keys)):
+            return [], None, None
+    # 行が「連結」「個別(単体)」の表は会社全体の受注を2通りに書いたもの: 連結を合計とし、個別は捨てる(足さない)
+    names = {re.sub(r"\s", "", f["seg"]) for f in facts}
+    if "連結" in names and names & {"個別", "単体"}:
+        facts = [{**f, "seg": "合計"} for f in facts if re.sub(r"\s", "", f["seg"]) == "連結"]
     unit = _unit(table, header_text)
     label_cols = [j for j in range(width) if j not in numeric_cols]
     tpl = {"header": grid[:first], "width": width, "numeric_cols": numeric_cols, "unit": unit,
@@ -797,7 +807,7 @@ def _guess_unit(facts: list[dict], cum_sales: float | None) -> float:
 
 _N_UNITS = {"百万円": 1e6, "千円": 1e3, "億円": 1e8}
 _N_NUM = r"(△|▲|-)?([\d,]+(?:\.\d+)?)(百万円|千円|億円)"
-_N_YOY = r"(?:前年同期比|前期比|同)([\d.]+)%(増加|減少|増|減)"
+_N_YOY = r"(?:前年同期比|前年同四半期比|前年同中間期比|前期比|同)([\d.]+)%(増加|減少|増|減)"
 
 
 def _narr_value(text: str, words: str) -> tuple[float | None, float | None]:
