@@ -209,10 +209,13 @@ def _xbrl_disagrees(xs: list[dict], ts: list[dict]) -> bool:
     pairs = [(x, find(x["name"])) for x in xs]
     if any(t is None for _, t in pairs):
         return False
-    if len([t for t in ts if not re.search(r"その他|調整", t["name"])]) > \
-            len([x for x in xs if not re.search(r"その他|調整", x["name"])]):
-        return True
-    return any(x.get("op") is not None and t.get("op") is not None and abs(x["op"] - t["op"]) > 1.01e6 for x, t in pairs)
+    # 表にしかないセグメントがあり(XBRL のタグ漏れ)、かつ両方にあるセグメントの売上が1つ以上ぴったり同じ
+    # (単位・売上の基準が同じ表を読めている証拠)ときだけ表を使う。利益だけの違いでは替えない(表の行の取り違えがありうる)
+    more = len([t for t in ts if not re.search(r"その他|調整", t["name"])]) > \
+        len([x for x in xs if not re.search(r"その他|調整", x["name"])])
+    same = any(x.get("sales") is not None and t.get("sales") is not None and abs(x["sales"] - t["sales"]) < 1.01e6
+               for x, t in pairs)
+    return more and same
 
 
 def parse_table_html(html: str, qtext: str = "") -> dict | None:
