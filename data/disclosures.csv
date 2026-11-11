@@ -1,4 +1,7 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261111573413,2026-11-11T16:45,4933,Ｉｎｅ,2026年12月期第3四半期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261111573413.pdf,,東,2026-11-11T16:45
+140120261111573395,2026-11-11T16:45,4933,Ｉｎｅ,2026年12月期通期連結業績予想の修正に関するお知らせ,forecast_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261111573395.pdf,,東,2026-11-11T16:45
+140120261110572252,2026-11-11T16:45,4933,Ｉｎｅ,2026年12月期 第3四半期決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261110572252.pdf,https://www.release.tdnet.info/inbs/081220261110572252.zip,東,2026-11-11T16:45
 140120261111573195,2026-11-11T16:30,421A,Ｇ－ムービン,2026年12月期 第３四半期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261111573195.pdf,,東,2026-11-11T16:30
 140120261111573133,2026-11-11T16:30,421A,Ｇ－ムービン,2026年12月期 第３四半期決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261111573133.pdf,https://www.release.tdnet.info/inbs/081220261111573133.zip,東,2026-11-11T16:30
 140120261111573126,2026-11-11T16:30,3768,リスクモンスター,業績予想の修正に関するお知らせ,forecast_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261111573126.pdf,,東,2026-11-11T16:30
