@@ -246,8 +246,8 @@ def parse_table_html(html: str, qtext: str = "") -> dict | None:
         val = lambda row, j: None if j >= len(row) or _num(row[j]) is None else _num(row[j]) * unit
         segs, cols = {}, []
         for j, nm in zip(num_cols, names):
-            nm = re.sub(r"報告セグメント|\(注\)\d*", "", nm)
-            if not nm or re.search(r"^(計|合計)$|調整|計上額", nm):
+            nm = re.sub(r"報告セグメント|\(注\)\d*|\(単位[:：][^)]*\)", "", nm)
+            if not nm or re.search(r"^(計|合計|連結|総計)$|調整|計上額|消去", nm):
                 cols.append(None)
                 continue
             cols.append(nm)

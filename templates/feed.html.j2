@@ -116,8 +116,8 @@ table.fin td.lab { color: var(--warn); }
 #list table.sx td.q { text-align: left; color: #f0b44c; }
 #list table.sx td.sep { color: #8a93a6; padding: 0 2px; }
 #list table.fin.cons td.csep { color: #8a93a6; padding: 0 2px; }
-#list table.sx td.p, .sx-yq .p { color: #7fdcb8; } #list table.sx td.m, .sx-yq .m { color: #ff8fa0; }
-.sx-yq { font-size: 13px; line-height: 1.35; margin: 4px 0 6px; white-space: nowrap; color: #7fdcb8; font-weight: 600;
+#list table.sx td.p, .sx-yq .p { color: #7fdcb8; } #list table.sx td.m, .sx-yq .m { color: #e6e9ee; }   /* セグメントは増えたときだけ緑、ほかは白 */
+.sx-yq { font-size: 13px; line-height: 1.35; margin: 4px 0 6px; white-space: nowrap; color: #e6e9ee; font-weight: 600;
   font-family: "Consolas", "Menlo", "Meiryo UI", monospace; }
 /* 行を開いたときの中身は2列: 四半期業績(コンセンサス・受注の推移) | セグメント別業績とその下にセグメント(単体)(2026-11-11 ユーザー指示で3列目を2列目の下へ) */
 .dcols { display: flex; flex-wrap: nowrap; gap: 6px 24px; align-items: flex-start; overflow-x: auto; }   /* 3列はいつも横並び(狭い画面は横にスクロール) */
@@ -345,7 +345,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
     const cumOf = e => (list.map(h => at(h, e)).find(x => x) || {}).cum;
     const lab = e => `${e.slice(2, 4)}/${+e.slice(5, 7)}${qOf(e)}Q${cumOf(e) ? '累計' : ''}`;
     const cell = (h, e, f) => { const x = at(h, e); const v = x && x[f] ? x[f].v : null;
-      return `<td class="n${f === 'op' && v != null ? (v > 0 ? ' p' : v < 0 ? ' m' : '') : ''}">${v0(v)}</td>`; };
+      return `<td class="n">${v0(v)}</td>`; };   // 利益も色をつけない(色はYoY・QoQだけ。2026-11-11 ユーザー指示)
     const hasOp = list.some(h => h.rows.some(x => x.op && x.op.v != null));
     // 数値のあとに | (単体の表と同じ形。2026-11-11 ユーザー指示)
     const sep = i => i < sorted.length - 1 ? '<td class="sep">|</td>' : '';
