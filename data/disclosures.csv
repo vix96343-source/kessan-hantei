@@ -1,4 +1,11 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261111573195,2026-11-11T16:30,421A,Ｇ－ムービン,2026年12月期 第３四半期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261111573195.pdf,,東,2026-11-11T16:30
+140120261111573133,2026-11-11T16:30,421A,Ｇ－ムービン,2026年12月期 第３四半期決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261111573133.pdf,https://www.release.tdnet.info/inbs/081220261111573133.zip,東,2026-11-11T16:30
+140120261111573126,2026-11-11T16:30,3768,リスクモンスター,業績予想の修正に関するお知らせ,forecast_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261111573126.pdf,,東,2026-11-11T16:30
+140120261109568990,2026-11-11T16:30,5013,ユシロ,2027年３月期第２四半期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261109568990.pdf,,東,2026-11-11T16:30
+140120261109568808,2026-11-11T16:30,5013,ユシロ,2027年3月期第2四半期(中間期)決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261109568808.pdf,https://www.release.tdnet.info/inbs/081220261109568808.zip,東,2026-11-11T16:30
+140120261103563391,2026-11-11T16:30,5013,ユシロ,業績予想及び配当予想の修正に関するお知らせ,forecast_dividend_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261103563391.pdf,,東,2026-11-11T16:30
+140120261029559139,2026-11-11T16:30,3768,リスクモンスター,2027年3月期 第2四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261029559139.pdf,https://www.release.tdnet.info/inbs/081220261029559139.zip,東,2026-11-11T16:30
 140120261111573329,2026-11-11T16:20,504A,Ｇ－イノバセル,2026年12月期第３四半期決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261111573329.pdf,https://www.release.tdnet.info/inbs/081220261111573329.zip,東,2026-11-11T16:20
 140120261110572320,2026-11-11T16:20,4027,テイカ,2027年３月期第２四半期（中間期）連結業績予想値と実績値との差異及び通期連結業績予想の上方修正、期末配当予想の修正（増配）に関するお知らせ,forecast_dividend_revision,False,up,,,,,https://www.release.tdnet.info/inbs/140120261110572320.pdf,,東,2026-11-11T16:20
 140120261110572315,2026-11-11T16:20,4027,テイカ,2027年３月期 第２四半期決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261110572315.pdf,https://www.release.tdnet.info/inbs/081220261110572315.zip,東,2026-11-11T16:20
