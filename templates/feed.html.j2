@@ -406,7 +406,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
   function detail(r) {
     return `<tr class="detail"><td colspan="20">
       <div class="dtitle">${esc(r.title)}</div>
-      <div class="dlinks">${(r.pdfs || []).map(p => `<a href="${esc(p.url)}" target="_blank" rel="noopener" title="${esc(p.title || '')}">${esc(p.label === '資料' || p.label === '資料2' ? '説明資料' : p.label === '短信' ? '決算短信' : '修正の開示')}(PDF)</a>`).join('')}<a href="https://kabuyoho.jp/report?bcode=${encodeURIComponent(r.code)}" target="_blank" rel="noopener">株予報(コンセンサス)</a></div>
+      <div class="dlinks">${(r.pdfs || []).map(p => `<a href="${esc(p.url)}" target="_blank" rel="noopener" title="${esc(p.title || '')}">${esc(p.label === '資料' || p.label === '資料2' ? '説明資料' : p.label === '短信' ? '決算短信' : p.label === '業績修正' ? '業績修正' : '修正の開示')}(PDF)</a>`).join('')}<a href="https://kabuyoho.jp/report?bcode=${encodeURIComponent(r.code)}" target="_blank" rel="noopener">株予報(コンセンサス)</a></div>
       <div class="dcols"><div class="dcol">${revTable(r.rev)}${finTables(r.fin)}${consTable(r.cons)}${orderHistory(r.ord)}</div>
       ${[segMatrix(r.seg) + segMatrix(r.brk, r.brk && r.brk.title), segQuarter(r.seg) + segQuarter(r.brk, r.brk && r.brk.title)]
         .filter(h => h).map(h => `<div class="dcol">${h}</div>`).join('')}</div>
