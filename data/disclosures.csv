@@ -1,4 +1,12 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261111573282,2026-11-11T12:30,4792,山田コンサル,2027年3月期中間期決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261111573282.pdf,,東,2026-11-11T12:30
+140120261111573124,2026-11-11T12:30,1982,日比谷設,2027年３月期 第２四半期FACT BOOK,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261111573124.pdf,,東,2026-11-11T12:30
+140120261111573112,2026-11-11T12:30,1982,日比谷設,2027年３月期 第２四半期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261111573112.pdf,,東,2026-11-11T12:30
+140120261111572633,2026-11-11T12:30,1982,日比谷設,2027年３月期 第２四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261111572633.pdf,https://www.release.tdnet.info/inbs/081220261111572633.zip,東,2026-11-11T12:30
+140120261111572526,2026-11-11T12:30,6570,共和コーポレーション,2027年３月期第２四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261111572526.pdf,https://www.release.tdnet.info/inbs/081220261111572526.zip,東,2026-11-11T12:30
+140120261111572467,2026-11-11T12:30,6570,共和コーポレーション,2027年３月期第２四半期（中間期）連結業績予想と実績値との差異及び通期連結業績予想の修正に関するお知らせ,forecast_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261111572467.pdf,,東,2026-11-11T12:30
+140120261109569559,2026-11-11T12:30,4966,上村工業,2027年３月期第２四半期（中間期）連結業績予想と実績値との差異及び通期連結業績予想の修正に関するお知らせ,forecast_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261109569559.pdf,,東,2026-11-11T12:30
+140120261109569513,2026-11-11T12:30,4966,上村工業,2027年３月期　第２四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261109569513.pdf,https://www.release.tdnet.info/inbs/081220261109569513.zip,東,2026-11-11T12:30
 140120261111573237,2026-11-11T12:00,7075,Ｇ－ＱＬＳ,2027年３月期　第２四半期（中間期）決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261111573237.pdf,,東名,2026-11-11T12:00
 140120261111573157,2026-11-11T12:00,7075,Ｇ－ＱＬＳ,2027年３月期　第２四半期_決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261111573157.pdf,https://www.release.tdnet.info/inbs/081220261111573157.zip,東名,2026-11-11T12:00
 140120261111573007,2026-11-11T12:00,3773,Ｇ－ＡＭＩ,2027年３月期第２四半期（中間期）決算短信〔ＩＦＲＳ〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261111573007.pdf,https://www.release.tdnet.info/inbs/081220261111573007.zip,東,2026-11-11T12:00
