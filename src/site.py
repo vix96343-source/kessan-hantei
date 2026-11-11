@@ -626,18 +626,42 @@ def consensus_panel(snap: dict | None, arch: dict | None, shares: float | None =
     def eps(net):
         return None if net is None or not shares else round(net * 1e6 / shares, 1)
 
-    cols = ["1Q累計", "中間累計", "3Q累計", "今期通期", "来期通期"]
+    # 見やすく: 今回の実績(累計)とその四半期のコンセンサス(経常のみ)・差、今期通期のコンセンサスと会社予想・進捗率、来期通期。
+    # 全部空の列は出さない(2026-11-11 ユーザー「見にくい」)
+    qname = {1: "1Q累計", 2: "中間累計", 3: "3Q累計"}.get(n_q)
+    a = arch or {}
+    act = {"sales": a.get("cum_sales"), "op": a.get("cum_op"), "ord": a.get("cum_ordinary"), "net": a.get("cum_net")}
+    fc = {"sales": a.get("fc_sales"), "op": a.get("fc_op"), "ord": a.get("fc_ordinary"), "net": a.get("fc_net")}
+    fc_ok = str(a.get("fc_next_year")) != "True"       # 本決算の短信の予想は来期の分
+    mil = lambda v: None if _f0(v) is None else round(_f0(v) / 1e6)
+    cols = [f"実績({qname or str(n_q) + 'Q累計'})" if n_q and n_q < 4 else "実績(通期)",
+            f"コンセ({qname})" if qname else "コンセ(四半期)", "差%", "今期通期コンセ", "会社予想", "進捗率%", "来期通期コンセ"]
     rows = []
     for m, label in (("sales", "売上"), ("op", "営業利益"), ("ord", "経常利益"), ("net", "純利益"), ("eps", "EPS")):
         src = "net" if m == "eps" else m
-        y_vals = [_f0(snap.get(f"kb_{src}_{y}")) if y else None for y in (this_y, next_y)]
-        q_vals = [_f0(snap.get(f"kb_ord_q{i}")) if m == "ord" and this_y == "0y" else None for i in (1, 2, 3)]
-        vals = [eps(v) if m == "eps" else (None if v is None else round(v)) for v in q_vals + y_vals]
-        if any(v is not None for v in vals):
+        cy = _f0(snap.get(f"kb_{src}_{this_y}")) if this_y else None
+        ny = _f0(snap.get(f"kb_{src}_{next_y}")) if next_y else None
+        cq = _f0(snap.get(f"kb_ord_q{n_q}")) if m == "ord" and this_y == "0y" and n_q in (1, 2, 3) else None
+        ac = mil(act[src])
+        f = mil(fc[src]) if fc_ok else None
+        if m == "eps":
+            vals = [eps(ac), None, None, eps(cy), eps(f), None, eps(ny)]
+        else:
+            vals = [ac, None if cq is None else round(cq),
+                    None if cq in (None, 0) or ac is None else round((ac / cq - 1) * 100, 1),
+                    None if cy is None else round(cy), f,
+                    None if cy in (None, 0) or ac is None or n_q == 4 else round(ac / cy * 100, 1),
+                    None if ny is None else round(ny)]
+        if any(v is not None for v in vals[1:2] + vals[3:4] + vals[6:7]):
             rows.append({"label": label, "vals": vals})
     if not rows:
         return None
-    return {"date": str(snap.get("kb_date") or snap["fetched_at"])[:10], "before": bool(snap["before"]), "n": None,
+    keep = [i for i in range(len(cols)) if any(r["vals"][i] is not None for r in rows)]
+    cols = [cols[i] for i in keep]
+    for r in rows:
+        r["vals"] = [r["vals"][i] for i in keep]
+    pct = [j for j, c in enumerate(cols) if c.endswith("%")]
+    return {"date": str(snap.get("kb_date") or snap["fetched_at"])[:10], "before": bool(snap["before"]), "n": None, "pct": pct,
             "src": "株予報", "next_fy": f"{next_fy[:4]}/{next_fy[5:7]}" if next_fy else "", "cols": cols, "rows": rows}
 
 
@@ -674,6 +698,10 @@ def _yf_panel(snap: dict | None, arch: dict | None) -> dict | None:
             rows.append({"label": label, "vals": vals})
     if not rows:
         return None
+    keep = [i for i in range(len(cols)) if any(r["vals"][i] is not None for r in rows)]   # 空の列は出さない
+    cols = [cols[i] for i in keep]
+    for r in rows:
+        r["vals"] = [r["vals"][i] for i in keep]
     return {"date": str(snap["fetched_at"])[:10], "before": before, "n": _f0(snap.get("n_0y")),
             "next_fy": f"{next_fy[:4]}/{next_fy[5:7]}" if next_fy else "", "cols": [c for c, _ in cols], "rows": rows}
 

@@ -355,9 +355,10 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
   // アナリスト予想の平均(四半期2つと今期・来期の通期)
   function consTable(c) {
     if (!c) return '';
-    return `<div class="fincap">【コンセンサス】(百万円)<span>${c.next_fy ? '来期=' + esc(c.next_fy) + '・' : ''}${esc(c.date)} 時点${c.before ? '(発表前)' : '(発表後)'}・${c.src === '株予報' ? '株予報(IFIS)・四半期は経常利益の期首からの累計・EPS(円)は純利益÷株数' : 'Yahoo Finance・アナリスト ' + (c.n ?? '–') + '人・四半期は3か月の値・EPSは円'}</span></div>
+    const pc = v => v == null ? '<td>–</td>' : `<td>${v.toFixed(1)}%</td>`;
+    return `<div class="fincap">【コンセンサス】(百万円・EPSは円)<span>${c.src === '株予報' ? '株予報' : 'Yahoo ' + (c.n ?? '–') + '人'} ${esc(c.date.slice(5).replace('-', '/'))}${c.before ? '(発表前)' : '(発表後)'}</span></div>
       <div class="finbox"><table class="fin"><tr><th></th>${c.cols.map(h => `<th>${esc(h)}</th>`).join('')}</tr>`
-      + c.rows.map(r => `<tr><td class="lab">${esc(r.label)}</td>` + r.vals.map(v => r.label === 'EPS' ? epsCell(v) : num(v)).join('') + '</tr>').join('')
+      + c.rows.map(r => `<tr><td class="lab">${esc(r.label)}</td>` + r.vals.map((v, i) => (c.pct || []).includes(i) ? (c.cols[i] === '差%' ? gcell(v) : pc(v)) : r.label === 'EPS' ? epsCell(v) : num(v)).join('') + '</tr>').join('')
       + '</table></div>';
   }
 
