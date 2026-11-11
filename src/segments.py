@@ -423,7 +423,7 @@ def parse_pdf_text(text: str, tpl: dict) -> dict | None:
     for i, l in enumerate(lines):
         if "報告セグメント" in _key(l):
             h = []
-            for l2 in lines[i:i + 15]:
+            for l2 in lines[i:i + 25]:   # 見出しが1語ずつ折り返す表は長い(三井E&Sは「周辺」「サービス 計」が16行目)
                 if len(re.findall(r"\d,\d{3}", l2)) >= 2:
                     break
                 h.append(_key(l2))

@@ -554,7 +554,7 @@ def parse_pdf_text(text: str, tpls: list[dict], unit: float | None = None) -> di
             return all(not (m and "." in v and not v.endswith(("%", "％"))) for m, v in zip(money, vals))
 
         def match_from(start):
-            data, pos = [], start
+            data, pos, first_at = [], start, None
             for labels in tpl["rows"]:
                 names = [n for n in labels if n and re.sub(r"\s", "", n) not in ("%", "％", "百万円", "千円", "億円")]   # 単位だけの列は見出しでない
                 label = re.sub(r"\s", "", names[-1]) if names else ""
@@ -569,20 +569,37 @@ def parse_pdf_text(text: str, tpls: list[dict], unit: float | None = None) -> di
                         for j, v in zip(ncols, vals):
                             row[j] = v
                         data.append(row)
+                        first_at = i if first_at is None else first_at
                         pos = i + 1
                         break
+            # 受注・受注残が表の外の見出しの表(ctx)は、合った最初の行から上へ見て最初に出てくる表の見出し
+            # (受注・受注残・売上・販売・生産)がその見出しのときだけ
+            # (芝浦機械: 同じ行見出しの売上の表を受注残の表と取り違えない)
+            if tpl.get("ctx") and first_at is not None:
+                word = r"受注残|繰越" if tpl["ctx"] == "backlog" else r"受注(?!残)"
+                hit = next((l for l in reversed(lines[max(0, first_at - 25):first_at])
+                            if re.search(r"受注|繰越|売上|販売|生産|完成", l)), "")
+                if not re.search(word, hit):
+                    return [], pos
             return data, pos
 
         # 「受注」が出てくる行それぞれから探し、一番多く行が合ったものを採る
         # (目次・本文・生産実績の表に同じ行見出しがあっても、受注の表の見出しの後ろが一番よく合う)
         best, best_end, cands = [], done, []
+        stock = any(re.search(r"(期間|年度|期)末", re.sub(r"\s", "", c)) for row in tpl["header"] for c in row) and \
+            not any(re.search(r"累計期間|会計期間(?!末)|事業年度(?!末)", re.sub(r"\s", "", c)) for row in tpl["header"] for c in row)
         # 表の左の見出しが縦書きで「受」「注」「高」と1字ずつの行になる形も(2026-11-11 ピーエス・コンストラクション)
         # 表の1行目(売上高など)の行からも探す: 受注の行が表の下のほうにある表(鹿島の「ハイライト情報」)
-        first = next((re.sub(r"\s", "", [n for n in r if n][-1]) for r in tpl["rows"] if any(r)), None)
+        first = next((re.sub(r"\s", "", [n for n in r if n][-1]) for r in tpl["rows"] if any(r)), None) \
+            if not tpl.get("ctx") else None
         for s in (i for i in range(done, len(lines))
                   if "受注" in (lines[i] + (lines[i + 1] if i + 1 < len(lines) and len(lines[i]) == 1 else "")).replace("受注損失", "")
                   or "繰越工事" in lines[i]
                   or (first and _pdf_row(lines[i], first, len(ncols), n_min, groups) is not None)):
+            # 期末の残高の表(見出しが「…期間末」「…年度末」)は、PDF でも見出しに「末」がある表だけ
+            # (三井E&S: 1Q の短信に受注残の表が無く、同じ行見出しの売上高の表を受注残と取り違えた)
+            if stock and not any("末" in l for l in lines[max(0, s - 15):s + 1]):
+                continue
             data, end = match_from(s)
             cands.append((s, data, end))
         # 一番多く合った数の 3/4 以上合う表のうち一番前のもの(連結の表の後ろに同じ形の個別の表がある会社。大成建設)

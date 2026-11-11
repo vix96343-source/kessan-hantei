@@ -125,6 +125,7 @@ table.fin td.lab { color: var(--warn); }
 .dcol { width: min-content; }
 .dcol .fincap { white-space: normal; }
 .dcol:empty { display: none; }
+.dcol.sgrid { display: grid; gap: 4px 32px; align-items: start; width: auto; }
 .dl { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 4px 18px; font-size: 13px; }
 .dl div { display: flex; justify-content: space-between; gap: 8px; border-bottom: 1px dotted var(--line); padding: 2px 0; }
 .dl span:first-child { color: var(--muted); } .dl span:last-child { white-space: nowrap; }
@@ -409,8 +410,14 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
       <div class="dtitle">${esc(r.title)}</div>
       <div class="dlinks">${(r.pdfs || []).map(p => `<a href="${esc(p.url)}" target="_blank" rel="noopener" title="${esc(p.title || '')}">${esc(p.label === '資料' || p.label === '資料2' ? '説明資料' : p.label === '短信' ? '決算短信' : p.label === '業績修正' ? '業績修正' : p.label === '業績修正短信' ? '業績修正(短信内)' : '修正の開示')}(PDF)</a>`).join('')}<a href="https://kabuyoho.jp/report?bcode=${encodeURIComponent(r.code)}" target="_blank" rel="noopener">株予報(コンセンサス)</a></div>
       <div class="dcols"><div class="dcol">${revTable(r.rev)}${finTables(r.fin)}${consTable(r.cons)}${orderHistory(r.ord)}</div>
-      ${[segMatrix(r.seg) + segQuarter(r.seg) + segMatrix(r.brk, r.brk && r.brk.title) + segQuarter(r.brk, r.brk && r.brk.title)]
-        .filter(h => h).map(h => `<div class="dcol">${h}</div>`).join('')}</div>
+      ${(() => {   // 2×2: 上の段 = セグメント | 製品別(内訳)、下の段 = セグメント単体 | 製品別単体
+        const cells = [[segMatrix(r.seg), segMatrix(r.brk, r.brk && r.brk.title)],
+                       [segQuarter(r.seg), segQuarter(r.brk, r.brk && r.brk.title)]];
+        const cols = [0, 1].filter(j => cells[0][j] || cells[1][j]);
+        if (!cols.length) return '';
+        return `<div class="dcol sgrid" style="grid-template-columns:${cols.map(() => 'max-content').join(' ')}">`
+          + cells.map(row => cols.map(j => `<div>${row[j] || ''}</div>`).join('')).join('') + '</div>';
+      })()}</div>
     </td></tr>`;
   }
 
