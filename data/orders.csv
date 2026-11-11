@@ -1,4 +1,5 @@
 disclosure_id,code,disclosed_at,n_q,period_end,status,data
+140120261109569592,5702,2026-11-11T11:00,2,2026-09-30,none,
 140120261111572782,5076,2026-11-11T10:40,2,2026-09-30,none,
 140120261110571634,6794,2026-11-10T20:00,2,2026-09-30,none,
 140120261110570441,1848,2026-11-10T17:00,2,2026-09-30,ok,"{""total"": {""name"": ""合計"", ""orders"": null, ""orders_yoy"": null, ""backlog"": null, ""backlog_yoy"": null, ""backlog_fy"": null}, ""segments"": [{""name"": ""土木事業"", ""orders"": 8409000000.0, ""orders_yoy"": 43.5, ""backlog"": null, ""backlog_yoy"": null, ""backlog_fy"": null}, {""name"": ""建築事業"", ""orders"": 3640000000.0, ""orders_yoy"": -36.2, ""backlog"": null, ""backlog_yoy"": null, ""backlog_fy"": null}], ""src"": ""narrative""}"
