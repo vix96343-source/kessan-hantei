@@ -27,18 +27,10 @@ def test_panel_shows_kabuyoho_and_eps_from_shares():
             "fetched_at": "2026-11-05T20:05", "before": True}
     p = site.consensus_panel(snap, {"n_q": "2", "period_end": "2026-09-30"}, shares=50_000_000)
     rows = {r["label"]: r["vals"] for r in p["rows"]}
-    assert p["cols"] == ["コンセ(中間累計)", "今期通期コンセ"]                       # 空の列は出さない
-    assert rows["営業利益"] == [None, 18300]
-    assert rows["経常利益"] == [9000, 19200]
-    assert rows["EPS"] == [None, 262.0]                                          # 13,100百万円 ÷ 5千万株
-    # 実績・会社予想があれば並べて差と進捗率
-    arch = {"n_q": "2", "period_end": "2026-09-30", "cum_sales": 70e9, "cum_op": 9e9, "cum_ordinary": 9.9e9,
-            "cum_net": 6e9, "fc_sales": 150e9, "fc_op": 18e9, "fc_ordinary": 19e9, "fc_net": 13e9, "fc_next_year": "False"}
-    p = site.consensus_panel(snap, arch, shares=50_000_000)
-    rows = {r["label"]: r["vals"] for r in p["rows"]}
-    assert p["cols"] == ["実績(中間累計)", "コンセ(中間累計)", "差%", "今期通期コンセ", "会社予想", "進捗率%"]
-    assert rows["経常利益"] == [9900, 9000, 10.0, 19200, 19000, 51.6]
-    assert p["pct"] == [2, 5]
+    assert p["cols"] == ["今期1Q", "今期2Q", "今期3Q", "今期4Q"]                 # 来期の値が無ければ列ごと出さない
+    assert rows["営利"] == [None, None, None, 18300]
+    assert rows["経常"] == [4100, 9000, 14000, 19200]
+    assert rows["純利"] == [None, None, None, 13100]
     assert (p["src"], p["date"]) == ("株予報", "2026-11-05")
 
 

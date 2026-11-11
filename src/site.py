@@ -609,8 +609,8 @@ def segment_numbers(rec: dict | None, past: list[dict], main: dict | None, ords:
 
 
 def consensus_panel(snap: dict | None, arch: dict | None, shares: float | None = None) -> dict | None:
-    """アナリスト予想の平均。株予報(IFIS)があればそれ: 列 = 経常利益の四半期累計(1Q・中間・3Q)と今期・来期の通期、
-    行 = 売上・営業利益・経常利益・純利益(百万円)・EPS(円 = 純利益 ÷ 短信の株数)。無ければ yfinance(_yf_panel)。"""
+    """アナリスト予想の平均。株予報(IFIS)があればそれ: 列 = 今期1Q〜3Q(経常利益の四半期累計)・今期4Q(通期)・来期通期、
+    行 = 売上・営利・経常・純利(百万円)。無ければ yfinance(_yf_panel)。shares は使わない(呼び出し側との互換)"""
     if not snap:
         return None
     if not str(snap.get("kb_ym_0y") or ""):
@@ -623,45 +623,24 @@ def consensus_panel(snap: dict | None, arch: dict | None, shares: float | None =
     this_y = by_ym.get(fy_end.replace("-", "")) if fy_end else "0y"
     next_y = by_ym.get(next_fy.replace("-", "")) if next_fy else "1y"
 
-    def eps(net):
-        return None if net is None or not shares else round(net * 1e6 / shares, 1)
-
-    # 見やすく: 今回の実績(累計)とその四半期のコンセンサス(経常のみ)・差、今期通期のコンセンサスと会社予想・進捗率、来期通期。
-    # 全部空の列は出さない(2026-11-11 ユーザー「見にくい」)
-    qname = {1: "1Q累計", 2: "中間累計", 3: "3Q累計"}.get(n_q)
-    a = arch or {}
-    act = {"sales": a.get("cum_sales"), "op": a.get("cum_op"), "ord": a.get("cum_ordinary"), "net": a.get("cum_net")}
-    fc = {"sales": a.get("fc_sales"), "op": a.get("fc_op"), "ord": a.get("fc_ordinary"), "net": a.get("fc_net")}
-    fc_ok = str(a.get("fc_next_year")) != "True"       # 本決算の短信の予想は来期の分
-    mil = lambda v: None if _f0(v) is None else round(_f0(v) / 1e6)
-    cols = [f"実績({qname or str(n_q) + 'Q累計'})" if n_q and n_q < 4 else "実績(通期)",
-            f"コンセ({qname})" if qname else "コンセ(四半期)", "差%", "今期通期コンセ", "会社予想", "進捗率%", "来期通期コンセ"]
+    # ユーザー指定の形(2026-11-11): 列 = 今期1Q | 今期2Q | 今期3Q | 今期4Q | 来期通期(各Q累計)、
+    # 行 = 売上・営利・経常・純利(百万円)。株予報の四半期は経常利益の累計だけ。値の無い列は出さない
+    cols = ["今期1Q", "今期2Q", "今期3Q", "今期4Q", "来期通期"]
     rows = []
-    for m, label in (("sales", "売上"), ("op", "営業利益"), ("ord", "経常利益"), ("net", "純利益"), ("eps", "EPS")):
-        src = "net" if m == "eps" else m
-        cy = _f0(snap.get(f"kb_{src}_{this_y}")) if this_y else None
-        ny = _f0(snap.get(f"kb_{src}_{next_y}")) if next_y else None
-        cq = _f0(snap.get(f"kb_ord_q{n_q}")) if m == "ord" and this_y == "0y" and n_q in (1, 2, 3) else None
-        ac = mil(act[src])
-        f = mil(fc[src]) if fc_ok else None
-        if m == "eps":
-            vals = [eps(ac), None, None, eps(cy), eps(f), None, eps(ny)]
-        else:
-            vals = [ac, None if cq is None else round(cq),
-                    None if cq in (None, 0) or ac is None else round((ac / cq - 1) * 100, 1),
-                    None if cy is None else round(cy), f,
-                    None if cy in (None, 0) or ac is None or n_q == 4 else round(ac / cy * 100, 1),
-                    None if ny is None else round(ny)]
-        if any(v is not None for v in vals[1:2] + vals[3:4] + vals[6:7]):
+    for m, label in (("sales", "売上"), ("op", "営利"), ("ord", "経常"), ("net", "純利")):
+        q = [_f0(snap.get(f"kb_ord_q{k}")) if m == "ord" and this_y == "0y" else None for k in (1, 2, 3)]
+        cy = _f0(snap.get(f"kb_{m}_{this_y}")) if this_y else None
+        ny = _f0(snap.get(f"kb_{m}_{next_y}")) if next_y else None
+        vals = [None if v is None else round(v) for v in q + [cy, ny]]
+        if any(v is not None for v in vals):
             rows.append({"label": label, "vals": vals})
     if not rows:
         return None
-    keep = [i for i in range(len(cols)) if any(r["vals"][i] is not None for r in rows)]
-    cols = [cols[i] for i in keep]
+    keep = [k for k in range(len(cols)) if any(r["vals"][k] is not None for r in rows)]
+    cols = [cols[k] for k in keep]
     for r in rows:
-        r["vals"] = [r["vals"][i] for i in keep]
-    pct = [j for j, c in enumerate(cols) if c.endswith("%")]
-    return {"date": str(snap.get("kb_date") or snap["fetched_at"])[:10], "before": bool(snap["before"]), "n": None, "pct": pct,
+        r["vals"] = [r["vals"][k] for k in keep]
+    return {"date": str(snap.get("kb_date") or snap["fetched_at"])[:10], "before": bool(snap["before"]), "n": None,
             "src": "株予報", "next_fy": f"{next_fy[:4]}/{next_fy[5:7]}" if next_fy else "", "cols": cols, "rows": rows}
 
 
