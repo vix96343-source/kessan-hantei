@@ -578,8 +578,11 @@ def parse_pdf_text(text: str, tpls: list[dict], unit: float | None = None) -> di
             if tpl.get("ctx") and first_at is not None:
                 word = r"受注残|繰越" if tpl["ctx"] == "backlog" else r"受注(?!残)"
                 hit = next((l for l in reversed(lines[max(0, first_at - 25):first_at])
-                            if re.search(r"受注|繰越|売上|販売|生産|完成", l)), "")
-                if not re.search(word, hit):
+                            if re.match(r"[（(]?[0-9０-９①-⑳]*[)）．.、]?(受注|繰越|売上|販売|生産|完成)", re.sub(r"\s", "", l))
+                            and not re.search(r"\d,\d{3}", l) and len(l) <= 40), "")   # 見出しの形の行だけ(数値の行・本文は除く)
+                # 見出しが表の上に無い PDF(三井E&S は表の後ろに「受注高・売上高・受注残高」とまとめて出る)は
+                # 見出しでは決めない(期末残高の表は下の「末」の確かめで分ける)
+                if hit and not re.search(word, hit):
                     return [], pos
             return data, pos
 
@@ -590,8 +593,7 @@ def parse_pdf_text(text: str, tpls: list[dict], unit: float | None = None) -> di
             not any(re.search(r"累計期間|会計期間(?!末)|事業年度(?!末)", re.sub(r"\s", "", c)) for row in tpl["header"] for c in row)
         # 表の左の見出しが縦書きで「受」「注」「高」と1字ずつの行になる形も(2026-11-11 ピーエス・コンストラクション)
         # 表の1行目(売上高など)の行からも探す: 受注の行が表の下のほうにある表(鹿島の「ハイライト情報」)
-        first = next((re.sub(r"\s", "", [n for n in r if n][-1]) for r in tpl["rows"] if any(r)), None) \
-            if not tpl.get("ctx") else None
+        first = next((re.sub(r"\s", "", [n for n in r if n][-1]) for r in tpl["rows"] if any(r)), None)
         for s in (i for i in range(done, len(lines))
                   if "受注" in (lines[i] + (lines[i + 1] if i + 1 < len(lines) and len(lines[i]) == 1 else "")).replace("受注損失", "")
                   or "繰越工事" in lines[i]
