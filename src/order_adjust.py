@@ -113,15 +113,22 @@ def update(cfg: dict, data_dir: Path = DATA_DIR, session: RateLimitedSession | N
             if p["disclosure_id"] in done:
                 continue
             done.add(p["disclosure_id"])
-            r = session.get(p["pdf_url"])
-            pages = _pages(r.content) if r is not None else []
-            if not pages:
+            pe = str(last.get("period_end") or "")[:7]
+            if len(pe) < 7:                             # 期末が分からない記録では直さない
                 continue
-            names = {_key(s["name"]): s["name"] for s in last["data"].get("segments", [])}
-            # 説明資料に載るのは直近の数四半期だけ。古い期が偶然一致しても直さない
-            floor = _ym_shift(str(last["period_end"])[:7], -15)
-            vals = {k: {ym: v for ym, v in singles(recs, k).items() if ym >= floor} for k in names}
-            adj = adjust_from_pages(pages, names, vals)
+            try:                                        # 1件の失敗でセグメント等の後続まで止めない
+                r = session.get(p["pdf_url"])
+                pages = _pages(r.content) if r is not None else []
+                if not pages:
+                    continue
+                names = {_key(s["name"]): s["name"] for s in last["data"].get("segments", [])}
+                # 説明資料に載るのは直近の数四半期だけ。古い期が偶然一致しても直さない
+                floor = _ym_shift(pe, -15)
+                vals = {k: {ym: v for ym, v in singles(recs, k).items() if ym >= floor} for k in names}
+                adj = adjust_from_pages(pages, names, vals)
+            except Exception as e:
+                log.warning("受注の1の誤差の補正に失敗 %s %s: %s", code, p["disclosure_id"], e)
+                continue
             if adj:
                 state["adj"].setdefault(code, {})
                 for k, m in adj.items():

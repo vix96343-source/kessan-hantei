@@ -32,11 +32,18 @@ def cmd_disclosures(args, cfg):
 
 
 def _details(cfg, stats) -> bool:
-    stats["orders"] = orders.update(cfg)          # 短信の受注高・受注残高の表
-    stats["orders"] += pres_orders.update(cfg)   # 短信に受注が無い会社は説明資料の「前年/今年/増減額/増減率」の表から
-    stats["order_adjust"] = order_adjust.update(cfg)   # 受注の3か月の値の1の誤差を説明資料で直す
-    stats["segments"] = segments.update(cfg)      # 短信のセグメント別の売上・利益
-    stats["segments"] += breakdown.update(cfg)    # 品目別・製品別などの売上の内訳(セグメントが1つの会社など)
+    # 1つの処理が落ちても残りは必ず回す(2026-11-10 に受注の補正が落ちてセグメントが1日止まった)
+    def step(fn, name):
+        try:
+            return fn(cfg) or 0
+        except Exception:
+            logging.getLogger(__name__).exception("%s が失敗(この回は飛ばす)", name)
+            return 0
+    stats["orders"] = step(orders.update, "受注")             # 短信の受注高・受注残高の表
+    stats["orders"] += step(pres_orders.update, "説明資料の受注")  # 短信に受注が無い会社は説明資料の表から
+    stats["order_adjust"] = step(order_adjust.update, "受注の補正")  # 受注の3か月の値の1の誤差を説明資料で直す
+    stats["segments"] = step(segments.update, "セグメント")    # 短信のセグメント別の売上・利益
+    stats["segments"] += step(breakdown.update, "内訳")       # 品目別・製品別などの売上の内訳(セグメントが1つの会社など)
     return bool(stats["orders"] or stats["segments"] or stats["order_adjust"])
 
 
