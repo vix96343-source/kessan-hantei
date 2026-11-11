@@ -246,6 +246,10 @@ def _pdf_table(rows: list, ti: int, tpl: dict) -> dict | None:
     tot = rows[ti][1]
     norm = lambda n: re.sub(r"[ー・]", "", n)          # 「メモリー」と「メモリ」など表記の揺れ
     items, pos = [], max(0, ti - 3 * len(tpl["names"]) - 5)   # 合計の行のすぐ上の範囲だけ
+    # すぐ上に別の表(受注高の表など)の合計の行があれば、その下から(1799: 受注高・売上高の表が同じ品目名で続く)
+    prev = [j for j in range(pos, ti) if _TOTAL.fullmatch(rows[j][0]) and rows[j][0] not in ("計", "小計")]
+    if prev:
+        pos = prev[-1] + 1
     names = tpl["names"]                               # 品目名の並びどおりに、合計の行より上を順に当てる
     for name in names:
         base = name.split("・")[-1]
