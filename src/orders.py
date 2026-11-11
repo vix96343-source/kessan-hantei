@@ -559,7 +559,8 @@ def _pdf_row(line: str, label: str, n_values: int, n_min: int | None = None,
 
 def parse_pdf_text(text: str, tpls: list[dict], unit: float | None = None) -> dict | None:
     """前の期の短信 PDF の文字から、今回の短信と同じ形の受注の表を読む(会社の表の形は毎期ほぼ同じ)。"""
-    lines = [_undup(l) for l in text.splitlines() if l.strip()]
+    # 「＋ 22,708 ＋　8.6％」のように符号と数値の間に空白がある形(1721 コムシス)は詰める
+    lines = [re.sub(r"(?<!\S)([+＋△▲])[ 　]+(?=\d)", r"\1", _undup(l)) for l in text.splitlines() if l.strip()]
     facts = []
     unit = None
     done = 0                                           # 前の表の最後の行(表は今回と同じ順に並ぶ)
@@ -779,6 +780,20 @@ def past_pdf_text(session, code: str, did: str) -> str | None:
     return text
 
 
+def _pace_ok(x: dict, cur: dict, nq: int, cur_nq: int) -> bool:
+    """本文から読んだ前の期の受注高が今回の累計と見合うか: 1四半期あたりの受注高が前の期の 1/3〜3倍。
+    受注残高は 1/2〜2倍。今回の値が3か月の値・別の基準(個別など)だと崩れる(1951・8059)"""
+    ct, xt = cur.get("total") or {}, x.get("total") or {}
+    c, p = ct.get("orders"), xt.get("orders")
+    if c is not None and p is not None:
+        if p <= 0 or c <= 0:
+            return False
+        per = (c - p) / (cur_nq - nq) if cur_nq > nq else c / cur_nq
+        return 1 / 3 <= per / (p / nq) <= 3
+    c, p = ct.get("backlog"), xt.get("backlog")
+    return c is not None and p is not None and p > 0 and 0.5 <= c / p <= 2
+
+
 def _read_past_pdf(text: str, cur: dict) -> dict | None:
     """前の期の短信 PDF を今回と同じやり方で読む: 表の会社は表の形(tpl)で、本文の文から読んだ会社は本文から"""
     if cur.get("src") == "narrative":
@@ -786,7 +801,17 @@ def _read_past_pdf(text: str, cur: dict) -> dict | None:
         if x and cur.get("segments") and not x["segments"]:
             return None                                # セグメントの文が見つからない期は使わない
         return x
-    return parse_pdf_text(text, cur["tpl"], cur.get("unit"))
+    x = parse_pdf_text(text, cur["tpl"], cur.get("unit"))
+    if x:
+        return x
+    # 表の形が前の期と違って読めないときは、本文の「受注高は○○百万円」から(1762 髙松・1780 ヤマウラなど)。
+    # 今回の記録にある値(受注高・受注残高)の合計が読めたときだけ使う
+    y = parse_narrative_text(text, [s["name"] for s in cur.get("segments", [])])
+    ct, yt = cur.get("total") or {}, (y or {}).get("total") or {}
+    if y and any(ct.get(f) is not None and yt.get(f) is not None for f in ("orders", "backlog")):
+        y["src"] = "narrative_fallback"
+        return y
+    return None
 
 
 def backfill_history(cfg: dict, depth: int = 20, data_dir: Path = DATA_DIR,
@@ -903,6 +928,9 @@ def backfill(cfg: dict, data_dir: Path = DATA_DIR, session: RateLimitedSession |
                 stats["pdfs"] += 1
                 if text is not None:
                     x = _read_past_pdf(text, cur["data"])
+                    if x and x.get("src") == "narrative_fallback" and not _pace_ok(x, cur["data"], nq, n_q):
+                        log.info("受注の補完: 本文の値が今回と合わないので捨てる %s %s", code, ym)
+                        x = None
             except Exception as e:
                 log.warning("受注の補完: PDF の読み取り失敗 %s %s: %s", code, did, e)
             if x:
@@ -1022,7 +1050,7 @@ def parse_narrative_text(text: str, names: list[str]) -> dict | None:
             if len(l) <= len(k) + 12 and (k in lk or (len(core) >= 2 and core in lk)) and not re.search(r"\d,\d{3}", l):
                 heads.append((i, n))
                 break
-    ORD, BL = r"受注(?:高|額)", r"(?:受注残高?|繰越工事高|手持受注高?)"
+    ORD, BL = r"受注(?:高|額|実績)", r"(?:受注残高?|繰越工事高|手持受注高?)"
 
     def read(block):
         o, oy = _narr_value(block, ORD)
