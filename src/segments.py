@@ -209,7 +209,8 @@ def _xbrl_disagrees(xs: list[dict], ts: list[dict]) -> bool:
     pairs = [(x, find(x["name"])) for x in xs]
     if any(t is None for _, t in pairs):
         return False
-    if len(ts) > len(xs):
+    if len([t for t in ts if not re.search(r"その他|調整", t["name"])]) > \
+            len([x for x in xs if not re.search(r"その他|調整", x["name"])]):
         return True
     return any(x.get("op") is not None and t.get("op") is not None and abs(x["op"] - t["op"]) > 1.01e6 for x, t in pairs)
 
@@ -246,8 +247,8 @@ def parse_table_html(html: str, qtext: str = "") -> dict | None:
         val = lambda row, j: None if j >= len(row) or _num(row[j]) is None else _num(row[j]) * unit
         segs, cols = {}, []
         for j, nm in zip(num_cols, names):
-            nm = re.sub(r"報告セグメント|\(注\)\d*|\(単位[:：][^)]*\)", "", nm)
-            if not nm or re.search(r"^(計|合計|連結|総計)$|調整|計上額|消去", nm):
+            nm = re.sub(r"報告セグメント|\(注\)\d*|\(単位[:：][^)]*\)|\((百万円|千円|円)\)", "", nm)
+            if not nm or re.search(r"^(計|合計|連結|総計|小計)$|調整|計上|消去|計算書|損益", nm):
                 cols.append(None)
                 continue
             cols.append(nm)
