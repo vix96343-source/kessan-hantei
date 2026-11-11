@@ -107,17 +107,17 @@ table.fin td.lab { color: var(--warn); }
 .segname { color: #c5ccd6; font-size: 12px; margin: 6px 0 1px; }
 /* セグメント(単体)・セグメント別業績: 見本の画像と同じ形。プラス緑・マイナス赤、「|」区切り */
 .sx-cap, .sx-cap2 { font-size: 13px; margin: 16px 0 2px; font-family: "Consolas", "Menlo", "Meiryo UI", monospace; }
-.sx-cap { color: #e6e9ee; } .sx-cap2 { color: var(--teal); }
+.sx-cap { color: #b4bbc6; } .sx-cap2 { color: var(--teal); }
 #list table.sx { width: auto; border-collapse: collapse; font-size: 13px; line-height: 1.3;
   font-family: "Consolas", "Menlo", "Meiryo UI", monospace; }
-#list table.sx td { padding: 0 4px; border: 0; white-space: nowrap; text-align: right; color: #e6e9ee; background: none; }
-#list table.sx td.h { text-align: left; color: #e6e9ee; }
-#list table.sx td.l { text-align: left; color: #e6e9ee; }
+#list table.sx td { padding: 0 4px; border: 0; white-space: nowrap; text-align: right; color: #b4bbc6; background: none; }   /* 白は一覧と同じ #b4bbc6 */
+#list table.sx td.h { text-align: left; color: #b4bbc6; white-space: normal; word-break: keep-all; max-width: 5em; vertical-align: bottom; }   /* 長い名前は「・」のところで折り返して列を数値の幅に */
+#list table.sx td.l { text-align: left; color: #b4bbc6; }
 #list table.sx td.q { text-align: left; color: #f0b44c; }
 #list table.sx td.sep { color: #8a93a6; padding: 0 2px; }
 #list table.fin.cons td.csep { color: #8a93a6; padding: 0 2px; }
 #list table.sx td.p, .sx-yq .p { color: #7fdcb8; } #list table.sx td.m, .sx-yq .m { color: #ff8fa0; }   /* YoY・QoQ: プラス緑・マイナス赤 */
-.sx-yq { font-size: 13px; line-height: 1.35; margin: 4px 0 6px; white-space: nowrap; color: #e6e9ee; font-weight: 600;
+.sx-yq { font-size: 13px; line-height: 1.35; margin: 4px 0 6px; white-space: nowrap; color: #b4bbc6; font-weight: 600;
   font-family: "Consolas", "Menlo", "Meiryo UI", monospace; }
 /* 行を開いたときの中身は2列: 四半期業績(コンセンサス・受注の推移) | セグメント別業績とその下にセグメント(単体)(2026-11-11 ユーザー指示で3列目を2列目の下へ) */
 .dcols { display: flex; flex-wrap: nowrap; gap: 6px 24px; align-items: flex-start; overflow-x: auto; }   /* 3列はいつも横並び(狭い画面は横にスクロール) */
@@ -316,6 +316,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
   const v0 = x => x == null ? '-' : x.toLocaleString('ja-JP');
 
   // g がセグメント、または品目別などの内訳(name: 表の名前。内訳は利益が無いので売上だけ)
+  const wbr = t => esc(t).replace(/([・･\/／])/g, '$1<wbr>');   // 表の見出しは「・」のあとで折り返す
   function segQuarter(g, name) {
     const list = segList(g);
     if (!list.length) return '';
@@ -326,7 +327,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
     const val = (h, f) => { const x = cur(h)[f]; return v0(x ? x.v : null); };
     const hasOp = list.some(h => h.rows.some(x => x.op && x.op.v != null));
     return `<div class="sx-cap">${esc(name || 'セグメント')}（${q}Q${kind}）:</div><table class="sx sx1"><tr><td></td>`
-      + list.map((h, i) => `<td class="h">${esc(cut(h.name, 16))}</td>${i < list.length - 1 ? '<td class="sep">|</td>' : ''}`).join('') + '</tr>'
+      + list.map((h, i) => `<td class="h">${wbr(cut(h.name, 16))}</td>${i < list.length - 1 ? '<td class="sep">|</td>' : ''}`).join('') + '</tr>'
       + (hasOp ? ['sales', 'op'] : ['sales']).map(f => `<tr><td class="l">${f === 'sales' ? '売上' : '利益'}</td>`
         + list.map((h, i) => `<td class="n">${val(h, f)}</td>${i < list.length - 1 ? '<td class="sep">|</td>' : ''}`).join('') + '</tr>').join('')
       + '</table><div class="sx-yq">' + list.map(h => { const x = cur(h);
@@ -352,7 +353,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
     // 数値のあとに | (単体の表と同じ形。2026-11-11 ユーザー指示)
     const sep = i => i < sorted.length - 1 ? '<td class="sep">|</td>' : '';
     return `<div class="sx-cap2">【${esc(name || 'セグメント別業績')}】</div><table class="sx sx2"><tr><td></td><td></td>`
-      + sorted.map((h, i) => `<td class="h">${esc(shortName(h.name))}</td>${sep(i)}`).join('') + '</tr>'
+      + sorted.map((h, i) => `<td class="h">${wbr(shortName(h.name))}</td>${sep(i)}`).join('') + '</tr>'
       + ends.map(e => `<tr><td class="q">${esc(lab(e))}</td><td class="l">売上</td>` + sorted.map((h, i) => cell(h, e, 'sales') + sep(i)).join('') + '</tr>'
         + (hasOp ? '<tr><td></td><td class="l">利益</td>' + sorted.map((h, i) => cell(h, e, 'op') + sep(i)).join('') + '</tr>' : '')).join('')
       + '</table>';
