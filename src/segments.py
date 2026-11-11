@@ -441,7 +441,23 @@ def _pdf_row(line: str, n: int):
     return ("".join(toks[:k]), vals) if len(vals) == n else None
 
 
-def parse_pdf_text(text: str, tpl: dict) -> dict | None:
+def parse_pdf_text(text: str, tpl: dict, names=()) -> dict | None:
+    """表が左右2つに分かれた短信(9147 NIPPON EXPRESS: 「日本 … 南アジア・オセアニア」と「警備輸送 … 計 調整額 計上額」)は、
+    今回の記録にあって表の形(tpl)に無いセグメント(names のうち)を、後ろの表から読んで足す。合計は後ろの表の右端"""
+    x = _parse_pdf_main(text, tpl)
+    rest = [nm for nm in names if nm and nm not in tpl["cols"]]
+    if not x or not rest or len(rest) > 6:
+        return x
+    for extra in (3, 2, 1, 4):
+        y = _parse_pdf_text(text, {**tpl, "n": len(rest) + extra, "cols": rest + [None] * extra})
+        if y and len(y["segments"]) == len(rest):
+            z = {**x, "segments": x["segments"] + y["segments"], "total": y["total"]}
+            if consistent(z):
+                return z
+    return x
+
+
+def _parse_pdf_main(text: str, tpl: dict) -> dict | None:
     """前の期の短信 PDF の文字から、セグメントごとの売上(外部顧客の行)・利益(セグメント利益の行)を読む。
     前年同期の表と当期の表があれば、前を前年同期・後ろを当期とする。
     今回の短信の表で空欄だった右側の列(調整額など)が PDF では「－」で埋まっていることがあるので、
@@ -691,7 +707,7 @@ def backfill_history(cfg: dict, depth: int = 6, data_dir: Path = DATA_DIR,
                 text = past_pdf_text(session, code, did)
                 stats["pdfs"] += 1
                 if text is not None:
-                    x = parse_pdf_text(text, cur["data"]["tpl"])
+                    x = parse_pdf_text(text, cur["data"]["tpl"], [sg["name"] for sg in cur["data"]["segments"]])
                     if x and not plausible(code, ym, q, x, hist):
                         x = None
                     elif x and not irbank_consistent(code, ym, x):
@@ -764,7 +780,7 @@ def backfill(cfg: dict, data_dir: Path = DATA_DIR, session: RateLimitedSession |
                 text = past_pdf_text(session, code, did)
                 stats["pdfs"] += 1
                 if text is not None:
-                    x = parse_pdf_text(text, cur["data"]["tpl"])
+                    x = parse_pdf_text(text, cur["data"]["tpl"], [sg["name"] for sg in cur["data"]["segments"]])
                     if x and not irbank_consistent(code, ym, x):
                         log.info("セグメントの補完: IRBANK と合わないので捨てる %s %s", code, ym)
                         x, bad = None, True

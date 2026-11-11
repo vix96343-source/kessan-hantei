@@ -465,7 +465,8 @@ def order_history(by_end: dict, upto: str, n: int = 20, seg: str | None = None, 
     return out
 
 
-def segment_numbers(rec: dict | None, past: list[dict], main: dict | None, ords: dict | None = None) -> dict | None:
+def segment_numbers(rec: dict | None, past: list[dict], main: dict | None, ords: dict | None = None,
+                    qhist: list[dict] | None = None) -> dict | None:
     """セグメント別の表: 受注高・受注残高(受注の表がある会社)・売上・利益。
     売上・利益は決算短信のセグメント情報の表そのままの累計と YoY(前年同期比)に加えて、
     単体Q(3か月 = 累計 − 前の四半期までの累計)と QoQ・QYoY(前の四半期の記録があるとき)。合計の行は短信のセグメント表の合計(読めたときだけ)と受注の合計(ords)。
@@ -481,6 +482,20 @@ def segment_numbers(rec: dict | None, past: list[dict], main: dict | None, ords:
 
     TOT = "__合計__"                                    # 短信の表の合計(一番右の列)
 
+    # 合計の基準をそろえる: 今回の合計が連結の累計(四半期業績)と同じ会社は、合計の3か月の値を四半期業績の値にする。
+    # 前の期の PDF の表の合計は別の基準のことがある(IFRS の「コア営業利益」。三井化学 1Q: 表 50,129 / 営業利益 48,400)
+    qh = {q["end"]: q for q in (qhist or [])}
+
+    def cons_cum(ym, f):
+        nq = nq_at(ym)
+        if not nq:
+            return None
+        vs = [(qh.get(_ym_shift(ym, -3 * j)) or {}).get(f) for j in range(nq)]
+        return None if any(v is None for v in vs) else sum(vs)
+
+    near = lambda a, b: a is not None and b is not None and abs(a - b) <= max(abs(b) * 0.002, 1.5e6)
+    cur_t = ((rec or {}).get("data") or {}).get("total") or {}
+
     def seg_at(ym, k):
         r = by_end.get(ym)
         if not r:
@@ -493,7 +508,13 @@ def segment_numbers(rec: dict | None, past: list[dict], main: dict | None, ords:
         r = by_end.get(ym)
         return int(float(r["n_q"])) if r and r.get("n_q") else None
 
+    cons_basis = {f for f in ("sales", "op") if end and near(cur_t.get(f), cons_cum(end, f))}
+
     def single(ym, k, f, prior=False):
+        if k == TOT and f in cons_basis and ym:
+            v = (qh.get(_ym_shift(ym, -12) if prior else ym) or {}).get(f)
+            if v is not None:
+                return v
         x, nq = seg_at(ym, k), nq_at(ym)
         c = None if x is None else x.get(f"{f}_prior" if prior else f)
         if c is None or nq is None:
@@ -859,7 +880,8 @@ def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:
                      "up": p is not None and round(p * 100) > 50})
         rows[-1]["seg"] = segment_numbers(seg_by_id.get(r["disclosure_id"]),
                                           earlier(r, segs.get(r["code"], [])),
-                                          rows[-1]["nums"], rows[-1]["ord"]) if r["kind"] == "earnings_report" else None
+                                          rows[-1]["nums"], rows[-1]["ord"],
+                                          before(r, hist.get(r["code"], []), include_self=True))             if r["kind"] == "earnings_report" else None
         rows[-1]["brk"] = breakdown_numbers(brk_by_id.get(r["disclosure_id"]), earlier(r, brks.get(r["code"], []))) \
             if r["kind"] == "earnings_report" else None
         if rows[-1]["brk"] and rows[-1]["seg"]:             # セグメントと同じ表(名前が半分以上同じ)なら二重に出さない
