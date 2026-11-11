@@ -280,3 +280,20 @@ def test_pdf_fewer_right_columns_and_no_total_row():
 """
     x = segments.parse_pdf_text(text, {"cols": ["不動産売買事業", "不動産賃貸事業", "不動産関連事業", None, "その他", None, None, None], "n": 8, "unit": 1e3})
     assert [s["sales"] for s in x["segments"]] == [7405200e3, 222985e3, 33600e3, 83323e3]
+
+
+def test_prior_quarter_from_irbank_when_pdf_unreadable(monkeypatch):
+    from src import segments
+    from src.datasources import irbank_api
+    irb = {"運輸": {"2026-06": (5.0e9, 1.0e9), "2025-06": (4.0e9, 0.8e9)},
+           "不動産": {"2026-06": (2.0e9, 0.5e9)}}
+    monkeypatch.setattr(irbank_api, "segment_cumulative", lambda code: irb)
+    cur = {"basis": "外部顧客", "segments": [{"name": "運輸事業"}, {"name": "不動産事業"}]}
+    x = segments.irbank_record("9017", "2026-06", cur)
+    assert [(s["name"], s["sales"], s["op"], s["sales_prior"]) for s in x["segments"]] == \
+        [("運輸事業", 5.0e9, 1.0e9, 4.0e9), ("不動産事業", 2.0e9, 0.5e9, None)]
+    # 「計」(セグメント間を含む)の表には外部顧客の売上を混ぜない
+    x = segments.irbank_record("9017", "2026-06", {**cur, "basis": "計"})
+    assert [s["sales"] for s in x["segments"]] == [None, None] and x["segments"][0]["op"] == 1.0e9
+    # 事業が1つでも IRBANK に無ければ作らない
+    assert segments.irbank_record("9017", "2026-06", {"segments": [{"name": "運輸事業"}, {"name": "ホテル"}]}) is None

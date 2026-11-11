@@ -600,6 +600,11 @@ def segment_numbers(rec: dict | None, past: list[dict], main: dict | None, ords:
             h = history(TOT)
             if h:
                 hist.append({"name": total["name"], "rows": h, "total": True})
+        # 累計で出すのは全部の事業が3か月にできないときだけ。一部だけなら、その事業の今回分は出さない(3か月の表に累計を混ぜない)
+        if any(g["rows"][-1].get("cum") for g in hist) and not all(g["rows"][-1].get("cum") for g in hist):
+            for g in hist:
+                g["rows"] = [x for x in g["rows"] if not x.get("cum")]
+            hist = [g for g in hist if g["rows"]]
     return {"cols": cols, "segments": rows, "total": total or None, "unit": "百万円", "hist": hist}
 
 

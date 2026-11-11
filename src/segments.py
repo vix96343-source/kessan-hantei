@@ -540,6 +540,34 @@ def irbank_consistent(code: str, ym: str, x: dict) -> bool:
     return True
 
 
+def irbank_record(code: str, ym: str, cur: dict) -> dict | None:
+    """前の四半期の短信 PDF が読めないとき、IRBANK のセグメント別業績(XBRL から作られた累計)で今回と同じ事業の
+    その期の累計を作る。今回の事業が1つでも IRBANK に無ければ None(一部だけの記録は作らない)。
+    売上は IRBANK が外部顧客の値なので、今回の表が「計」(セグメント間を含む)なら売上は入れない(3か月にすると混ざる)"""
+    from .datasources import irbank_api
+    from .orders import _ym_shift
+    irb = irbank_api.segment_cumulative(code)
+    if not irb:
+        return None
+    ext = cur.get("basis") != "計"
+    segs = []
+    for sg in cur.get("segments", []):
+        k = irbank_api._seg_key(sg["name"])
+        theirs = irb.get(k)
+        if theirs is None:
+            hits = [v for n, v in irb.items() if k and n and (k in n or n in k)]
+            theirs = hits[0] if len(hits) == 1 else None
+        t = theirs and theirs.get(ym)
+        if not t:
+            return None
+        tp = theirs.get(_ym_shift(ym, -12)) or (None, None)
+        segs.append({"name": sg["name"], "sales": t[0] if ext else None, "sales_prior": tp[0] if ext else None,
+                     "op": t[1], "op_prior": tp[1]})
+    if not segs or all(x["sales"] is None and x["op"] is None for x in segs):
+        return None
+    return {"segments": segs, "total": None, "basis": cur.get("basis"), "src": "irbank_api"}
+
+
 def plausible(code: str, ym: str, n_q: int, x: dict, hist: dict) -> bool:
     """PDF から読んだセグメントの売上の合計が、その期の連結売上(過去の四半期業績の累計)と見合うか。
     セグメントの「計」はセグメント間の売上を含むので少し大きくなる。連結売上が分からなければ判定しない。"""
@@ -652,14 +680,17 @@ def backfill(cfg: dict, data_dir: Path = DATA_DIR, session: RateLimitedSession |
     df = load(data_dir)
     hist = {c: {q["end"]: q for q in v} for c, v in history.by_code(history.load(data_dir)).items()}
     arch = {a["disclosure_id"]: a for a in earnings.load_archive(data_dir).to_dict("records")}
-    have = {(r["code"], str(r["period_end"])[:7]) for r in df.to_dict("records") if r["period_end"]}
+    # PDF が読めず status=none の期は、IRBANK のセグメント別業績でもう一度だけ補う(だめなら none_irb で終わり)
+    retry = {(r["code"], str(r["period_end"])[:7]): r["disclosure_id"] for r in df.to_dict("records")
+             if r["period_end"] and r["status"] == "none" and str(r["disclosed_at"]).endswith("T00:00")}
+    have = {(r["code"], str(r["period_end"])[:7]) for r in df.to_dict("records") if r["period_end"]} - set(retry)
     latest = {}
     for r in df[df["status"] == "ok"].sort_values("disclosed_at").to_dict("records"):
         a = arch.get(r["disclosure_id"])
         if a and not r["period_end"]:
             r["n_q"], r["period_end"] = a["n_q"], a["period_end"]
         d = json.loads(r["data"])
-        if d.get("tpl") and r["period_end"] and r["n_q"]:
+        if d.get("tpl") and d.get("src") != "irbank_api" and r["period_end"] and r["n_q"]:
             latest[r["code"]] = {**r, "data": d}
     rows, stats = [], {"codes": 0, "pdfs": 0, "ok": 0}
     for code, cur in latest.items():
@@ -677,10 +708,18 @@ def backfill(cfg: dict, data_dir: Path = DATA_DIR, session: RateLimitedSession |
             log.warning("セグメントの補完: IRBANK 一覧の取得失敗 %s: %s", code, e)
             continue
         for k, ym, nq in need:
-            did = next((i for i, q in ids if q == nq), None)
+            did = retry.get((code, ym)) or next((i for i, q in ids if q == nq), None)
             if did is None:
                 continue
             x, bad = None, False
+            if (code, ym) in retry:                    # PDF は前に読めなかった: IRBANK の値だけで
+                x = irbank_record(code, ym, cur["data"])
+                if x:
+                    stats["ok"] += 1
+                rows.append({"disclosure_id": did, "code": code, "disclosed_at": f"{did[4:8]}-{did[8:10]}-{did[10:12]}T00:00",
+                             "n_q": str(nq), "period_end": ym, "status": "ok" if x else "none_irb",
+                             "data": json.dumps(x, ensure_ascii=False) if x else ""})
+                continue
             try:
                 text = past_pdf_text(session, code, did)
                 stats["pdfs"] += 1
@@ -694,6 +733,8 @@ def backfill(cfg: dict, data_dir: Path = DATA_DIR, session: RateLimitedSession |
                         x = None
             except Exception as e:
                 log.warning("セグメントの補完: PDF の読み取り失敗 %s %s: %s", code, did, e)
+            if x is None and not bad:
+                x = irbank_record(code, ym, cur["data"])   # PDF が読めなければ IRBANK のセグメント別業績で
             if x:
                 stats["ok"] += 1
             rows.append({"disclosure_id": did, "code": code, "disclosed_at": f"{did[4:8]}-{did[8:10]}-{did[10:12]}T00:00",
