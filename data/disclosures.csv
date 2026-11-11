@@ -1,4 +1,11 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261111573573,2026-11-11T15:40,3992,ニーズウェル,2026年9月期（第40期）通期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261111573573.pdf,,東,2026-11-11T15:40
+140120261111573531,2026-11-11T15:40,3992,ニーズウェル,2026年９月期  決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261111573531.pdf,https://www.release.tdnet.info/inbs/081220261111573531.zip,東,2026-11-11T15:40
+140120261111572575,2026-11-11T15:40,8920,東祥,2027年３月期 第２四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261111572575.pdf,https://www.release.tdnet.info/inbs/081220261111572575.zip,東名,2026-11-11T15:40
+140120261110572095,2026-11-11T15:40,9408,ＢＳＮメディアＨＤ,2027年３月期 第２四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261110572095.pdf,https://www.release.tdnet.info/inbs/081220261110572095.zip,東,2026-11-11T15:40
+140120261110571621,2026-11-11T15:40,9082,大和自交,2027年３月期第2四半期（中間期）における連結業績予想値と実績値の差異及び通期連結業績予想の修正に関するお知らせ,forecast_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261110571621.pdf,,東,2026-11-11T15:40
+140120261110571533,2026-11-11T15:40,8920,東祥,剰余金の配当（中間配当）及び期末配当予想の修正（増配）に関するお知らせ,dividend_revision,False,up,,,,,https://www.release.tdnet.info/inbs/140120261110571533.pdf,https://www.release.tdnet.info/inbs/091220261110571533.zip,東名,2026-11-11T15:40
+140120261104563625,2026-11-11T15:40,9082,大和自交,2027年3月期第2四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261104563625.pdf,https://www.release.tdnet.info/inbs/081220261104563625.zip,東,2026-11-11T15:40
 140120261111573020,2026-11-11T15:35,5838,楽天銀行,2027年３月期 第２四半期（中間期）決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261111573020.pdf,https://www.release.tdnet.info/inbs/081220261111573020.zip,東,2026-11-11T15:35
 140120261111573003,2026-11-11T15:35,5838,楽天銀行,業績予想の修正に関するお知らせ,forecast_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261111573003.pdf,,東,2026-11-11T15:35
 140120261111573868,2026-11-11T15:30,194A,Ｇ－ＷＯＬＶＥＳ,2027年６月期 第１四半期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261111573868.pdf,,東,2026-11-11T15:30
