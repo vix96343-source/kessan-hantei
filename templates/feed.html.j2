@@ -120,13 +120,18 @@ table.fin td.lab { color: var(--warn); }
 .sx-yq { font-size: 13px; line-height: 1.35; margin: 4px 0 6px; white-space: nowrap; color: #b4bbc6; font-weight: 600;
   font-family: "Consolas", "Menlo", "Meiryo UI", monospace; }
 /* 行を開いたときの中身は2列: 四半期業績(コンセンサス・受注の推移) | セグメント別業績とその下にセグメント(単体)(2026-11-11 ユーザー指示で3列目を2列目の下へ) */
-.dcols { display: flex; flex-wrap: nowrap; gap: 6px 24px; align-items: flex-start; overflow-x: auto; }   /* 3列はいつも横並び(狭い画面は横にスクロール) */
+.dcols { display: flex; flex-wrap: nowrap; gap: 6px 24px; align-items: flex-start; overflow: visible;
+  width: 0; min-width: 100%; }   /* 中身が広くても一覧の表の幅は広げない(収まらない分は fitDetails で縦に並べ替える。2026-11-11 ユーザー指示) */
 #list tr.detail > td { padding-left: 40px; }   /* 行を開いたときの中身の左の余白 */
 /* 列の幅は表の幅に合わせる(長い注記は折り返す) */
 .dcol { width: min-content; }
 .dcol .fincap { white-space: normal; }
 .dcol:empty { display: none; }
-.dcol.sgrid { display: grid; gap: 4px 32px; align-items: start; width: auto; }
+.dcol.sgrid { display: grid; gap: 4px 32px; align-items: start; width: auto; min-width: 0; }
+.dcol.sgrid > div { min-width: 0; overflow-x: auto; }   /* 1つの表が残りの幅より広いときだけ、その表を横スクロール */
+.dcol.sgrid.stack { grid-template-columns: minmax(0, max-content) !important; flex: 1 1 0; }
+.dcol.sgrid.stack > div:nth-child(1) { order: 1; } .dcol.sgrid.stack > div:nth-child(3) { order: 2; }
+.dcol.sgrid.stack > div:nth-child(2) { order: 3; } .dcol.sgrid.stack > div:nth-child(4) { order: 4; }
 .dl { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 4px 18px; font-size: 13px; }
 .dl div { display: flex; justify-content: space-between; gap: 8px; border-bottom: 1px dotted var(--line); padding: 2px 0; }
 .dl span:first-child { color: var(--muted); } .dl span:last-child { white-space: nowrap; }
@@ -448,12 +453,26 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
       if (open.has(r.id)) html += detail(r);
     });
     $('tb').innerHTML = html || `<tr><td colspan="20" class="more">${state.onlyNew ? '新着はありません' : '該当する開示はありません'}</td></tr>`;
+    fitDetails();
 
     const nd = nextDate();
     $('more').innerHTML = nd
       ? `${loading ? '読み込み中…' : `スクロールで ${+nd.slice(5, 7)}/${+nd.slice(8, 10)} 以前を表示`}<br><button id="moreBtn">さらに表示</button>`
       : (index.dates.length ? `${index.dates[index.dates.length - 1].replace(/-/g, '/')} 以降をすべて表示しています` : '');
   }
+
+  // 行を開いた中身を一覧の表の幅に収める: セグメントの2×2が入らなければ
+  // セグメント → セグメント単体 → 製品別 → 製品別単体 の縦1列にする。それでも広い表は横スクロール(2026-11-11)
+  function fitDetails() {
+    document.querySelectorAll('#list tr.detail .sgrid').forEach(g => {
+      g.classList.remove('stack');
+      const box = g.closest('.dcols');
+      // 2×2 の右端(いちばん右の表の右端)が一覧の表の右端を越えるなら縦1列に
+      const right = Math.max(...[...g.children].map(c => c.getBoundingClientRect().left + c.scrollWidth));
+      if (box && right > box.getBoundingClientRect().right + 1) g.classList.add('stack');
+    });
+  }
+  window.addEventListener('resize', fitDetails);
 
   async function loadMore(n = 1) {
     if (loading) return;
