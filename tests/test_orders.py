@@ -214,3 +214,15 @@ def test_orders_from_narrative_in_kanji_amounts():
     assert x["total"]["orders"] is None or x["total"]["orders"] == 80066e6
     assert [(s["name"], s["orders"], s["orders_yoy"]) for s in x["segments"]] == \
         [("成形機事業", 44882e6, 42.6), ("工作機械事業", 29930e6, 120.0)]
+
+
+def test_orders_narrative_with_clause_or_change_amount_before_value():
+    from src.orders import parse_narrative
+    html = """<p>以上のような取り組みの結果、受注高につきましては、大型データセンター案件を中心に、大型のオフィス案件の獲得もあり、927億39百万円（前年同期比100.3％増）となりました。</p>"""
+    x = parse_narrative(html, [])
+    assert (x["total"]["orders"], x["total"]["orders_yoy"]) == (92739e6, 100.3)
+    html = """<p>受注高は、前年同期比2,470百万円減少（13.0％減）の16,582百万円となりました。売上高は19,703百万円となりました。</p>"""
+    x = parse_narrative(html, [])
+    assert (x["total"]["orders"], x["total"]["orders_yoy"]) == (16582e6, -13.0)
+    html = """<p>受注高は増加し、売上高は19,703百万円となりました。</p>"""        # 金額は売上の話
+    assert parse_narrative(html, []) is None

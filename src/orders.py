@@ -406,7 +406,10 @@ def _heading_metric(table) -> str | None:
     例: 「③その他 (1)セグメント別受注高・売上高・受注残高 ①受注高 (単位：百万円)」の直後の表 → orders"""
     before = ""
     for s in table.find_all_previous(string=True, limit=20):
-        if s.find_parent("table") is not None:
+        pt = s.find_parent("table")
+        if pt is not None:
+            if re.fullmatch(r"[（(]単位[:：][^)）]*[)）]", re.sub(r"\s", "", pt.get_text(""))):
+                continue                               # 「（単位：百万円）」だけの小さな表は飛ばす
             break                                      # 前の表まで戻ったら終わり
         before = str(s) + before
         if len(before) > 120:
@@ -813,21 +816,25 @@ _N_YOY = r"(?:前年同期比|前年同四半期比|前年同中間期比|前期
 def _narr_value(text: str, words: str) -> tuple[float | None, float | None]:
     """「受注高は31,796百万円(前年同期比52.2%増加)」「受注高は前年同期比50.4%増加の37,270百万円」→ (値(円), 増減率)。
     最初に出てくる文(内訳の文より前)を使う"""
-    pats = [words + r"(?:は|が|につきましては)、?" + _N_NUM + r"(?:\(" + _N_YOY + r")?",
-            words + r"(?:は|が)、?" + _N_YOY + r"の" + _N_NUM]
+    # 「受注高につきましては、大型データセンター案件を中心に…、92,739百万円(前年同期比100.3%増)」のように
+    # 間に説明が入る文。間に金額・売上・利益・文の終わりがあれば別の話なので読まない
+    gap = r"(?:(?!売上|利益|損失|百万円|億円|千円|%|。).){1,80}?"
+    # 「受注高は、前年同期比2,470百万円減少(13.0%減)の16,582百万円」(増減額と率のあとに金額)
+    diff = r"(?:前年同期比|前年同四半期比|前年同中間期比)?[\d,.]+(?:百万円|億円|千円)(?:増加|減少)\(([\d.]+)%(増|減)\)の"
+    pats = [(words + r"(?:は|が|につきましては)、?" + _N_NUM + r"(?:\(" + _N_YOY + r")?", "snuyd"),
+            (words + r"(?:は|が)、?" + _N_YOY + r"の" + _N_NUM, "ydsnu"),
+            (words + r"(?:は|が)、?" + diff + _N_NUM, "ydsnu"),
+            (words + r"(?:は|が|につきましては)、?" + gap + _N_NUM + r"(?!増加|減少|の増|の減)(?:\(" + _N_YOY + r")?", "snuyd")]
     best = None
-    for k, pat in enumerate(pats):
+    for pat, order in pats:
         m = re.search(pat, text)
         if m and (best is None or m.start() < best[0].start()):
-            best = (m, k)
+            best = (m, order)
     if not best:
         return None, None
-    m, k = best
-    g = m.groups()
-    if k == 0:
-        sign, num, unit, yv, yd = g[0], g[1], g[2], g[3], g[4]
-    else:
-        yv, yd, sign, num, unit = g[0], g[1], g[2], g[3], g[4]
+    m, order = best
+    g = dict(zip(order, m.groups()))
+    sign, num, unit, yv, yd = g["s"], g["n"], g["u"], g["y"], g["d"]
     v = float(num.replace(",", "")) * _N_UNITS[unit] * (-1 if sign else 1)
     y = None if yv is None else float(yv) * (-1 if yd.startswith("減") else 1)
     return v, y
