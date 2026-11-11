@@ -118,7 +118,7 @@ table.fin td.lab { color: var(--warn); }
 #list table.sx td.p, .sx-yq .p { color: #7fdcb8; } #list table.sx td.m, .sx-yq .m { color: #ff8fa0; }
 .sx-yq { font-size: 13px; line-height: 1.35; margin: 4px 0 6px; white-space: nowrap; color: #7fdcb8; font-weight: 600;
   font-family: "Consolas", "Menlo", "Meiryo UI", monospace; }
-/* 行を開いたときの中身は3列: 四半期業績(コンセンサス・受注の推移) | セグメント別業績(受注の推移) | セグメント(単体) */
+/* 行を開いたときの中身は2列: 四半期業績(コンセンサス・受注の推移) | セグメント別業績とその下にセグメント(単体)(2026-11-11 ユーザー指示で3列目を2列目の下へ) */
 .dcols { display: flex; flex-wrap: nowrap; gap: 6px 24px; align-items: flex-start; overflow-x: auto; }   /* 3列はいつも横並び(狭い画面は横にスクロール) */
 #list tr.detail > td { padding-left: 40px; }   /* 行を開いたときの中身の左の余白 */
 /* 列の幅は表の幅に合わせる(長い注記は折り返す) */
@@ -409,7 +409,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
       <div class="dtitle">${esc(r.title)}</div>
       <div class="dlinks">${(r.pdfs || []).map(p => `<a href="${esc(p.url)}" target="_blank" rel="noopener" title="${esc(p.title || '')}">${esc(p.label === '資料' || p.label === '資料2' ? '説明資料' : p.label === '短信' ? '決算短信' : p.label === '業績修正' ? '業績修正' : p.label === '業績修正短信' ? '業績修正(短信内)' : '修正の開示')}(PDF)</a>`).join('')}<a href="https://kabuyoho.jp/report?bcode=${encodeURIComponent(r.code)}" target="_blank" rel="noopener">株予報(コンセンサス)</a></div>
       <div class="dcols"><div class="dcol">${revTable(r.rev)}${finTables(r.fin)}${consTable(r.cons)}${orderHistory(r.ord)}</div>
-      ${[segMatrix(r.seg) + segMatrix(r.brk, r.brk && r.brk.title), segQuarter(r.seg) + segQuarter(r.brk, r.brk && r.brk.title)]
+      ${[segMatrix(r.seg) + segQuarter(r.seg) + segMatrix(r.brk, r.brk && r.brk.title) + segQuarter(r.brk, r.brk && r.brk.title)]
         .filter(h => h).map(h => `<div class="dcol">${h}</div>`).join('')}</div>
     </td></tr>`;
   }
