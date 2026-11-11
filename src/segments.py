@@ -685,7 +685,7 @@ def backfill(cfg: dict, data_dir: Path = DATA_DIR, session: RateLimitedSession |
     # PDF が読めず status=none の期は、次の回も保存した PDF(読み方を直した後)と IRBANK の保存分で読み直す
     # (IRBANK の上限で取れずに none_irb になった期を見捨てない。取りに行くのは1社1日1回まで)
     retry = {(r["code"], str(r["period_end"])[:7]): r["disclosure_id"] for r in df.to_dict("records")
-             if r["period_end"] and r["status"] in ("none", "none_irb") and str(r["disclosed_at"]).endswith("T00:00")}
+             if r["period_end"] and r["status"] in ("none", "none_irb", "bad") and str(r["disclosed_at"]).endswith("T00:00")}
     have = {(r["code"], str(r["period_end"])[:7]) for r in df.to_dict("records") if r["period_end"]} - set(retry)
     latest = {}
     for r in df[df["status"] == "ok"].sort_values("disclosed_at").to_dict("records"):
@@ -728,8 +728,8 @@ def backfill(cfg: dict, data_dir: Path = DATA_DIR, session: RateLimitedSession |
                         x = None
             except Exception as e:
                 log.warning("セグメントの補完: PDF の読み取り失敗 %s %s: %s", code, did, e)
-            if x is None and not bad:
-                x = irbank_record(code, ym, cur["data"])   # PDF が読めなければ IRBANK のセグメント別業績で
+            if x is None:   # PDF が読めない・IRBANK と合わないときは IRBANK のセグメント別業績(保存分)で
+                x = irbank_record(code, ym, cur["data"])
             if x:
                 stats["ok"] += 1
             rows.append({"disclosure_id": did, "code": code, "disclosed_at": f"{did[4:8]}-{did[8:10]}-{did[10:12]}T00:00",
