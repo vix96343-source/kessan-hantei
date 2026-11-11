@@ -441,10 +441,10 @@ def _pdf_row(line: str, n: int):
     return ("".join(toks[:k]), vals) if len(vals) == n else None
 
 
-def parse_pdf_text(text: str, tpl: dict, names=()) -> dict | None:
+def parse_pdf_text(text: str, tpl: dict, names=(), cur_segs=()) -> dict | None:
     """表が左右2つに分かれた短信(9147 NIPPON EXPRESS: 「日本 … 南アジア・オセアニア」と「警備輸送 … 計 調整額 計上額」)は、
     今回の記録にあって表の形(tpl)に無いセグメント(names のうち)を、後ろの表から読んで足す。合計は後ろの表の右端"""
-    x = _parse_pdf_main(text, tpl)
+    x = _parse_pdf_main(text, tpl, cur_segs)
     rest = [nm for nm in names if nm and nm not in tpl["cols"]]
     if not x or not rest or len(rest) > 6:
         return x
@@ -457,7 +457,7 @@ def parse_pdf_text(text: str, tpl: dict, names=()) -> dict | None:
     return x
 
 
-def _parse_pdf_main(text: str, tpl: dict) -> dict | None:
+def _parse_pdf_main(text: str, tpl: dict, cur_segs=()) -> dict | None:
     """前の期の短信 PDF の文字から、セグメントごとの売上(外部顧客の行)・利益(セグメント利益の行)を読む。
     前年同期の表と当期の表があれば、前を前年同期・後ろを当期とする。
     今回の短信の表で空欄だった右側の列(調整額など)が PDF では「－」で埋まっていることがあるので、
@@ -487,11 +487,38 @@ def _parse_pdf_main(text: str, tpl: dict) -> dict | None:
     while k < n and cols[-k] is None and sum(1 for c in cols[:-k] if c) >= 2:
         tries.append((n - k, cols[:-k]))
         k += 1
+    # 前の期の表に無いセグメントが見出しの文字だけでは分からない形(3467: 「マンション事業」の列が無い)も、
+    # 名前のある列を1つ抜いた形を後ろに足して試す。セグメントの和が表の合計に合う読み方を優先し、無ければ最初に読めたもの
+    # 抜く列を間違えても和は合うので、各セグメントの累計が今回の累計を超えないこと、当てはまる抜き方が1つだけのことを条件にする
+    first = None
     for n2, c2 in tries:
         x = _parse_pdf_text(text, {**tpl, "n": n2, "cols": c2})
         if x:
-            return x
-    return None
+            first = first or x
+            if sums_to_total(x):
+                return x
+    named = [i for i, c in enumerate(cols) if c and c != "その他"]
+    if len(named) >= 3 and cur_segs:
+        k = lambda nm: re.sub(r"\s|・", "", nm)
+        now = {k(sg["name"]): sg.get("sales") for sg in cur_segs}
+        below = lambda x: all(now.get(k(sg["name"])) is not None and sg.get("sales") is not None
+                              and 0 <= sg["sales"] <= now[k(sg["name"])] * 1.001 for sg in x["segments"])
+        ok = []
+        for i in named:
+            x = _parse_pdf_text(text, {**tpl, "n": n - 1, "cols": cols[:i] + cols[i + 1:]})
+            if x and sums_to_total(x) and below(x):
+                ok.append(x)
+        if len(ok) == 1:
+            return ok[0]
+    return first
+
+
+def sums_to_total(x: dict) -> bool:
+    t = (x.get("total") or {}).get("sales")
+    vals = [sg["sales"] for sg in x["segments"] if sg.get("sales") is not None]
+    if not t or not vals or t <= 0:
+        return False
+    return 0.97 <= sum(vals) / t <= (1.25 if x.get("basis") == "計" else 1.03)
 
 
 def _parse_pdf_text(text: str, tpl: dict) -> dict | None:
@@ -541,7 +568,8 @@ def _parse_pdf_text(text: str, tpl: dict) -> dict | None:
         elif (sales or ext) and (re.match(r"セグメント(利益|損失)|営業(利益|損失)", lab) or
                         # 見出しが折り返して数値の行に「(△)」「又は損失(△)」「失(△)」「利益」が残る形、
                         # 見出しと数値の間に「(注)1」の行がある形(上の2行に「セグメント利益…」か「…セグメント」)
-                        ((not re.search(r"[^\s()（）△▲]", lab) or re.match(r"(又は)?(損失|利益)", lab) or len(lab) <= 6) and i > 0
+                        ((not re.search(r"[^\s()（）△▲]", lab) or re.match(r"(又は)?(損失|利益)|(グ|セグ)?メント(利益|損失)|失[(（]", lab) or len(lab) <= 6) and i > 0
+                         and not re.search(r"金融|費用|税引|持分法|収益|売上", lab)
                          and (any(re.search(r"セグメント(利益|損失)|セグメント$", _key(lines[k]))
                                   for k in range(max(i - 2, 0), i) if not _pdf_row(lines[k], n))
                               # 見出しが「セグメント利益又」「はセグメント損失」「(△)」「(コア営業損益)」(三井化学)、
@@ -567,6 +595,11 @@ def _parse_pdf_text(text: str, tpl: dict) -> dict | None:
             out[sg] = {"sales": None if sv is None else sv * u, "op": None if pv is None else pv * u}
         return out
 
+    # 累計の表(前年・当期)の後ろに3か月の表(前年・当期)が続く形(3659 ネクソン): 合計の小さい後ろの2つは3か月の表
+    if len(blocks) == 4:
+        tv = [_num(b[0][-1]) for b in blocks]
+        if all(v is not None for v in tv) and tv[2] < tv[0] and tv[3] < tv[1]:
+            blocks = blocks[:2]
     cur = to_segs(blocks[-1])
     prior = to_segs(blocks[0]) if len(blocks) >= 2 else {}
     segs = [{"name": sg, "sales": v["sales"], "op": v["op"],
@@ -631,7 +664,7 @@ def irbank_record(code: str, ym: str, cur: dict) -> dict | None:
     return {"segments": segs, "total": None, "basis": cur.get("basis"), "src": "irbank_api"}
 
 
-def plausible(code: str, ym: str, n_q: int, x: dict, hist: dict) -> bool:
+def plausible(code: str, ym: str, n_q: int, x: dict, hist: dict, cur: dict | None = None) -> bool:
     """PDF から読んだセグメントの売上の合計が、その期の連結売上(過去の四半期業績の累計)と見合うか。
     セグメントの「計」はセグメント間の売上を含むので少し大きくなる。連結売上が分からなければ判定しない。"""
     from .orders import _ym_shift
@@ -640,7 +673,31 @@ def plausible(code: str, ym: str, n_q: int, x: dict, hist: dict) -> bool:
         return True
     cons = sum(q["sales"] for q in qs)
     seg = sum(sg.get("sales") or 0 for sg in x["segments"])
-    return bool(cons) and 0.85 <= seg / cons <= 1.25 and consistent(x)
+    if bool(cons) and 0.85 <= seg / cons <= 1.25 and consistent(x):
+        return True
+    return self_consistent(x, n_q, cur)
+
+
+def self_consistent(x: dict, n_q: int, cur: dict | None) -> bool:
+    """四半期業績の値が誤っていることがある(1375 ホクト: 1Q の連結売上 7,983 を 10,202 と記録)。
+    そのときは PDF の表そのものと今回の短信で確かめる: セグメントの和が表の合計(計上額)に合い、
+    各セグメントの累計が今回の累計を超えず、今回までの1四半期あたりの売上がこの期の1四半期あたりの 0.5〜2倍"""
+    if not cur or not consistent(x):
+        return False
+    t, ct = (x.get("total") or {}).get("sales"), (cur.get("total") or {}).get("sales")
+    vals = [sg["sales"] for sg in x["segments"] if sg.get("sales") is not None]
+    if not t or not ct or not vals or t <= 0:
+        return False
+    seg = sum(vals)
+    if not (0.97 <= seg / t <= (1.25 if x.get("basis") == "計" else 1.03)):
+        return False
+    cn = cur.get("_nq")
+    if not cn or cn <= n_q or not (0.5 <= ((ct - t) / (cn - n_q)) / (t / n_q) <= 2.0):
+        return False
+    key = lambda n: re.sub(r"\s|・", "", n)
+    now = {key(sg["name"]): sg.get("sales") for sg in cur.get("segments", [])}
+    return all(now.get(key(sg["name"])) is None or sg.get("sales") is None or sg["sales"] <= now[key(sg["name"])] * 1.001
+               for sg in x["segments"])
 
 
 def consistent(x: dict) -> bool:
@@ -707,7 +764,8 @@ def backfill_history(cfg: dict, depth: int = 6, data_dir: Path = DATA_DIR,
                 text = past_pdf_text(session, code, did)
                 stats["pdfs"] += 1
                 if text is not None:
-                    x = parse_pdf_text(text, cur["data"]["tpl"], [sg["name"] for sg in cur["data"]["segments"]])
+                    x = parse_pdf_text(text, cur["data"]["tpl"], [sg["name"] for sg in cur["data"]["segments"]],
+                                      cur["data"]["segments"])
                     if x and not plausible(code, ym, q, x, hist):
                         x = None
                     elif x and not irbank_consistent(code, ym, x):
@@ -780,11 +838,12 @@ def backfill(cfg: dict, data_dir: Path = DATA_DIR, session: RateLimitedSession |
                 text = past_pdf_text(session, code, did)
                 stats["pdfs"] += 1
                 if text is not None:
-                    x = parse_pdf_text(text, cur["data"]["tpl"], [sg["name"] for sg in cur["data"]["segments"]])
+                    x = parse_pdf_text(text, cur["data"]["tpl"], [sg["name"] for sg in cur["data"]["segments"]],
+                                      cur["data"]["segments"])
                     if x and not irbank_consistent(code, ym, x):
                         log.info("セグメントの補完: IRBANK と合わないので捨てる %s %s", code, ym)
                         x, bad = None, True
-                    elif x and not plausible(code, ym, nq, x, hist):
+                    elif x and not plausible(code, ym, nq, x, hist, {**cur["data"], "_nq": n_q}):
                         log.info("セグメントの補完: 連結売上と合わないので捨てる %s %s", code, ym)
                         x = None
             except Exception as e:
