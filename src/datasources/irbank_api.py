@@ -176,16 +176,31 @@ def _seg_key(n: str) -> str:
     return re.sub(r"\s|・|事業$|部門$", "", unicodedata.normalize("NFKC", n or ""))
 
 
-def segment_cumulative(code: str) -> dict | None:
+def _has_period(raw: list, ym: str) -> bool:
+    """保存したセグメント別業績に期末 ym(YYYY-MM)の四半期が入っているか"""
+    for x in raw:
+        fy, n = x.get("fiscal_year"), x.get("quarter")
+        if fy and n:
+            y, m = int(fy[:4]), int(fy[5:7]) - 3 * (4 - int(n))
+            y, m = y + (m - 1) // 12, (m - 1) % 12 + 1
+            if f"{y:04d}-{m:02d}" == ym:
+                return True
+    return False
+
+
+def segment_cumulative(code: str, need: str | None = None) -> dict | None:
     """IRBANK のセグメント別業績(単独四半期)を期首から足した累計: {名前の鍵: {期末YYYY-MM: (売上, 利益)}}(円)。
-    1日1回まで取りに行き ~/kessan-pdfs/irbank_seg/{code}.json に置く。キーが無い・上限なら None"""
+    取ったものは ~/kessan-pdfs/irbank_seg/{code}.json に保存し、過去の期の値は変わらないので保存分を使う。
+    取りに行くのは保存が無いときと、need(期末YYYY-MM)が保存分に無く今日まだ取っていないときだけ
+    (2026-11-11 まで「今日取った保存しか使わない」で毎日取り直し、上限を無駄にしていた)。キーが無い・上限なら None"""
     cache = SHARED / "irbank_seg" / f"{code}.json"
     today = now_jst().strftime("%Y-%m-%d")
     raw = None
     if cache.exists():
         c = json.loads(cache.read_text(encoding="utf-8"))
-        if c.get("date") == today:
-            raw = c["segments"]
+        raw = c["segments"]
+        if need and c.get("date") != today and not _has_period(raw, need):
+            raw = None
     if raw is None:
         if not api_key():
             return None

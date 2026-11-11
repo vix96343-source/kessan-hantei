@@ -287,7 +287,7 @@ def test_prior_quarter_from_irbank_when_pdf_unreadable(monkeypatch):
     from src.datasources import irbank_api
     irb = {"運輸": {"2026-06": (5.0e9, 1.0e9), "2025-06": (4.0e9, 0.8e9)},
            "不動産": {"2026-06": (2.0e9, 0.5e9)}}
-    monkeypatch.setattr(irbank_api, "segment_cumulative", lambda code: irb)
+    monkeypatch.setattr(irbank_api, "segment_cumulative", lambda code, need=None: irb)
     cur = {"basis": "外部顧客", "segments": [{"name": "運輸事業"}, {"name": "不動産事業"}]}
     x = segments.irbank_record("9017", "2026-06", cur)
     assert [(s["name"], s["sales"], s["op"], s["sales_prior"]) for s in x["segments"]] == \

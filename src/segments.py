@@ -521,7 +521,7 @@ def irbank_consistent(code: str, ym: str, x: dict) -> bool:
     """PDF から読んだ記録を IRBANK のセグメント別業績(XBRL から作られた累計)と照らす。合わなければ False。
     利益は基準によらず比べ、売上は基準が外部顧客の記録だけ。IRBANK に無い(キーが無い等)ときは True"""
     from .datasources import irbank_api
-    irb = irbank_api.segment_cumulative(code)
+    irb = irbank_api.segment_cumulative(code, ym)
     if not irb:
         return True
     ext = x.get("basis") != "計"
@@ -546,7 +546,7 @@ def irbank_record(code: str, ym: str, cur: dict) -> dict | None:
     売上は IRBANK が外部顧客の値なので、今回の表が「計」(セグメント間を含む)なら売上は入れない(3か月にすると混ざる)"""
     from .datasources import irbank_api
     from .orders import _ym_shift
-    irb = irbank_api.segment_cumulative(code)
+    irb = irbank_api.segment_cumulative(code, ym)
     if not irb:
         return None
     ext = cur.get("basis") != "計"
@@ -680,9 +680,10 @@ def backfill(cfg: dict, data_dir: Path = DATA_DIR, session: RateLimitedSession |
     df = load(data_dir)
     hist = {c: {q["end"]: q for q in v} for c, v in history.by_code(history.load(data_dir)).items()}
     arch = {a["disclosure_id"]: a for a in earnings.load_archive(data_dir).to_dict("records")}
-    # PDF が読めず status=none の期は、IRBANK のセグメント別業績でもう一度だけ補う(だめなら none_irb で終わり)
+    # PDF が読めず status=none の期は、IRBANK のセグメント別業績(保存分)で補う。だめなら none_irb、次の回も保存分で試す
+    # (IRBANK の上限で取れずに none_irb になった期を見捨てない。取りに行くのは1社1日1回まで)
     retry = {(r["code"], str(r["period_end"])[:7]): r["disclosure_id"] for r in df.to_dict("records")
-             if r["period_end"] and r["status"] == "none" and str(r["disclosed_at"]).endswith("T00:00")}
+             if r["period_end"] and r["status"] in ("none", "none_irb") and str(r["disclosed_at"]).endswith("T00:00")}
     have = {(r["code"], str(r["period_end"])[:7]) for r in df.to_dict("records") if r["period_end"]} - set(retry)
     latest = {}
     for r in df[df["status"] == "ok"].sort_values("disclosed_at").to_dict("records"):
