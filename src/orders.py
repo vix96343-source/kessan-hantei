@@ -457,13 +457,18 @@ def parse_qualitative(html: str, cum_sales: float | None = None) -> dict | None:
 _PDF_TOKEN = re.compile(r"^([△▲\-－−+＋]?[\d,，]+(\.\d+)?[%％]?([（(][^)）]*[)）])?|[－―\-—–‐]|[（(][^)）]*[)）])$")
 
 
+def _plab(label: str) -> str:
+    """行見出しの期間の書き方をそろえる(今回の短信は「中間会計期間」、前の期の短信は「第１四半期累計期間」)"""
+    return re.sub(r"(第[1-4１-４]四半期|中間)(連結)?(累計|会計)?期間", "期間", label)
+
+
 def _pdf_row(line: str, label: str, n_values: int) -> list[str] | None:
     """PDF の1行が「行見出し 数値 数値 …」で、見出しが label・数値の個数が n_values なら数値の文字を返す。"""
     toks = line.split()
     k = len(toks)
     while k > 0 and _PDF_TOKEN.match(toks[k - 1]):
         k -= 1
-    if re.sub(r"\s", "", "".join(toks[:k])) != label:
+    if _plab(re.sub(r"\s", "", "".join(toks[:k]))) != _plab(label):
         return None
     vals = [t for t in toks[k:] if not re.match(r"^[（(]", t)]     # 括弧書き(内数)は捨てる
     if len(vals) != n_values:
@@ -511,8 +516,10 @@ def parse_pdf_text(text: str, tpls: list[dict], unit: float | None = None) -> di
         # 「受注」が出てくる行それぞれから探し、一番多く行が合ったものを採る
         # (目次・本文・生産実績の表に同じ行見出しがあっても、受注の表の見出しの後ろが一番よく合う)
         best, best_end = [], done
+        # 表の左の見出しが縦書きで「受」「注」「高」と1字ずつの行になる形も(2026-11-11 ピーエス・コンストラクション)
         for s in (i for i in range(done, len(lines))
-                  if "受注" in lines[i].replace("受注損失", "") or "繰越工事" in lines[i]):
+                  if "受注" in (lines[i] + (lines[i + 1] if i + 1 < len(lines) and len(lines[i]) == 1 else "")).replace("受注損失", "")
+                  or "繰越工事" in lines[i]):
             data, end = match_from(s)
             if len(data) > len(best):
                 best, best_end = data, end
@@ -741,9 +748,9 @@ def backfill(cfg: dict, data_dir: Path = DATA_DIR, session: RateLimitedSession |
     session = session or irbank.session_from_config(cfg)
     df = load(data_dir)
     arch = {a["disclosure_id"]: a for a in earnings.load_archive(data_dir).to_dict("records")}
-    # 前に読めなかった(none)過去の期は、読み方を直したあとで1回だけ読み直す(だめなら none_retry で終わり)
+    # 前に読めなかった(none)過去の期は、保存した PDF を毎回今の読み方で読み直す(だめなら none_retry)
     retry = {(r["code"], str(r["period_end"])[:7]): r["disclosure_id"] for r in df.to_dict("records")
-             if r["period_end"] and r["status"] == "none" and str(r["disclosed_at"]).endswith("T00:00")}
+             if r["period_end"] and r["status"] in ("none", "none_retry") and str(r["disclosed_at"]).endswith("T00:00")}
     have = {(r["code"], str(r["period_end"])[:7]) for r in df.to_dict("records") if r["period_end"]} - set(retry)
     latest: dict[str, dict] = {}
     for r in df[df["status"] == "ok"].sort_values("disclosed_at").to_dict("records"):
