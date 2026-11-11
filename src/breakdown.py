@@ -217,31 +217,107 @@ def parse_pdf_text(text: str, tpl: dict, cum_sales: float | None) -> dict | None
     合計が連結売上と合い、品目を足して合計になるときだけ"""
     if not cum_sales:
         return None
-    lines = [unicodedata.normalize("NFKC", l).strip() for l in text.splitlines() if l.strip()]
-    num = re.compile(r"^[△▲\-]?[\d,]+(\.\d+)?%?$|^[-―－]$")
+    lines = _restack([unicodedata.normalize("NFKC", l).strip() for l in text.splitlines() if l.strip()])
+    num = re.compile(r"^[△▲\-+]?[\d,]+(\.\d+)?%?$|^[-―－]$")      # 「+1.4」(前年比)も数値
     rows = []
+    norm = lambda n: re.sub(r"[ー・]", "", n)
+    bases = [norm(_key(n.split("・")[-1])) for n in tpl["names"]]
+    pend = []                                          # 直前の文字だけの行(折り返した品目名)
     for l in lines:
-        toks = re.sub(r"([△▲])\s+(\d)", r"\1\2", l).split()
+        # 「6,311 6.1 ％」のように % が離れている行(1972)は数値に付ける
+        toks = re.sub(r"(\d)\s+%(?=\s|$)", r"\1%", re.sub(r"([△▲+])\s+(\d)", r"\1\2", l)).split()
         # 品目名(左の文字)+ 続く数値(右に説明の文があれば数値の後ろは使わない)
-        k = next((i for i, t in enumerate(toks) if i > 0 and num.match(t)), len(toks))
+        # 品目名の中の「-」(「Ｒ － Ｔ 238」)は数値の空欄ではない: 次が数値でない「-」は名前の一部
+        if toks and num.match(toks[0]) and not re.fullmatch(r"[-―－]", toks[0]):
+            k = 0                                      # 数値だけの行(品目名は上の行、2733)
+        else:
+            k = next((i for i, t in enumerate(toks) if i > 0 and num.match(t)
+                      and not (re.fullmatch(r"[-―－]", t) and i + 1 < len(toks) and not num.match(toks[i + 1]))), len(toks))
         e = k
         while e < len(toks) and num.match(toks[e]):
             e += 1
         name, vals = _key("".join(toks[:k])), [t.rstrip("%") for t in toks[k:e]]
-        if len(vals) >= 2 and name:
+        if not vals:
+            pend = (pend + [l])[-4:]
+            continue
+        # 品目名が上の行から折り返している(「ストレージ・ネットワーク」「機器等 ― 5,583 …」、2760)、品目名と値が別の行
+        # (「ペット ペット用品 48,202」の上の「ヘルス＆ビューティー」「（Health & Beauty）」「化粧品、…」)
+        if not any(norm(name).endswith(b) for b in bases if b):
+            for cut in range(len(pend)):
+                cand = _key("".join(pend[cut:])) + name
+                if any(b and norm(cand).endswith(b) for b in bases):
+                    name = cand
+                    break
+            else:
+                # 上の行が「・」で終わる(「園芸・農業・」「ペット用品 44,763」、8218)のは名前の折り返し
+                if pend and name and re.search(r"[・、]$", _key(pend[-1])):
+                    name = _key(pend[-1]) + name
+        pend = []
+        if vals and name:                              # 金額の列が1つだけの表もある(テノックス・北の達人の1Q)
             rows.append((name, vals))
     unit, cur, prior = tpl["unit"], tpl["cur"], tpl.get("prior")
+
+    def match(t, u):
+        # 連結売上(四半期の履歴)は百万円で丸めた値の会社が多いので、千円の表でも百万円までの差は同じ値とみる(横田製作所)
+        x = _num(t)
+        return x is not None and abs(x * u - cum_sales) <= max(u, 1e6, abs(cum_sales) * 0.001)
     # 通期の短信は「前期(通期)」の列が無いなど列の数が違うことがあるので、当期・前期の列の位置が収まる行なら読む。
     # 合計の候補(セグメント情報の「売上高」の行なども合うことがある)を順に試し、品目が当てはまって合計になる表を使う
+    cands = []
     for ti, (n, v) in enumerate(rows):
-        if _TOTAL.fullmatch(n) and len(v) > max(cur, prior or 0) and _num(v[cur]) is not None                 and abs(_num(v[cur]) * unit - cum_sales) <= max(unit, abs(cum_sales) * 0.001):
-            x = _pdf_table(rows, ti, tpl)
-            if x:
-                return x
+        if _TOTAL.fullmatch(n) and len(v) > max(cur, prior or 0) and match(v[cur], unit):
+            cands.append((ti, cur, prior, unit))
+    # 今回の表と列の数・位置・単位が違う前の期の表(1Q は前年の列が無い、セグメントの列が少ない収益の分解の表など):
+    # 合計の行(「外部顧客への売上高」なども)の中で連結売上と合う値の位置を当期の列とする(前年の列は読まない)
+    for ti, (n, v) in enumerate(rows):
+        if not (_TOTAL.fullmatch(n) or _TOTAL2.fullmatch(n)):
+            continue
+        for u in dict.fromkeys((unit, 1e6, 1e3)):
+            for p in range(len(v)):
+                if match(v[p], u) and not any(c[:2] == (ti, p) and c[3] == u for c in cands):
+                    cands.append((ti, p, None, u))
+    for ti, p, pr, u in cands:
+        x = _pdf_table(rows, ti, {**tpl, "cur": p, "prior": pr, "unit": u}, strict=(pr is None and p != cur or u != unit))
+        if x:
+            return x
     return None
 
 
-def _pdf_table(rows: list, ti: int, tpl: dict) -> dict | None:
+_TOTAL2 = re.compile(r"(\(\d\))?外部顧客(へ|に対する)の?(売上高|売上収益|営業収益)|顧客との契約から生じる収益")
+
+
+_CELL = re.compile(r"[△▲\-]?[\d,]+(\.\d+)?%?|[-―－]")
+
+
+def _restack(lines: list[str]) -> list[str]:
+    """PDF の表で品目名と数値が列ごとに縦に並ぶ形(山崎製パン:「食パン」「菓子パン」…の後に「62,345」「243,606」…)を
+    「品目名 値 値 …」の行に組み直す。品目名の行が m 行続いたあと、数値だけの行がちょうど m の倍数(列の数)続くときだけ。
+    品目名の上に大分類の行(「食品事業」)があれば、m を減らして割り切れる数を探す"""
+    out, i = [], 0
+    while i < len(lines):
+        j = i
+        while j < len(lines) and not re.search(r"\d", lines[j]) and len(lines[j]) <= 30:
+            j += 1
+        k = j
+        while k < len(lines) and _CELL.fullmatch(lines[k].replace(" ", "")):
+            k += 1
+        n, done = k - j, False
+        for m in range(j - i, 1, -1):
+            if n >= m * 2 and n % m == 0 and n // m <= 12:
+                out.extend(lines[i:j - m])
+                for r in range(m):
+                    out.append(lines[j - m + r] + " " + " ".join(lines[j + c * m + r].replace(" ", "") for c in range(n // m)))
+                i, done = k, True
+                break
+        if not done:
+            out.append(lines[i])
+            i += 1
+    return out
+
+
+def _pdf_table(rows: list, ti: int, tpl: dict, strict: bool = False) -> dict | None:
+    """strict: 列の位置を合計の値から探したとき。品目の和が合計に合うことを必須にし(最大の小計との照合はしない)、
+    「外部顧客への売上高」などの行があればその値も合計と合うこと(別の表の行を拾っていない)"""
     unit, cur, prior = tpl["unit"], tpl["cur"], tpl.get("prior")
     tot = rows[ti][1]
     norm = lambda n: re.sub(r"[ー・]", "", n)          # 「メモリー」と「メモリ」など表記の揺れ
@@ -251,6 +327,33 @@ def _pdf_table(rows: list, ti: int, tpl: dict) -> dict | None:
     if prev:
         pos = prev[-1] + 1
     names = tpl["names"]                               # 品目名の並びどおりに、合計の行より上を順に当てる
+    # 前年と当年の表が同じ品目名で続く短信(4224・5162: 前1Q の表のすぐ下に当1Q の表)は、合計の行にいちばん近い表から:
+    # 最初の品目名が合計の行より上に最後に出てくる行から当て、品目の和が合計にちょうど合うときだけ使う。
+    # 合わなければ(strict でなければ)今までどおり上から
+    first = re.sub(r"[ー・]", "", names[0].split("・")[-1]) if names else ""
+    last = [j for j in range(pos, ti) if first and re.sub(r"[ー・]", "", rows[j][0]).endswith(first)]
+    if last and last[-1] != pos:
+        x = _pdf_items(rows, ti, tpl, last[-1], True)
+        if x or strict:
+            return x
+    return _pdf_items(rows, ti, tpl, pos, strict)
+
+
+def _pdf_items(rows: list, ti: int, tpl: dict, pos: int, strict: bool) -> dict | None:
+    unit, cur, prior = tpl["unit"], tpl["cur"], tpl.get("prior")
+    tot, names, items = rows[ti][1], tpl["names"], []
+    norm = lambda n: re.sub(r"[ー・]", "", n)
+    start, used = pos, []
+
+    def item(name, rv):
+        # 名前の列(事業区分)が「―」の行(「不動産賃貸事業 ― 117,417 85.6」、4013): 合計の行より値が1つ多ければその「―」は除く
+        if len(rv) == len(tot) + 1 and re.fullmatch(r"[-―－]", rv[0]):
+            rv = rv[1:]
+        v = _num(rv[cur]) if cur < len(rv) else None
+        pv = _num(rv[prior]) if prior is not None and prior < len(rv) else None
+        return {"name": name, "sales": None if v is None else v * unit,
+                "sales_prior": None if pv is None else pv * unit, "sub": bool(re.search(r"小計|計$", name)),
+                "adj": bool(_META.search(name))}
     for name in names:
         base = name.split("・")[-1]
         j = next((j for j in range(pos, ti) if len(rows[j][1]) > max(cur, prior or 0)
@@ -259,18 +362,29 @@ def _pdf_table(rows: list, ti: int, tpl: dict) -> dict | None:
         if j is None:
             continue
         pos = j + 1
-        v = _num(rows[j][1][cur])
-        pv = _num(rows[j][1][prior]) if prior is not None else None
-        items.append({"name": name, "sales": None if v is None else v * unit,
-                      "sales_prior": None if pv is None else pv * unit, "sub": bool(re.search(r"小計|計$", name)),
-                      "adj": bool(_META.search(name))})
+        used.append(j)
+        items.append(item(name, rows[j][1]))
     tv = _num(tot[cur])
     if sum(not i["adj"] for i in items) < 2:
         return None
+    if strict and any(re.search(r"外部顧客", i["name"]) and i["sales"] is not None and abs(i["sales"] - tv * unit) > unit * 2
+                      for i in items):
+        return None
+    if not _check_sum([dict(i) for i in items], tv * unit, unit) and used:
+        # 品目名が前の期と違う行(「物品販売(EC)」と今回の「物品販売(EC事業)」、9890)は名前では当たらない:
+        # 当たった品目の間・合計の行の直前までの当たらなかった行を短信の名前のまま足して、ちょうど合計になるときだけ使う
+        extra = [j for j in range(used[0], ti) if j not in used and len(rows[j][1]) > max(cur, prior or 0)
+                 and not _TOTAL.fullmatch(rows[j][0]) and not _META.search(rows[j][0])]
+        if 0 < len(extra) <= 2:
+            trial = sorted([(j, it) for j, it in zip(used, items)] + [(j, item(rows[j][0], rows[j][1])) for j in extra],
+                           key=lambda x: x[0])
+            cand = [it for _, it in trial]
+            if _check_sum([dict(i) for i in cand], tv * unit, unit):
+                items = cand
     if not _check_sum(items, tv * unit, unit):
         # 折り返して読めなかった調整の行(「…セグメント間取引消去」など)があるときは、いちばん大きい小計(セグメント計)と照合
         subs = [i["sales"] for i in items if i["sub"] and i["sales"] is not None]
-        if not (subs and len(items) < len(names) and _check_sum(items, max(subs), unit)):
+        if strict or not (subs and len(items) < len(names) and _check_sum(items, max(subs), unit)):
             return None
     tp = _num(tot[prior]) if prior is not None else None
     return {"items": items, "total": {"sales": tv * unit, "sales_prior": None if tp is None else tp * unit},
