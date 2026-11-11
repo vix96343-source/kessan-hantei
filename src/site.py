@@ -568,6 +568,12 @@ def segment_numbers(rec: dict | None, past: list[dict], main: dict | None, ords:
                 if p is None:
                     p = single(_ym_shift(ym, -12), k, f)
                 row[f] = {"v": sc(v), "yoy": _growth(v, p), "qoq": _growth(v, single(_ym_shift(ym, -3), k, f))}
+            if row["sales"]["v"] is None and row["op"]["v"] is None and ym == end:
+                # 前の四半期のセグメントが無く3か月にできない今回分は、短信の累計をそのまま出す(表ごと消さない)
+                x = seg_at(ym, k)
+                row["cum"] = True
+                for f in ("sales", "op"):
+                    row[f] = {"v": sc(x.get(f)), "yoy": _growth(x.get(f), x.get(f"{f}_prior")), "qoq": None}
             if row["sales"]["v"] is not None or row["op"]["v"] is not None:
                 out.append(row)
         return out
