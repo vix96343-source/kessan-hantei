@@ -1,4 +1,5 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261111572625,2026-11-11T09:50,2974,大英産業,2026年９月期通期連結業績予想の修正に関するお知らせ,forecast_revision,False,down,OperatingIncome,-30.9,CurrentYearDuration,"{""NetSales"": -9.9, ""OperatingIncome"": -30.9, ""OrdinaryIncome"": -42.0, ""ProfitAttributableToOwnersOfParent"": -43.0}",https://www.release.tdnet.info/inbs/140120261111572625.pdf,https://www.release.tdnet.info/inbs/091220261111572625.zip,福,2026-11-11T09:50
 140120261110571979,2026-11-10T20:00,6794,フォスター電,期末配当予想の修正に関するお知らせ,dividend_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261110571979.pdf,,東,2026-11-10T20:00
 140120261110571924,2026-11-10T20:00,6794,フォスター電,2027年3月期第2四半期（中間期）決算説明会,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261110571924.pdf,,東,2026-11-10T20:00
 140120261110571634,2026-11-10T20:00,6794,フォスター電,2027年３月期 第２四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261110571634.pdf,https://www.release.tdnet.info/inbs/081220261110571634.zip,東,2026-11-10T20:00
