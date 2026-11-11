@@ -226,3 +226,16 @@ def test_orders_narrative_with_clause_or_change_amount_before_value():
     assert (x["total"]["orders"], x["total"]["orders_yoy"]) == (16582e6, -13.0)
     html = """<p>受注高は増加し、売上高は19,703百万円となりました。</p>"""        # 金額は売上の話
     assert parse_narrative(html, []) is None
+
+
+def test_orders_narrative_change_amounts_are_not_values():
+    from src.orders import parse_narrative
+    html = """<p>受注高につきましては、国内生産施設、物流倉庫などの受注により、前年同期比1,167百万円（5.0%）増加の24,359百万円となりました。</p>"""
+    x = parse_narrative(html, [])
+    assert (x["total"]["orders"], x["total"]["orders_yoy"]) == (24359e6, 5.0)
+    html = """<p>この結果、受注残高は期首比3,432百万円増の6,797百万円となりました。</p>"""
+    x = parse_narrative(html, [])
+    assert x is None or x["total"]["backlog"] in (None, 6797e6)
+    html = """<p>当社個別の受注高につきましては、堅調な官庁・民間工事の受注により、前年同期より461億円増加し、1,719億円（同36.6％増）と順調に推移しています。</p>"""
+    x = parse_narrative(html, [])
+    assert x is None or x["total"]["orders"] in (None, 171900e6)
