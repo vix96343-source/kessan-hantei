@@ -346,11 +346,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
     const cumOf = e => (list.map(h => at(h, e)).find(x => x) || {}).cum;
     const lab = e => `${e.slice(2, 4)}/${+e.slice(5, 7)}${qOf(e)}Q${cumOf(e) ? '累計' : ''}`;
     const cell = (h, e, f) => { const x = at(h, e); const v = x && x[f] ? x[f].v : null;
-      // 数値は YoY と QoQ がプラス(片方しか無ければその片方)のときだけ緑、ほかは白(2026-11-11 ユーザー指示)
-      const g = x && x[f] ? [x[f].yoy, x[f].qoq].filter(p => p != null) : [];
-      // YoY と QoQ がプラスなら緑、マイナスなら赤、プラスとマイナスが混ざれば白
-      const cls = v == null || !g.length ? '' : g.every(p => p > 0) ? ' p' : g.every(p => p < 0) ? ' m' : '';
-      return `<td class="n${cls}">${v0(v)}</td>`; };
+      return `<td class="n">${v0(v)}</td>`; };   // 数値に色はつけない(色は%のYoY・QoQだけ。2026-11-11 ユーザー指示)
     const hasOp = list.some(h => h.rows.some(x => x.op && x.op.v != null));
     // 数値のあとに | (単体の表と同じ形。2026-11-11 ユーザー指示)
     const sep = i => i < sorted.length - 1 ? '<td class="sep">|</td>' : '';
