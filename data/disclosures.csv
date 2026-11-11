@@ -1,4 +1,7 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261111572782,2026-11-11T10:40,5076,インフロニアＨＤ,2027年３月期第２四半期（中間期）決算短信〔ＩＦＲＳ〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261111572782.pdf,https://www.release.tdnet.info/inbs/081220261111572782.zip,東,2026-11-11T10:40
+140120261105566512,2026-11-11T10:40,5076,インフロニアＨＤ,2027年３月期第２四半期　決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261105566512.pdf,,東,2026-11-11T10:40
+140120261105566474,2026-11-11T10:40,5076,インフロニアＨＤ,連結業績予想の修正に関するお知らせ,forecast_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261105566474.pdf,,東,2026-11-11T10:40
 140120261111572600,2026-11-11T10:00,9005,東急,2027年３月期 第２四半期 決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261111572600.pdf,,東,2026-11-11T10:00
 140120261111572625,2026-11-11T09:50,2974,大英産業,2026年９月期通期連結業績予想の修正に関するお知らせ,forecast_revision,False,down,OperatingIncome,-30.9,CurrentYearDuration,"{""NetSales"": -9.9, ""OperatingIncome"": -30.9, ""OrdinaryIncome"": -42.0, ""ProfitAttributableToOwnersOfParent"": -43.0}",https://www.release.tdnet.info/inbs/140120261111572625.pdf,https://www.release.tdnet.info/inbs/091220261111572625.zip,福,2026-11-11T09:50
 140120261110571979,2026-11-10T20:00,6794,フォスター電,期末配当予想の修正に関するお知らせ,dividend_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261110571979.pdf,,東,2026-11-10T20:00
