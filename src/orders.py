@@ -153,7 +153,7 @@ def _unit(table, header_text: str) -> float | None:
     return _UNITS[m.group(1)] if m else None
 
 
-def parse_table(table) -> tuple[list[dict], float | None, dict | None]:
+def parse_table(table, ctx: str | None = None) -> tuple[list[dict], float | None, dict | None]:
     """1つの表から事実のリスト [{seg, metric, period, ...}]・単位(円/単位)・表の形(前の期の PDF を読むのに使う)を返す。"""
     grid = _grid(table)
     if not grid:
@@ -167,11 +167,11 @@ def parse_table(table) -> tuple[list[dict], float | None, dict | None]:
                            if _num(c) is not None})
     parents = _parents(grid, is_data, numeric_cols)
     data = [row for i, row in enumerate(grid) if is_data[i]]
-    facts, header_text = _grid_facts(grid[:first], data, numeric_cols, parents)
+    facts, header_text = _grid_facts(grid[:first], data, numeric_cols, parents, ctx)
     unit = _unit(table, header_text)
     label_cols = [j for j in range(width) if j not in numeric_cols]
     tpl = {"header": grid[:first], "width": width, "numeric_cols": numeric_cols, "unit": unit,
-           "rows": [[row[j] for j in label_cols] for row in data], "parents": parents}
+           "rows": [[row[j] for j in label_cols] for row in data], "parents": parents, "ctx": ctx}
     return facts, unit, tpl
 
 
@@ -198,7 +198,7 @@ def _parents(grid: list[list[str]], is_data: list[bool], numeric_cols: list[int]
 
 
 def _grid_facts(header: list[list[str]], data: list[list[str]], numeric_cols: list[int],
-                parents: list[str | None] | None = None) -> tuple[list[dict], str]:
+                parents: list[str | None] | None = None, ctx: str | None = None) -> tuple[list[dict], str]:
     """見出し行とデータ行から事実のリストを作る。返り値の2つ目は見出しの文字(単位探し用)。"""
     width = len(header[0]) if header else len(data[0])
     numeric_cols = set(numeric_cols)
@@ -261,7 +261,7 @@ def _grid_facts(header: list[list[str]], data: list[list[str]], numeric_cols: li
         for j, c in cols.items():
             if c["kind"] is None:
                 continue
-            metric = c["metric"] or row_metric
+            metric = c["metric"] or row_metric or ctx  # ctx: 表の外の見出し(「①受注高」の表)
             v = _num(row[j])
             if metric is None or v is None:
                 continue
@@ -391,15 +391,40 @@ def _yoy(s: dict, m: str, style: str) -> float | None:
     return round(raw - 100, 1) if style == "ratio" else raw
 
 
+def _heading_metric(table) -> str | None:
+    """表のすぐ上(前の表との間)の見出しが受注高・受注残高なら、その項目(orders / backlog)。
+    例: 「③その他 (1)セグメント別受注高・売上高・受注残高 ①受注高 (単位：百万円)」の直後の表 → orders"""
+    before = ""
+    for s in table.find_all_previous(string=True, limit=20):
+        if s.find_parent("table") is not None:
+            break                                      # 前の表まで戻ったら終わり
+        before = str(s) + before
+        if len(before) > 120:
+            break
+    b = re.sub(r"\s", "", before)[-60:]
+    hits = list(re.finditer(r"受注残高?|手持受注|受注高|受注実績|受注額", b))
+    if not hits:
+        return None
+    rest = b[hits[-1].end():]
+    if re.search(r"売上|販売|生産|出荷|完成", rest):  # 「受注高・売上高・受注残高」の題の後に「②売上高」が来るとき
+        return None
+    return _metric(hits[-1].group(0)) or ("orders" if "受注" in hits[-1].group(0) else None)
+
+
 def parse_qualitative(html: str, cum_sales: float | None = None) -> dict | None:
     """qualitative.htm 全体から受注の表を探して読む。無ければ None。"""
     soup = BeautifulSoup(html, "html.parser")
     facts, unit, tpls = [], None, []
     for t in soup.find_all("table"):
         text = t.get_text(" ", strip=True)
-        if "……" in text or len(text) > 6000 or not _TABLE_HINT.search(re.sub(r"\s", "", text)):
+        if "……" in text or len(text) > 6000:
             continue
-        f, u, tpl = parse_table(t)
+        ctx = None
+        if not _TABLE_HINT.search(re.sub(r"\s", "", text)):
+            ctx = _heading_metric(t)                   # 表の中に「受注」が無く、すぐ上の見出しが「①受注高」の表
+            if ctx is None:
+                continue
+        f, u, tpl = parse_table(t, ctx)
         if f:
             facts += f
             unit = unit or u
@@ -484,7 +509,7 @@ def parse_pdf_text(text: str, tpls: list[dict], unit: float | None = None) -> di
         par = tpl.get("parents") or []
         labels_of = {tuple(r): par[i] if i < len(par) else None for i, r in enumerate(tpl["rows"])}
         best_parents = [labels_of.get(tuple(row[j] for j in label_cols)) for row in best]
-        f, _ = _grid_facts(tpl["header"], best, ncols, best_parents)
+        f, _ = _grid_facts(tpl["header"], best, ncols, best_parents, tpl.get("ctx"))
         facts += f
         unit = unit or tpl["unit"]
     if not facts:
@@ -798,6 +823,33 @@ def _narr_value(text: str, words: str) -> tuple[float | None, float | None]:
     return v, y
 
 
+_KANJI_DIGIT = r"(?:\d+千)?(?:\d+百)?(?:\d+十)?\d*"
+_KANJI_AMT = re.compile(r"(\d[\d,]*)億(" + _KANJI_DIGIT + r")万円|(\d[\d,]*)億円|(?<![\d,億])((?:\d+千)(?:\d+百)?(?:\d+十)?\d*|\d+百(?:\d+十)?\d*)万円")
+
+
+def _man_part(s: str) -> int:
+    """「6千6百」→ 6600(万)。数字だけなら そのまま"""
+    n = 0
+    for v, u in re.findall(r"(\d+)([千百十]?)", s):
+        n += int(v) * {"千": 1000, "百": 100, "十": 10, "": 1}[u]
+    return n
+
+
+def _kanji_amounts(t: str) -> str:
+    """「800億6千6百万円」「299億3千万円」「9千万円」「2.2倍」を表の書き方(「80,066百万円」「120.0%増」)に直す"""
+    def amt(m):
+        if m.group(1) is not None:
+            man = int(m.group(1).replace(",", "")) * 10000 + _man_part(m.group(2))
+        elif m.group(3) is not None:
+            man = int(m.group(3).replace(",", "")) * 10000
+        else:
+            man = _man_part(m.group(4))
+        v = man / 100                                  # 百万円
+        return (f"{v:,.0f}" if v == int(v) else f"{v:,.2f}".rstrip("0")) + "百万円"
+    t = _KANJI_AMT.sub(amt, t)
+    return re.sub(r"(前年同期比|前期比|同)([\d.]+)倍", lambda m: f"{m.group(1)}{(float(m.group(2)) - 1) * 100:.1f}%増", t)
+
+
 def parse_narrative(html: str, names: list[str]) -> dict | None:
     """受注の表が無い短信の本文から、全体とセグメントごとの受注高・受注残高(繰越工事高)を読む。"""
     return parse_narrative_text(BeautifulSoup(html, "html.parser").get_text("\n"), names)
@@ -807,7 +859,7 @@ def parse_narrative_text(text: str, names: list[str]) -> dict | None:
     """短信の本文の文字(HTML または PDF)から受注高・受注残高を読む。
     セグメントは見出し(セグメント名だけの短い行)から次の見出しまで、全体は最初の見出しより前。"""
     import unicodedata
-    lines = [unicodedata.normalize("NFKC", re.sub(r"\s", "", l)) for l in text.split("\n")]
+    lines = [_kanji_amounts(unicodedata.normalize("NFKC", re.sub(r"\s", "", l))) for l in text.split("\n")]
     lines = [l for l in lines if l]
     keys = [(n, re.sub(r"\s|・", "", unicodedata.normalize("NFKC", n))) for n in names]
     heads = []

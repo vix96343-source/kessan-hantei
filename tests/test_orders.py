@@ -174,3 +174,43 @@ def test_orders_from_narrative_sentences():
     assert (x["total"]["orders"], x["total"]["orders_yoy"], x["total"]["backlog"]) == (37270e6, 50.4, 23359e6)
     assert [(s["name"], s["orders"], s["orders_yoy"], s["backlog"]) for s in x["segments"]] == \
         [("繊維機械事業", 31796e6, 52.2, None), ("工作機械関連事業", 5474e6, 41.1, 4221e6)]
+
+
+# 芝浦機械 2027年3月期2Q: 表の中に「受注」が無く、表のすぐ上の見出し「①受注高」「③受注残高」で項目が分かる
+SHIBAURA = """
+<p>（１）セグメント別受注高・売上高・受注残高</p><p>①　受注高</p><p>(単位：百万円)</p>
+<table><tr><td rowspan="2">セグメントの名称</td><td>前中間連結会計期間</td><td>当中間連結会計期間</td><td colspan="2">増減</td></tr>
+<tr><td>金額</td><td>金額</td><td>金額</td><td>比(％)</td></tr>
+<tr><td>成形機</td><td>31,475</td><td>44,882</td><td>13,407</td><td>42.6</td></tr>
+<tr><td>工作機械</td><td>13,355</td><td>29,930</td><td>16,574</td><td>124.1</td></tr>
+<tr><td>合計</td><td>49,224</td><td>80,066</td><td>30,842</td><td>62.7</td></tr></table>
+<p>②　売上高</p><p>(単位：百万円)</p>
+<table><tr><td rowspan="2">セグメントの名称</td><td>前中間連結会計期間</td><td>当中間連結会計期間</td><td colspan="2">増減</td></tr>
+<tr><td>金額</td><td>金額</td><td>金額</td><td>比(％)</td></tr>
+<tr><td>成形機</td><td>51,234</td><td>32,405</td><td>△18,829</td><td>△36.8</td></tr>
+<tr><td>合計</td><td>67,640</td><td>51,533</td><td>△16,106</td><td>△23.8</td></tr></table>
+<p>③　受注残高</p><p>(単位：百万円)</p>
+<table><tr><td rowspan="2">セグメントの名称</td><td>前中間連結会計期間</td><td>当中間連結会計期間</td><td colspan="2">増減</td></tr>
+<tr><td>金額</td><td>金額</td><td>金額</td><td>比(％)</td></tr>
+<tr><td>成形機</td><td>64,422</td><td>74,005</td><td>9,583</td><td>14.9</td></tr>
+<tr><td>工作機械</td><td>23,071</td><td>47,052</td><td>23,980</td><td>103.9</td></tr>
+<tr><td>合計</td><td>91,047</td><td>125,172</td><td>34,125</td><td>37.5</td></tr></table>
+"""
+
+
+def test_orders_table_titled_outside_the_table():
+    x = orders.parse_qualitative(SHIBAURA)
+    assert (x["total"]["orders"], x["total"]["orders_yoy"], x["total"]["backlog"]) == (80066e6, 62.7, 125172e6)
+    assert [(s["name"], s["orders"], s["backlog"]) for s in x["segments"]] == \
+        [("成形機", 44882e6, 74005e6), ("工作機械", 29930e6, 47052e6)]
+
+
+def test_orders_from_narrative_in_kanji_amounts():
+    from src.orders import parse_narrative
+    html = """<p>当中間連結会計期間の受注高は全セグメントで増加し、800億6千6百万円(前年同期比62.7％増、海外比率65.4％)となりました。</p>
+    <p>成形機事業</p><p>この結果、成形機事業全体の受注高は448億8千2百万円(前年同期比42.6％増)、営業損失は6億9千6百万円となりました。</p>
+    <p>工作機械事業</p><p>この結果、工作機械事業全体の受注高は299億3千万円(前年同期比2.2倍、海外比率52.7％)となりました。</p>"""
+    x = parse_narrative(html, ["成形機事業", "工作機械事業"])
+    assert x["total"]["orders"] is None or x["total"]["orders"] == 80066e6
+    assert [(s["name"], s["orders"], s["orders_yoy"]) for s in x["segments"]] == \
+        [("成形機事業", 44882e6, 42.6), ("工作機械事業", 29930e6, 120.0)]
