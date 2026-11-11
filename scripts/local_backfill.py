@@ -14,12 +14,12 @@ sys.path.insert(0, str(ROOT))
 
 import pandas as pd  # noqa: E402
 
-from src import announce_times, forecasts, ir_times, irdocs, judge, orders, segments, site  # noqa: E402
+from src import announce_times, breakdown, forecasts, ir_times, irdocs, judge, orders, segments, site  # noqa: E402
 from src.config import DATA_DIR, load_config  # noqa: E402
 
 LOG = ROOT / "data" / "cache" / "local_backfill.log"
 log = logging.getLogger("local_backfill")
-FILES = {"segments": segments, "orders": orders, "forecasts": forecasts}
+FILES = {"segments": segments, "orders": orders, "forecasts": forecasts, "breakdown": breakdown}
 
 
 def git(*args, check=True):
@@ -60,6 +60,11 @@ def main() -> int:
     git("reset", "-q", "--hard", "origin/main")
     before = snapshot()
     stats = {"segments": segments.backfill(cfg), "orders": orders.backfill(cfg)}
+    # 品目別などの内訳(部門別売上高など)の前の四半期。QoQ に要る(2026-11-11 まで手作業のスクリプトでしか動いていなかった)
+    try:
+        stats["breakdown"] = breakdown.backfill_history(cfg, depth=2)
+    except Exception as e:
+        log.warning("breakdown backfill 失敗: %s", e)
     # 判定(judge)用: 決算予定の銘柄の前回の短信(会社予想)。Actions の daily(20:05〜)の判定より前に足しておく
     try:
         t = judge.backfill_targets(cfg)
