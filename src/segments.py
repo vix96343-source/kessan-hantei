@@ -486,6 +486,15 @@ def _parse_pdf_text(text: str, tpl: dict) -> dict | None:
     lines = [l for l in text.splitlines() if l.strip()]
     blocks = []                                        # [(売上の行の値, 利益の行の値, 単位)]
     sales = ext = None
+
+    def head_above(i):                                 # 数値の行のすぐ上の、数値の無い行(5行まで)をつなげたもの
+        h = ""
+        for k in range(i - 1, max(i - 6, -1), -1):
+            if _pdf_row(lines[k], n) or re.search(r"\d,\d{3}|\d\s+\d", lines[k]):
+                break
+            h = _key(lines[k]) + h
+        return h
+
     cur_unit = unit
     for i, l in enumerate(lines):
         mu = re.search(r"単位\s*[:：]\s*(百万円|千円)", l)
@@ -517,8 +526,13 @@ def _parse_pdf_text(text: str, tpl: dict) -> dict | None:
                         # 見出しが折り返して数値の行に「(△)」「又は損失(△)」「失(△)」「利益」が残る形、
                         # 見出しと数値の間に「(注)1」の行がある形(上の2行に「セグメント利益…」か「…セグメント」)
                         ((not re.search(r"[^\s()（）△▲]", lab) or re.match(r"(又は)?(損失|利益)", lab) or len(lab) <= 6) and i > 0
-                         and any(re.search(r"セグメント(利益|損失)|セグメント$", _key(lines[k]))
-                                 for k in range(max(i - 2, 0), i) if not _pdf_row(lines[k], n)))):
+                         and (any(re.search(r"セグメント(利益|損失)|セグメント$", _key(lines[k]))
+                                  for k in range(max(i - 2, 0), i) if not _pdf_row(lines[k], n))
+                              # 見出しが「セグメント利益又」「はセグメント損失」「(△)」「(コア営業損益)」(三井化学)、
+                              # 「セグメント利」「益又は損失」「(△)」(イチネン)と折り返す形: 上の数値の無い行をつなげて見る。
+                              # 「セグメント」「間の内部売」「上高又は振」の行(セグメント間の売上)は利益ではない
+                              or (re.search(r"セグメント(利益|損失)", head_above(i) + lab)
+                                  and not re.search(r"内部|セグメント間|振替", head_above(i)))))):
             blocks.append((sales or ext, vals, cur_unit))   # 計の行が無い表は外部顧客の行
             sales = ext = None
     if not blocks:
