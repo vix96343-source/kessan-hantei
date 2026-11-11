@@ -952,7 +952,10 @@ def _narr_value(text: str, words: str) -> tuple[float | None, float | None]:
     # 説明をはさむ文の金額が増減額(「前年同期比1,167百万円…増加」「期首比3,432百万円増の」)なら読まない
     not_diff = r"(?<!比)(?<![^に]より)(?<![\d,，.])"   # 「前年同期より」は読まない、「…により12,136百万円」は読む
     after = r"(?![増減]|\([\d.]+%\)[増減])"
-    pats = [(words + r"(?:は|が|につきましては)、?" + _N_NUM + after + r"(?:\(" + _N_YOY + r")?", "snuyd"),
+    # 「受注残高は、2025年12月末の2,400億円から2026年９月末には3,280億円へ」: 「から」のあとの金額(DMG森精機)
+    frm = r"[^。]{0,30}?[\d,.]+(?:百万円|億円|千円)から[^。]{0,25}?(?<![\d,.])"
+    pats = [(words + r"(?:は|が|につきましては)、?" + frm + _N_NUM + r"(?:へ|に)", "snu"),
+            (words + r"(?:は|が|につきましては)、?" + _N_NUM + after + r"(?:\(" + _N_YOY + r")?", "snuyd"),
             (words + r"(?:は|が)、?" + _N_YOY + r"の" + _N_NUM, "ydsnu"),
             (words + r"(?:は|が|につきましては)、?(?:" + gap + r")?" + diff + _N_NUM, "ydsnu"),
             (words + r"(?:は|が|につきましては)、?(?:" + gap + r")?" + diff2 + _N_NUM, "ydsnu"),
@@ -966,7 +969,7 @@ def _narr_value(text: str, words: str) -> tuple[float | None, float | None]:
         return None, None
     m, order = best
     g = dict(zip(order, m.groups()))
-    sign, num, unit, yv, yd = g["s"], g["n"], g["u"], g["y"], g["d"]
+    sign, num, unit, yv, yd = g["s"], g["n"], g["u"], g.get("y"), g.get("d")
     v = float(num.replace(",", "")) * _N_UNITS[unit] * (-1 if sign else 1)
     y = None if yv is None else float(yv) * (-1 if yd.startswith("減") else 1)
     return v, y
