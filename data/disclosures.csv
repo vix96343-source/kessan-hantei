@@ -1,4 +1,6 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261111573297,2026-11-11T16:05,4258,Ｇ－網屋,2026年12月期第3四半期 決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261111573297.pdf,,東,2026-11-11T16:05
+140120261111573256,2026-11-11T16:05,4258,Ｇ－網屋,2026年12月期第３四半期決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261111573256.pdf,https://www.release.tdnet.info/inbs/081220261111573256.zip,東,2026-11-11T16:05
 140120261111573959,2026-11-11T16:00,9850,グルメ杵屋,2027年３月期通期連結業績予想及び配当予想の修正に関するお知らせ,forecast_dividend_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261111573959.pdf,,東,2026-11-11T16:00
 140120261111573935,2026-11-11T16:00,9850,グルメ杵屋,2027年３月期 第２四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261111573935.pdf,https://www.release.tdnet.info/inbs/081220261111573935.zip,東,2026-11-11T16:00
 140120261111573907,2026-11-11T16:00,3896,阿波製紙,2027年３月期中間期　決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261111573907.pdf,,東,2026-11-11T16:00
