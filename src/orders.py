@@ -741,7 +741,10 @@ def backfill(cfg: dict, data_dir: Path = DATA_DIR, session: RateLimitedSession |
     session = session or irbank.session_from_config(cfg)
     df = load(data_dir)
     arch = {a["disclosure_id"]: a for a in earnings.load_archive(data_dir).to_dict("records")}
-    have = {(r["code"], str(r["period_end"])[:7]) for r in df.to_dict("records") if r["period_end"]}
+    # 前に読めなかった(none)過去の期は、読み方を直したあとで1回だけ読み直す(だめなら none_retry で終わり)
+    retry = {(r["code"], str(r["period_end"])[:7]): r["disclosure_id"] for r in df.to_dict("records")
+             if r["period_end"] and r["status"] == "none" and str(r["disclosed_at"]).endswith("T00:00")}
+    have = {(r["code"], str(r["period_end"])[:7]) for r in df.to_dict("records") if r["period_end"]} - set(retry)
     latest: dict[str, dict] = {}
     for r in df[df["status"] == "ok"].sort_values("disclosed_at").to_dict("records"):
         a = arch.get(r["disclosure_id"])
@@ -769,7 +772,7 @@ def backfill(cfg: dict, data_dir: Path = DATA_DIR, session: RateLimitedSession |
             log.warning("受注の補完: IRBANK 一覧の取得失敗 %s: %s", code, e)
             continue
         for k, ym, nq in need:
-            did = next((i for i, q in ids if q == nq), None)      # その四半期の一番新しい短信
+            did = retry.get((code, ym)) or next((i for i, q in ids if q == nq), None)  # その四半期の一番新しい短信
             if did is None:
                 continue
             x = None
@@ -785,7 +788,8 @@ def backfill(cfg: dict, data_dir: Path = DATA_DIR, session: RateLimitedSession |
                 stats["ok"] += 1
             rows.append({"disclosure_id": did, "code": code,
                          "disclosed_at": f"{did[4:8]}-{did[8:10]}-{did[10:12]}T00:00",
-                         "n_q": str(nq), "period_end": ym, "status": "ok" if x else "none",
+                         "n_q": str(nq), "period_end": ym,
+                         "status": "ok" if x else ("none_retry" if (code, ym) in retry else "none"),
                          "data": json.dumps(x, ensure_ascii=False) if x else ""})
     if rows:
         new = pd.DataFrame(rows).reindex(columns=COLUMNS)
