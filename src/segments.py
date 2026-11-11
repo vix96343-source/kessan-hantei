@@ -565,7 +565,7 @@ def _parse_pdf_text(text: str, tpl: dict) -> dict | None:
         elif (lab.startswith("計") and len(lab) <= 3) or lab == "合計" or                 (re.fullmatch(r"売上(高|収益)|営業収益", lab) and not sales):
             sales = ext or vals
             ext = None
-        elif (sales or ext) and (re.match(r"セグメント(利益|損失)|営業(利益|損失)", lab) or
+        elif (sales or ext) and (re.match(r"セグメント(利益|損失)|営業(利益|損失)|事業(利益|損失)", lab) or
                         # 見出しが折り返して数値の行に「(△)」「又は損失(△)」「失(△)」「利益」が残る形、
                         # 見出しと数値の間に「(注)1」の行がある形(上の2行に「セグメント利益…」か「…セグメント」)
                         ((not re.search(r"[^\s()（）△▲]", lab) or re.match(r"(又は)?(損失|利益)|(グ|セグ)?メント(利益|損失)|失[(（]", lab) or len(lab) <= 6) and i > 0
