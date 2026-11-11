@@ -1,4 +1,5 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261107568334,2026-11-11T14:20,9643,中日興,令和９年３月期 第２四半期（中間期）決算短信〔日本基準〕（非連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261107568334.pdf,https://www.release.tdnet.info/inbs/081220261107568334.zip,名,2026-11-11T14:20
 140120261111573274,2026-11-11T14:00,7226,極東開,2027年３月期 第２四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261111573274.pdf,https://www.release.tdnet.info/inbs/081220261111573274.zip,東,2026-11-11T14:00
 140120261111573066,2026-11-11T14:00,2587,サントリーＢＦ,2026年度 第３四半期 決算説明会,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261111573066.pdf,,東,2026-11-11T14:00
 140120261111572947,2026-11-11T14:00,3683,サイバーリンクス,2026年12月期　第３四半期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261111572947.pdf,,東,2026-11-11T14:00
