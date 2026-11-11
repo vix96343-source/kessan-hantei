@@ -167,6 +167,16 @@ def parse_table(table, ctx: str | None = None) -> tuple[list[dict], float | None
                            if _num(c) is not None})
     parents = _parents(grid, is_data, numeric_cols)
     data = [row for i, row in enumerate(grid) if is_data[i]]
+    # 業績予想・受注予想の表(見出しが「予想数値」等で実績の列が無い)は読まない(東亜建設の通期個別受注予想を受注高と取り違えた)
+    head = re.sub(r"\s", "", " ".join(c for row in grid[:first] for c in row))
+    if re.search(r"予想|計画|見通し", head) and not re.search(r"実績", head):
+        return [], None, None
+    keep = [k for k, row in enumerate(data)            # 予想・計画の行も読まない
+            if not re.search(r"予想|計画", re.sub(r"\s", "", " ".join(row[j] for j in range(width) if j not in numeric_cols)))]
+    if len(keep) < len(data):                          # 「今期予想 | 前期実績」の表: 残る行は前の期の値なので表ごと読まない
+        return [], None, None
+    if not data:
+        return [], None, None
     facts, header_text = _grid_facts(grid[:first], data, numeric_cols, parents, ctx)
     if ctx:
         # 表の外の見出しで読む表は、同じ行・同じ期の値が2つ出たら読まない(年で分けた列・「民間/官公庁」が
@@ -240,12 +250,34 @@ def _grid_facts(header: list[list[str]], data: list[list[str]], numeric_cols: li
         cols[j] = {"kind": kind, "metric": metric, "period": period,
                    "growth_label": "増減率" in re.sub(r"\s", "", labels[j])}
 
+    # 行見出しが決算期の表(「2027年３月期中間会計期間 | 69,822 | 百万円 | 8.3 | ％」「2026年３月期… 」、松井建設):
+    # 新しい年の行が今回・古い年の行が前年、数値のすぐ右が「％」の列は前年比
+    def fy_of(row):
+        m = re.match(r"(\d{4})年\s*\d{1,2}\s*月期", re.sub(r"\s", "", next((row[j] for j in label_cols if row[j]), "")))
+        return int(m.group(1)) if m else None
+    years = [fy_of(r) for r in data]
+    year_rows = len(data) >= 2 and all(years) and len(set(years)) >= 2
     facts = []
     for ri, row in enumerate(data):
+        if year_rows:
+            for j, c in cols.items():
+                v = _num(row[j])
+                metric = c["metric"] or ctx
+                if v is None or metric is None:
+                    continue
+                pct = j + 1 < width and re.sub(r"\s", "", row[j + 1]) in ("%", "％")
+                if pct and years[ri] != max(years):
+                    continue                           # 前年の行の増減率は今回の YoY ではない
+                facts.append({"seg": "合計", "metric": metric, "period": "cur" if years[ri] == max(years) else "prior",
+                              "kind": "pct" if pct else "value", "value": v, "signed": _signed(row[j]),
+                              "growth_label": False, "group": False, "parent": None})
+            continue
         parent = parents[ri] if parents and ri < len(parents) else None
         names = []
         for j in label_cols:
-            if row[j] and (not names or names[-1] != row[j]):
+            # 「( 33.2 %)」のように括弧・%が別のセルの表(東亜建設)は、その括弧や%を行の名前にしない
+            if row[j] and (not names or names[-1] != row[j]) and \
+                    not re.fullmatch(r"[\s()（）%％]+|百万円|千円|億円", row[j]):
                 names.append(row[j])
         if not names or re.match(r"^[（(]", names[-1]):
             continue                                   # 「(非住宅物件等含む)」のような内数の行
@@ -454,7 +486,7 @@ def parse_qualitative(html: str, cum_sales: float | None = None) -> dict | None:
 
 # ---------------------------------------------------------------- 前の期の短信(PDF)
 
-_PDF_TOKEN = re.compile(r"^([△▲\-－−+＋]?[\d,，]+(\.\d+)?[%％]?([（(][^)）]*[)）])?|[－―\-—–‐]|[（(][^)）]*[)）])$")
+_PDF_TOKEN = re.compile(r"^([△▲\-－−+＋]?[\d,，]+(\.\d+)?(百万円|千円|億円)?[%％]?([（(][^)）]*[)）])?|[－―\-—–‐]|[（(][^)）]*[)）])$")
 
 
 def _plab(label: str) -> str:
@@ -462,23 +494,44 @@ def _plab(label: str) -> str:
     return re.sub(r"(第[1-4１-４]四半期|中間)(連結)?(累計|会計)?期間", "期間", label)
 
 
-def _pdf_row(line: str, label: str, n_values: int) -> list[str] | None:
-    """PDF の1行が「行見出し 数値 数値 …」で、見出しが label・数値の個数が n_values なら数値の文字を返す。"""
+def _undup(line: str) -> str:
+    """太字を重ね書きした PDF で同じ字が5回ずつ続く行(「受注高受注高…」「66666,,,,,33333」)を1回にする(大成建設の1Q)"""
+    if not re.search(r",{5}|([^\d\s,])\1{4}|(\S{2,4})\2{4}", line):
+        return line
+    line = re.sub(r"(\S{2,8}?)\1{4}", r"\1", line)
+    return re.sub(r"(.)\1{4}", r"\1", line)
+
+
+def _pdf_row(line: str, label: str, n_values: int, n_min: int | None = None,
+             groups: list[int] | None = None) -> list[str] | None:
+    """PDF の1行が「行見出し 数値 数値 …」で、見出しが label・数値の個数が n_values なら数値の文字を返す。
+    n_min: 今回の表の左の期間(当期の累計)の列の数。前の期の表は右の通期の列の数が違うことがあるので、
+    左の n_min 個だけ使い残りは空にする。
+    groups: 見出しの組(前期・当期・増減額・増減率)ごとの最初の列。今回の表で「金額・率」の2列だった組が
+    前の期の PDF で1つしか値が無い行(鹿島の「売上高 6,496 6,400 △95 △1.5」)は、組の最初の列に入れる"""
     toks = line.split()
     k = len(toks)
     while k > 0 and _PDF_TOKEN.match(toks[k - 1]):
         k -= 1
     if _plab(re.sub(r"\s", "", "".join(toks[:k]))) != _plab(label):
         return None
-    vals = [t for t in toks[k:] if not re.match(r"^[（(]", t)]     # 括弧書き(内数)は捨てる
+    vals = [re.sub(r"(百万円|千円|億円)", "", t) for t in toks[k:] if not re.match(r"^[（(]", t)]   # 括弧書き(内数)は捨てる
     if len(vals) != n_values:
-        return None
+        if groups and len(groups) < n_values and len(vals) == len(groups):
+            row = [""] * n_values
+            for g, v in zip(groups, vals):
+                row[g] = v
+            vals = row
+        elif not n_min or len(vals) < n_min + 1:
+            return None
+        else:
+            vals = vals[:n_min] + [""] * (n_values - n_min)
     return ["" if re.fullmatch(r"[－―\-—–‐]", v) else v for v in vals]
 
 
 def parse_pdf_text(text: str, tpls: list[dict], unit: float | None = None) -> dict | None:
     """前の期の短信 PDF の文字から、今回の短信と同じ形の受注の表を読む(会社の表の形は毎期ほぼ同じ)。"""
-    lines = [l for l in text.splitlines() if l.strip()]
+    lines = [_undup(l) for l in text.splitlines() if l.strip()]
     facts = []
     unit = None
     done = 0                                           # 前の表の最後の行(表は今回と同じ順に並ぶ)
@@ -490,18 +543,25 @@ def parse_pdf_text(text: str, tpls: list[dict], unit: float | None = None) -> di
         heads = [" ".join(dict.fromkeys(r[j] for r in tpl["header"] if j < len(r) and r[j])) for j in range(width)]
         money = [_col_kind(heads[j]) == "value" for j in ncols]
 
+        # 見出しの一番上が「中間会計期間 ×3、通期 ×5」のように期間ごとに分かれる表: 左の期間の列の数
+        top = [tpl["header"][0][j] if tpl["header"] and j < len(tpl["header"][0]) else "" for j in ncols]
+        n_min = next((k for k in range(1, len(top)) if top[k] != top[0]), None)             if top and re.search(r"期間|中間|四半期|累計", top[0]) else None
+
+        last = [tpl["header"][-1][j] if tpl["header"] and j < len(tpl["header"][-1]) else "" for j in ncols]
+        groups = [k for k in range(len(last)) if k == 0 or last[k] != last[k - 1]]
+
         def fits(vals):
-            return all(not (m and "." in v) for m, v in zip(money, vals))
+            return all(not (m and "." in v and not v.endswith(("%", "％"))) for m, v in zip(money, vals))
 
         def match_from(start):
             data, pos = [], start
             for labels in tpl["rows"]:
-                names = [n for n in labels if n]
+                names = [n for n in labels if n and re.sub(r"\s", "", n) not in ("%", "％", "百万円", "千円", "億円")]   # 単位だけの列は見出しでない
                 label = re.sub(r"\s", "", names[-1]) if names else ""
                 if not label:
                     continue
                 for i in range(pos, min(pos + 40, len(lines))):
-                    vals = _pdf_row(lines[i], label, len(ncols))
+                    vals = _pdf_row(lines[i], label, len(ncols), n_min, groups)
                     if vals is not None and fits(vals):
                         row = [""] * width
                         for j, n in zip(label_cols, labels):
@@ -515,14 +575,22 @@ def parse_pdf_text(text: str, tpls: list[dict], unit: float | None = None) -> di
 
         # 「受注」が出てくる行それぞれから探し、一番多く行が合ったものを採る
         # (目次・本文・生産実績の表に同じ行見出しがあっても、受注の表の見出しの後ろが一番よく合う)
-        best, best_end = [], done
+        best, best_end, cands = [], done, []
         # 表の左の見出しが縦書きで「受」「注」「高」と1字ずつの行になる形も(2026-11-11 ピーエス・コンストラクション)
+        # 表の1行目(売上高など)の行からも探す: 受注の行が表の下のほうにある表(鹿島の「ハイライト情報」)
+        first = next((re.sub(r"\s", "", [n for n in r if n][-1]) for r in tpl["rows"] if any(r)), None)
         for s in (i for i in range(done, len(lines))
                   if "受注" in (lines[i] + (lines[i + 1] if i + 1 < len(lines) and len(lines[i]) == 1 else "")).replace("受注損失", "")
-                  or "繰越工事" in lines[i]):
+                  or "繰越工事" in lines[i]
+                  or (first and _pdf_row(lines[i], first, len(ncols), n_min, groups) is not None)):
             data, end = match_from(s)
-            if len(data) > len(best):
+            cands.append((s, data, end))
+        # 一番多く合った数の 3/4 以上合う表のうち一番前のもの(連結の表の後ろに同じ形の個別の表がある会社。大成建設)
+        most = max((len(d) for _, d, _ in cands), default=0)
+        for _, data, end in cands:
+            if data and len(data) * 4 >= most * 3:
                 best, best_end = data, end
+                break
         if not best:
             continue
         done = best_end
