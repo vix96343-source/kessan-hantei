@@ -9,7 +9,7 @@ import hashlib
 import unicodedata
 import json
 import re
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader
@@ -135,7 +135,8 @@ def details(r: dict, feat: dict | None) -> list[list]:
 
 def pdf_links(r: dict, presentations: dict[str, list[dict]], ir_docs: dict[str, dict] | None = None,
               within_days: int = 14, manual: dict | None = None,
-              revisions: dict[str, list[dict]] | None = None) -> list[dict]:
+              revisions: dict[str, list[dict]] | None = None, prev_at: str | None = None,
+              revised_in_tanshin: bool = False) -> list[dict]:
     """行に並べるPDF。決算: 短信 + 決算説明資料(TDnet で短信と同日〜within_days日以内、最大2件。
     TDnet に無ければ各社IRサイトで見つけたもの)。修正: 修正。"""
     if r["kind"] != "earnings_report":
@@ -146,10 +147,16 @@ def pdf_links(r: dict, presentations: dict[str, list[dict]], ir_docs: dict[str, 
             if 0 <= (date.fromisoformat(p["disclosed_at"][:10]) - d0).days <= within_days]
     for i, p in enumerate(sorted(near, key=lambda p: p["disclosed_at"])[:2]):
         links.append({"label": "資料" if i == 0 else "資料2", "url": p["pdf_url"], "title": p["title"]})
-    # 同じ日に出た業績予想の修正・予想と実績の差異(短信・説明資料と同じように並べる)
-    revs = [{"label": "業績修正", "url": x["pdf_url"], "title": x["title"]}
+    # 前回の決算のあと〜この決算の日に出た業績予想の修正・予想と実績の差異(短信・説明資料と同じように並べる)。
+    # 前回の決算が手元に無ければ45日前から
+    day = r["disclosed_at"][:10]
+    since = prev_at[:10] if prev_at else (d0 - timedelta(days=45)).isoformat()
+    revs = [{"label": "業績修正", "url": x["pdf_url"], "title": f"{x['disclosed_at'][5:10].replace('-', '/')} {x['title']}"}
             for x in sorted((revisions or {}).get(r["code"], []), key=lambda x: x["disclosed_at"])
-            if x["disclosed_at"][:10] == r["disclosed_at"][:10] and x.get("pdf_url")]
+            if since < x["disclosed_at"][:10] <= day and x.get("pdf_url")]
+    if not revs and revised_in_tanshin:
+        # 別の開示を出さず、決算短信の中で業績予想を修正した会社(短信1ページ目「業績予想の修正の有無: 有」)
+        revs = [{"label": "業績修正短信", "url": r["pdf_url"], "title": "決算短信の中で業績予想を修正(別の開示なし)"}]
     m = manual or {}
     hand = m.get((r["code"], r["disclosed_at"][:10])) or m.get((r["code"], ""))
     if hand:                                        # 手で登録した資料を最優先
@@ -752,6 +759,14 @@ def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:
     manual = irdocs.load_manual(data_dir)
     # 日付なしの手動登録は、その会社の一番新しい決算にだけ付ける
     latest_earn = disc[disc["kind"] == "earnings_report"].groupby("code")["disclosed_at"].max().to_dict()
+    earn_days: dict[str, list[str]] = {}
+    for c, t in disc.loc[disc["kind"] == "earnings_report", ["code", "disclosed_at"]].itertuples(index=False):
+        earn_days.setdefault(c, []).append(t[:10])
+
+    def prev_earn(r):
+        """この決算より前の日に出た、同じ会社の一番新しい決算短信の日"""
+        xs = [t for t in earn_days.get(r["code"], []) if t < r["disclosed_at"][:10]]
+        return max(xs) if xs else None
     arch = {a["disclosure_id"]: a for a in earnings.load_archive(data_dir).to_dict("records")}
     hist = history.by_code(history.load(data_dir))
     revs = revisions.by_disclosure(data_dir)
@@ -816,7 +831,8 @@ def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:
                          r, presentations, ir_docs,
                          manual={k: v for k, v in manual.items()
                                  if k[1] or latest_earn.get(r["code"]) == r["disclosed_at"]},
-                         revisions=rev_docs),
+                         revisions=rev_docs, prev_at=prev_earn(r),
+                         revised_in_tanshin=str((f or {}).get("revised")) == "True"),
                      "title": r["title"],
                      "nums": quarter_numbers(arch.get(r["disclosure_id"]), before(r, hist.get(r["code"], [])))
                      if r["kind"] == "earnings_report" else revision_numbers(revs.get(r["disclosure_id"])),

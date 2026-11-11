@@ -69,8 +69,15 @@ def backfill(cfg: dict, targets: list[tuple[str, date]], have_snapshot: set[str]
         return {"targets": len(targets), "fetched": 0}
     client = client or irbank_api.Client(data_dir=data_dir)
     rows, n_docs = [], 0
+    # 断られた開示(403 など)は覚えて二度と取らない。続けて断られたらこの回はやめる
+    # (2026-11-11: 同じ403の開示を30分ごとに取り直し、1日の上限3,900回を使い切ってセグメントの補完が止まった)
+    bad_path = data_dir / "cache" / "irbank_forbidden.txt"
+    bad = set(bad_path.read_text(encoding="utf-8").split()) if bad_path.exists() else set()
+    fails, stop = 0, False
     fresh_after = (now_jst() - timedelta(days=20)).strftime("%Y-%m-%dT%H:%M")
     for code, ann in todo:
+        if stop:
+            break
         try:
             docs = irbank_api.earnings_reports(code, data_dir, fresh_after=fresh_after) or []
         except irbank_api.QuotaExceeded:
@@ -91,7 +98,7 @@ def backfill(cfg: dict, targets: list[tuple[str, date]], have_snapshot: set[str]
         picks = [d for d in tanshin if d["disclosed_at"] >= since]
         for d in picks:
             did = "1401" + d["doc_id"]
-            if did in have_ids:
+            if did in have_ids or d["doc_id"] in bad:
                 continue
             try:
                 r = client.get(f"disclosures/{d['doc_id']}", {"include": "xbrl_facts"}) or {}
@@ -100,13 +107,23 @@ def backfill(cfg: dict, targets: list[tuple[str, date]], have_snapshot: set[str]
                 break
             except Exception as e:                    # 1件の失敗で止めない
                 log.warning("IRBANK 開示取得失敗 %s %s: %s", code, d["doc_id"], e)
+                bad.add(d["doc_id"])
+                fails += 1
+                if fails >= 3:
+                    log.warning("IRBANK の開示が続けて取れないので、この回はやめる")
+                    stop = True
+                    break
                 continue
+            fails = 0
             n_docs += 1
             x = tdnet.parse_earnings_facts(r.get("xbrl_facts") or [])
             row = earnings_row(d["doc_id"], code, _jst(d["disclosed_at"]), x) if x and x.get("period_end") else None
             if row:
                 rows.append({**row, "fetched_at": at})
                 have_ids.add(did)
+    if bad:
+        bad_path.parent.mkdir(parents=True, exist_ok=True)
+        bad_path.write_text("\n".join(sorted(bad)), encoding="utf-8")
     if rows:
         new = pd.DataFrame(rows).reindex(columns=COLUMNS)
         out = pd.concat([df[~df["disclosure_id"].isin(new["disclosure_id"])], new])
