@@ -212,7 +212,7 @@ def _xbrl_disagrees(xs: list[dict], ts: list[dict]) -> bool:
     # 表にしかないセグメントがあり(XBRL のタグ漏れ)、かつ両方にあるセグメントの売上が1つ以上ぴったり同じ
     # (単位・売上の基準が同じ表を読めている証拠)ときだけ表を使う。利益だけの違いでは替えない(表の行の取り違えがありうる)
     # 表の読み取りのごみ(「合計(注1)」「連結財務諸表」「当中間連結会計期間(…)車載部品事業」「シューズ事業2,991,576-」)は数えない
-    junk = r"その他|調整|計|連結|期間|注|\d"
+    junk = r"その他|調整|計|連結|期間|注|全社|消去|\d"
     more = len([t for t in ts if not re.search(junk, t["name"])]) > \
         len([x for x in xs if not re.search(junk, x["name"])])
     same = any(x.get("sales") is not None and t.get("sales") is not None and abs(x["sales"] - t["sales"]) < 1.01e6
