@@ -65,6 +65,7 @@ def _num(text: str) -> float | None:
     """'1,234' '△5.2' '＋101.1' '219.2％' '50,163 (45,839)' → 数値。'－' や文字は None。"""
     t = re.sub(r"\s", "", text)
     t = re.sub(r"[（(][^)）]*[)）]$", "", t)          # 後ろの括弧書き(単体の内数など)は捨てる
+    t = re.sub(r"(百万円|千円|億円)$", "", t)          # 「48,926百万円」(松井建設・東鉄工業など)
     if not t or not _NUM.match(t):
         return None
     v = float(re.sub(r"[^\d.]", "", t))
@@ -169,13 +170,16 @@ def parse_table(table, ctx: str | None = None) -> tuple[list[dict], float | None
     data = [row for i, row in enumerate(grid) if is_data[i]]
     # 業績予想・受注予想の表(見出しが「予想数値」等で実績の列が無い)は読まない(東亜建設の通期個別受注予想を受注高と取り違えた)
     head = re.sub(r"\s", "", " ".join(c for row in grid[:first] for c in row))
-    if re.search(r"予想|計画|見通し", head) and not re.search(r"実績", head):
+    if re.search(r"予想|計画|見通し", head) and not re.search(r"実績|当|中間|四半期|累計", head):
         return [], None, None
     keep = [k for k, row in enumerate(data)            # 予想・計画の行も読まない
             if not re.search(r"予想|計画", re.sub(r"\s", "", " ".join(row[j] for j in range(width) if j not in numeric_cols)))]
     if len(keep) < len(data):                          # 「今期予想 | 前期実績」の表: 残る行は前の期の値なので表ごと読まない
         return [], None, None
     if not data:
+        return [], None, None
+    if ctx and any(re.search(r"資産|負債|自己資本|有利子|キャッシュ|利益|損失|売上|収益", re.sub(r"\s", "", row[0]))
+                   for row in data if row and row[0]):
         return [], None, None
     facts, header_text = _grid_facts(grid[:first], data, numeric_cols, parents, ctx)
     if ctx:
@@ -237,6 +241,9 @@ def _grid_facts(header: list[list[str]], data: list[list[str]], numeric_cols: li
         not re.search(r"当(第|中間)", re.sub(r"\s", "", all_header))
     cols = {}
     last_metric = None
+    col_fy = {j: int(m.group(1)) for j in numeric_cols
+              for m in [re.search(r"(\d{4})年\d{1,2}月期", re.sub(r"\s", "", labels[j]))] if m}
+    fy_cols = len(set(col_fy.values())) >= 2
     for j in sorted(numeric_cols):
         kind = _col_kind(labels[j])
         metric = _metric(labels[j])
@@ -247,6 +254,8 @@ def _grid_facts(header: list[list[str]], data: list[list[str]], numeric_cols: li
         period = _period(labels[j]) if kind == "value" else "cur"
         if period == "fy" and annual:
             period = "prior"
+        if fy_cols and kind == "value" and j in col_fy:
+            period = "cur" if col_fy[j] == max(col_fy.values()) else "prior"
         cols[j] = {"kind": kind, "metric": metric, "period": period,
                    "growth_label": "増減率" in re.sub(r"\s", "", labels[j])}
 
@@ -256,19 +265,24 @@ def _grid_facts(header: list[list[str]], data: list[list[str]], numeric_cols: li
         m = re.match(r"(\d{4})年\s*\d{1,2}\s*月期", re.sub(r"\s", "", next((row[j] for j in label_cols if row[j]), "")))
         return int(m.group(1)) if m else None
     years = [fy_of(r) for r in data]
-    year_rows = len(data) >= 2 and all(years) and len(set(years)) >= 2
+    diff_row = lambda r: re.search(r"増減|比較|前年比|前期比", re.sub(r"\s", "", " ".join(r[j] for j in label_cols)))
+    year_rows = sum(1 for y in years if y) >= 2 and len({y for y in years if y}) >= 2 and \
+        all(y or diff_row(r) for y, r in zip(years, data))
     facts = []
     for ri, row in enumerate(data):
         if year_rows:
+            if not years[ri]:
+                continue                               # 増減額・増減率の行
             for j, c in cols.items():
                 v = _num(row[j])
                 metric = c["metric"] or ctx
                 if v is None or metric is None:
                     continue
-                pct = j + 1 < width and re.sub(r"\s", "", row[j + 1]) in ("%", "％")
-                if pct and years[ri] != max(years):
+                pct = re.sub(r"\s", "", row[j]).endswith(("%", "％")) or \
+                    (j + 1 < width and re.sub(r"\s", "", row[j + 1]) in ("%", "％"))
+                if pct and years[ri] != max(y for y in years if y):
                     continue                           # 前年の行の増減率は今回の YoY ではない
-                facts.append({"seg": "合計", "metric": metric, "period": "cur" if years[ri] == max(years) else "prior",
+                facts.append({"seg": "合計", "metric": metric, "period": "cur" if years[ri] == max(y for y in years if y) else "prior",
                               "kind": "pct" if pct else "value", "value": v, "signed": _signed(row[j]),
                               "growth_label": False, "group": False, "parent": None})
             continue
@@ -335,7 +349,12 @@ def _assemble(facts: list[dict], unit: float) -> dict | None:
         if f.get("parent"):
             s["parent"] = f["parent"]
         if f["kind"] == "value":
-            s.setdefault(f"{f['metric']}_{f['period']}", f["value"] * unit)
+            key = f"{f['metric']}_{f['period']}"
+            # 合計が2つの表に出るとき(事業ごとの内訳の表の「合計」と会社全体の表の「合計」、日本製鋼所)は大きいほう
+            if _TOTAL.match(k) and key in s and f.get("tbl") is not None and s.get(key + "_tbl") not in (None, f["tbl"])                     and abs(f["value"] * unit) > abs(s[key]):
+                s[key], s[key + "_tbl"] = f["value"] * unit, f["tbl"]   # 別の表の合計のほうが大きい
+            if key not in s:
+                s[key], s[key + "_tbl"] = f["value"] * unit, f.get("tbl")
         else:
             s.setdefault(f"{f['metric']}_raw", f["value"])
             s[f"{f['metric']}_signed"] = s.get(f"{f['metric']}_signed", False) or f["signed"]
@@ -465,13 +484,22 @@ def parse_qualitative(html: str, cum_sales: float | None = None) -> dict | None:
         if "……" in text or len(text) > 6000:
             continue
         ctx = None
-        if not _TABLE_HINT.search(re.sub(r"\s", "", text)):
+        g0 = _grid(t)
+        title = re.sub(r"\s", "", g0[0][0]) if g0 and g0[0] else ""
+        if title and all(not c.strip() or "単位" in c or c == g0[0][0] for c in g0[0]):
+            if re.fullmatch(r"[①-⑩0-9０-９().（）]*(売上|販売|生産|完成)\S{0,6}", title):
+                continue                                   # 売上・生産の表
+            if re.fullmatch(r"[①-⑩0-9０-９().（）]*(受注残高?|繰越\S{0,4})", title):
+                ctx = "backlog"
+            elif re.fullmatch(r"[①-⑩0-9０-９().（）]*受注(高|実績|額)?", title):
+                ctx = "orders"
+        if ctx is None and not _TABLE_HINT.search(re.sub(r"\s", "", text)):
             ctx = _heading_metric(t)                   # 表の中に「受注」が無く、すぐ上の見出しが「①受注高」の表
             if ctx is None:
                 continue
         f, u, tpl = parse_table(t, ctx)
         if f:
-            facts += f
+            facts += [{**x, "tbl": len(tpls)} for x in f]   # どの表の値か(合計が2つの表に出る会社用)
             unit = unit or u
             tpls.append(tpl)
     if not facts:
@@ -922,7 +950,7 @@ def _narr_value(text: str, words: str) -> tuple[float | None, float | None]:
     # 「前年同期比1,167百万円(5.0%)増加の24,359百万円」
     diff2 = r"(?:前年同期比|前年同四半期比|前年同中間期比)[\d,.]+(?:百万円|億円|千円)\(([\d.]+)%\)(増加|減少)の"
     # 説明をはさむ文の金額が増減額(「前年同期比1,167百万円…増加」「期首比3,432百万円増の」)なら読まない
-    not_diff = r"(?<!比)(?<!より)"
+    not_diff = r"(?<!比)(?<![^に]より)(?<![\d,，.])"   # 「前年同期より」は読まない、「…により12,136百万円」は読む
     after = r"(?![増減]|\([\d.]+%\)[増減])"
     pats = [(words + r"(?:は|が|につきましては)、?" + _N_NUM + after + r"(?:\(" + _N_YOY + r")?", "snuyd"),
             (words + r"(?:は|が)、?" + _N_YOY + r"の" + _N_NUM, "ydsnu"),

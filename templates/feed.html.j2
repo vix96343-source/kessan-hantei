@@ -128,7 +128,6 @@ table.fin td.lab { color: var(--warn); }
 .dcol .fincap { white-space: normal; }
 .dcol:empty { display: none; }
 .dcol.sgrid { display: grid; gap: 4px 32px; align-items: start; width: auto; min-width: 0; }
-.dcol.sgrid > div { min-width: 0; overflow-x: auto; }   /* 1つの表が残りの幅より広いときだけ、その表を横スクロール */
 .dcol.sgrid.stack { grid-template-columns: minmax(0, max-content) !important; flex: 1 1 0; }
 .dcol.sgrid.stack > div:nth-child(1) { order: 1; } .dcol.sgrid.stack > div:nth-child(3) { order: 2; }
 .dcol.sgrid.stack > div:nth-child(2) { order: 3; } .dcol.sgrid.stack > div:nth-child(4) { order: 4; }
