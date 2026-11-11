@@ -165,6 +165,12 @@ def parse_zip(zip_bytes: bytes) -> dict | None:
         segs.append({"name": name, "sales": s, "sales_prior": sp, "op": p, "op_prior": pp})
     if len(segs) < 2:
         return parse_table_html(html, qtext)            # 表に XBRL のタグが付いていない短信は表そのものを読む
+    # XBRL のタグと短信の表そのものを照らす。表にあるセグメントが XBRL に無い、または同じ名前の利益が違うときは表を使う
+    # (2026-11-11 ハーモニック: XBRL に北米が無く、欧州のタグに北米の値・中国のタグに欧州の値が付いていた)
+    tbl = parse_table_html(html, qtext)
+    if tbl and consistent(tbl) and _xbrl_disagrees(segs, tbl["segments"]):
+        log.info("セグメント: XBRL のタグが表と合わないので表を使う %s", [s["name"] for s in tbl["segments"]])
+        return tbl
     # 合計は短信の表の一番右の列の値そのまま(足し算はしない。各セグメントの端数があるので足すと1ずれる):
     # 連結(四半期)財務諸表計上額(メンバー無しの文脈) → 無ければ合計(報告セグメント+その他) → 計
     total = None
@@ -187,6 +193,25 @@ def parse_zip(zip_bytes: bytes) -> dict | None:
         tpl["basis"] = out["basis"]                    # 前の期の PDF も同じ基準で読む
         out["tpl"] = tpl                               # 前の期の短信(PDF)のセグメント表を読むための形
     return out
+
+
+def _xbrl_disagrees(xs: list[dict], ts: list[dict]) -> bool:
+    """XBRL から読んだセグメント xs と表から読んだ ts が食い違うか。XBRL の名前が全部表にあり(名前が合わなければ
+    比べようがないので False)、表のほうがセグメントが多いか、同じ名前の利益が1百万円より大きく違えば True"""
+    tk = {_key(t["name"]): t for t in ts}
+
+    def find(name):
+        k = _key(name)
+        if k in tk:
+            return tk[k]
+        hits = [t for n, t in tk.items() if k and n and (k in n or n in k)]
+        return hits[0] if len(hits) == 1 else None
+    pairs = [(x, find(x["name"])) for x in xs]
+    if any(t is None for _, t in pairs):
+        return False
+    if len(ts) > len(xs):
+        return True
+    return any(x.get("op") is not None and t.get("op") is not None and abs(x["op"] - t["op"]) > 1.01e6 for x, t in pairs)
 
 
 def parse_table_html(html: str, qtext: str = "") -> dict | None:
