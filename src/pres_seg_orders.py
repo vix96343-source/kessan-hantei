@@ -340,7 +340,7 @@ def _texts_local(data_dir: Path):
         by.setdefault(p["code"], []).append((p["disclosed_at"][:10], p["disclosure_id"][4:]))
 
     def texts_for(code, date):
-        hi = (pd.Timestamp(date) + pd.Timedelta(days=3)).strftime("%Y-%m-%d")
+        hi = (pd.Timestamp(date) + pd.Timedelta(days=30)).strftime("%Y-%m-%d")   # 説明会の資料は数週間後のことも(合計が短信と一致するもので期を確かめる)
         out = []
         for dt, doc in sorted(set(by.get(code, []))):
             if not date <= dt <= hi:
