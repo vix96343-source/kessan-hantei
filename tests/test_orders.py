@@ -264,3 +264,14 @@ def test_rows_by_fiscal_year():
     f, _ = orders._grid_facts(header, data, [1, 3], [None, None], None)
     t = orders._assemble(f, 1e6)["total"]
     assert (t["orders"], t["orders_prior"], t["orders_yoy"]) == (69822e6, 65671e6, 6.3)
+
+
+def test_balance_sheet_after_backlog_sentence():
+    # 文の中の「受注残」の直後にある財政状態の表(流動資産・負債…の期末残高)を受注残と読まない(3768)
+    html = ("<html><body><p>中国における信用調査レポートの受注残の納品が進んだこと等から、増収増益となりました。</p>"
+            "<p>（２）当中間期の財政状態の概況</p><table>"
+            "<tr><td></td><td>前連結会計年度</td><td>当中間連結会計期間</td></tr>"
+            "<tr><td>流動資産（千円）</td><td>2,351,162</td><td>2,254,155</td></tr>"
+            "<tr><td>固定資産（千円）</td><td>4,630,544</td><td>5,136,887</td></tr>"
+            "<tr><td>資産合計（千円）</td><td>6,981,706</td><td>7,391,043</td></tr></table></body></html>")
+    assert orders.parse_qualitative(html) is None

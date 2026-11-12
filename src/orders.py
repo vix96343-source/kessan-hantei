@@ -535,6 +535,9 @@ def _heading_metric(table) -> str | None:
     if not hits:
         return None
     rest = b[hits[-1].end():]
+    # 文の中の「受注残」(「…受注残の納品が進んだこと等から、増収増益となりました。（２）財政状態の概況」、3768)は見出しではない
+    if "。" in rest or re.search(r"財政|資産|負債|キャッシュ", rest):
+        return None
     if re.search(r"売上|販売|生産|出荷|完成", rest):  # 「受注高・売上高・受注残高」の題の後に「②売上高」が来るとき
         return None
     return _metric(hits[-1].group(0)) or ("orders" if "受注" in hits[-1].group(0) else None)
@@ -551,6 +554,8 @@ def parse_qualitative(html: str, cum_sales: float | None = None) -> dict | None:
         if "……" in text or len(text) > 6000:
             continue
         prev_grid = _grid(t)
+        if re.search(r"流動資産|資産合計|負債合計|純資産合計", re.sub(r"\s", "", text)):
+            continue                                   # 財政状態・貸借対照表の表(期末残高を受注残と取り違えない)
         ctx = None
         # すぐ上の見出しが「受注予想」「業績予想」「業績見込」の表は読まない(東急建設: 表の中に予想の字が無い通期個別受注予想の表、
         # テクノ菱和: 「連結業績見込は、次のとおり」の受注高 125,000百万円)
