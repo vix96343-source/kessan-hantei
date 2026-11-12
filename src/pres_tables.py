@@ -601,8 +601,15 @@ def update(cfg: dict, data_dir: Path = DATA_DIR) -> int:
         if resp is None:
             continue
         doc = p["disclosure_id"][4:]
-        m = collect(p["code"], [{"doc": doc, "date": p["disclosed_at"][:10], "content": resp.content}],
-                    reps[p["code"]], hq.get(p["code"], {}), lambda x: _pdf_text(x["content"]))
+        text = _pdf_text(resp.content)
+        try:                                           # セグメント別受注(pres_seg_orders)も同じ文字を使う
+            cache = PDF_DIR / "pres_text" / f"{doc}.txt"
+            cache.parent.mkdir(parents=True, exist_ok=True)
+            cache.write_text(text, encoding="utf-8")
+        except OSError:
+            pass
+        m = collect(p["code"], [{"doc": doc, "date": p["disclosed_at"][:10]}],
+                    reps[p["code"]], hq.get(p["code"], {}), lambda x: text)
         if m:
             prev = merged.get(p["code"])
             merged[p["code"]] = m if not prev else merge_tables([("0", _flat(prev)), ("1", _flat(m))]) | {
