@@ -1,4 +1,5 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261113577675,2026-11-13T08:55,9274,ＫＰＰグループＨＤ,2027年３月期第２四半期（中間期）決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261113577675.pdf,https://www.release.tdnet.info/inbs/081220261113577675.zip,東,2026-11-13T08:55
 140120261112575664,2026-11-13T08:30,7600,ＭＤＭ,2027年3月期 第2四半期（中間期）決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261112575664.pdf,,東,2026-11-13T08:30
 140120261112576474,2026-11-13T08:00,3556,Ｇ－リネットジャパン,通期連結業績予想と実績値との差異及び個別決算における前事業年度の実績値との差異に関するお知らせ,actual_vs_forecast,False,,,,,,https://www.release.tdnet.info/inbs/140120261112576474.pdf,,東名,2026-11-13T08:00
 140120261112576447,2026-11-13T08:00,3556,Ｇ－リネットジャパン,2026年9月期決算補足資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261112576447.pdf,,東名,2026-11-13T08:00
