@@ -14,7 +14,7 @@ from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader
 
-from . import announce_times, backtest, breakdown, calendar_fetch, consensus, disclosures, earnings, history, ir_times, irdocs, judge, market_caps, order_adjust, orders, reaction, revisions, segments, universe
+from . import announce_times, backtest, breakdown, fy_months, calendar_fetch, consensus, disclosures, earnings, history, ir_times, irdocs, judge, order_adjust, orders, reaction, revisions, segments, universe
 from .config import DATA_DIR, ROOT, now_jst
 
 DOCS_DIR = ROOT / "docs"
@@ -179,16 +179,53 @@ def _ym_shift(ym: str, months: int) -> str:
     return f"{i // 12}-{i % 12 + 1:02d}"
 
 
-def _period_name(end_ym: str, fy_month: int | None = None) -> str:
+def _fy_end_of(end_ym: str, fy_month: int | None = None, fy_points: dict | None = None) -> str | None:
+    """その四半期(期末の年月)の決算期末の年月。fy_points: その会社の {期末の年月: 決算期末の年月}(短信・受注の記録から)。
+    その四半期の記録があればその決算期で(決算期を変えた会社)、無ければ一番近い記録の決算月、それも無ければ fy_month。
+    決算月から3か月刻みでない期は None"""
+    fy = (fy_points or {}).get(end_ym)
+    if fy is None:
+        if fy_points:                                   # 記録があれば記録の決算月だけで決める(題名の月より確か)
+            near = min(fy_points, key=lambda e: abs((int(e[:4]) - int(end_ym[:4])) * 12 + int(e[5:7]) - int(end_ym[5:7])))
+            mon = int(fy_points[near][5:7])
+        else:
+            mon = fy_month
+        if not mon:
+            return None
+        k = (mon - int(end_ym[5:7])) % 12              # 期末まであと何か月
+        return _ym_shift(end_ym, k) if k % 3 == 0 else None
+    k = (int(fy[:4]) - int(end_ym[:4])) * 12 + int(fy[5:7]) - int(end_ym[5:7])
+    return fy if 0 <= k < 12 and k % 3 == 0 else None
+
+
+def _period_name(end_ym: str, fy_month: int | None = None, fy_points: dict | None = None) -> str:
     """'2026-06' -> 3月決算なら '27/3 1Q'(決算期の年/月と何Q)。決算月が分からないときは '26.04-06'(3ヵ月の期間)"""
-    if fy_month:
-        y, m = int(end_ym[:4]), int(end_ym[5:7])
-        k = (fy_month - m) % 12                        # 期末まであと何か月
-        if k % 3 == 0:
-            fy = _ym_shift(end_ym, k)
-            return f"{fy[2:4]}/{int(fy[5:7])} {4 - k // 3}Q"
+    fy = _fy_end_of(end_ym, fy_month, fy_points)
+    if fy is not None:
+        k = (int(fy[:4]) - int(end_ym[:4])) * 12 + int(fy[5:7]) - int(end_ym[5:7])
+        return f"{fy[2:4]}/{int(fy[5:7])} {4 - k // 3}Q"
     start = _ym_shift(end_ym, -2)
     return f"{start[2:4]}.{start[5:7]}-{end_ym[5:7]}"
+
+
+def _align_quarters(quarters: dict, fy_month: int | None, fy_points: dict | None) -> dict:
+    """四半期業績の過去分に、期末が決算の四半期とずれた行がある(キーエンス: 2026-06 と同じ値の 2026-05、リーガル: 1Q が 05)。
+    決算月が分かる会社は、ずれた行のとなり(±1か月)に正しい期末の行があればずれた行を捨て、無ければ正しい期末に移す"""
+    if not fy_month and not fy_points:
+        return quarters
+    out = {e: q for e, q in quarters.items() if _fy_end_of(e, fy_month, fy_points)}
+    vals = lambda q: tuple(q.get(f) for f in FIN_FIELDS)
+    for e, q in sorted(quarters.items()):
+        if e in out:
+            continue
+        if any(vals(out.get(_ym_shift(e, d), {})) == vals(q) for d in (-2, -1, 1, 2)):
+            continue                                    # 同じ値の正しい期末の行が近くにある(前澤HD: 2026-06 と 2026-08)
+        near = [x for x in (_ym_shift(e, -1), _ym_shift(e, 1)) if _fy_end_of(x, fy_month, fy_points)]
+        if len(near) != 1:
+            out[e] = q                                  # どこに寄せるか決まらないものはそのまま
+        elif near[0] not in out and near[0] not in quarters:
+            out[near[0]] = {**q, "end": near[0]}
+    return out
 
 
 def _yen(v) -> int | None:
@@ -208,9 +245,9 @@ def _man(v) -> int | None:
 
 
 def fin_panel(r: dict, arch: dict | None, hist: list[dict], n_quarters: int = 8,
-              shares: float | None = None, fy_month: int | None = None) -> dict | None:
+              shares: float | None = None, fy_month: int | None = None, fy_points: dict | None = None) -> dict | None:
     """行を開いたときの業績表。quarters: 直近の単独四半期、plan: 今期の累計実績と会社予想・進捗率(百万円)。"""
-    quarters = {q["end"]: dict(q) for q in hist}
+    quarters = _align_quarters({q["end"]: dict(q) for q in hist}, fy_month, fy_points)
     plan = None
     if arch:
         n_q, end = int(float(arch["n_q"])), str(arch["period_end"])[:7]
@@ -246,7 +283,7 @@ def fin_panel(r: dict, arch: dict | None, hist: list[dict], n_quarters: int = 8,
         b = quarters.get(_ym_shift(q["end"], -months)) or {}
         return _growth(q.get(f), b.get(f))
 
-    table = [{"label": _period_name(q["end"], fy_month), **{f: _man(q.get(f)) for f in FIN_FIELDS},
+    table = [{"label": _period_name(q["end"], fy_month, fy_points), **{f: _man(q.get(f)) for f in FIN_FIELDS},
               # YoY は前年の同じ四半期、QoQ は前の四半期と比べる(EPS は株数が同じなので純利益と同じ)
               **{f"{f}_yoy": growth_of(q, f, 12) for f in FIN_FIELDS},
               **{f"{f}_qoq": growth_of(q, f, 3) for f in FIN_FIELDS},
@@ -809,12 +846,6 @@ def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:
         xs = [t for t in earn_days.get(r["code"], []) if t < r["disclosed_at"][:10]]
         return max(xs) if xs else None
     arch = {a["disclosure_id"]: a for a in earnings.load_archive(data_dir).to_dict("records")}
-    fy_month = {}                                       # 会社 → 決算月(直近の短信の期末と何Qから)
-    for a in sorted(arch.values(), key=lambda a: str(a.get("period_end"))):
-        try:
-            fy_month[a["code"]] = int(_ym_shift(str(a["period_end"])[:7], 3 * (4 - int(float(a["n_q"]))))[5:7])
-        except (TypeError, ValueError):
-            pass
     hist = history.by_code(history.load(data_dir))
     revs = revisions.by_disclosure(data_dir)
     ords = orders.by_code(data_dir)
@@ -824,6 +855,21 @@ def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:
             if a and not o["period_end"]:
                 o["n_q"], o["period_end"] = a["n_q"], a["period_end"]
     ord_by_id = {o["disclosure_id"]: o for recs in ords.values() for o in recs}
+    # 四半期業績の表の決算期(「27/3 2Q」)のため: 会社 → {期末の年月: 決算期末の年月}(短信・受注の記録の期と何Qから)、
+    # 記録の無い会社は開示の題名の「2027年３月期」の月
+    fy_points: dict[str, dict[str, str]] = {}
+    for a in [*arch.values(), *(o for recs in ords.values() for o in recs)]:
+        try:
+            e, nq = str(a["period_end"])[:7], int(float(a["n_q"]))
+        except (TypeError, ValueError, KeyError):
+            continue
+        if re.fullmatch(r"\d{4}-\d{2}", e) and 1 <= nq <= 4:
+            fy_points.setdefault(a["code"], {})[e] = _ym_shift(e, 3 * (4 - nq))
+    fy_month = fy_months.load(data_dir)                # IRBANK から取った決算月(題名にも無い会社)
+    for t in all_disc.sort_values("disclosed_at").to_dict("records"):
+        m = fy_months.title_month(t["title"])
+        if m:
+            fy_month[t["code"]] = m
     ord_adj = order_adjust.load(data_dir)["adj"]
     segs = segments.by_code(data_dir)
     for recs in segs.values():
@@ -890,7 +936,8 @@ def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:
                      "fin": fin_panel(r, arch.get(r["disclosure_id"]) if r["kind"] == "earnings_report" else None,
                                       before(r, hist.get(r["code"], []), include_self=True)
                                       if r["kind"] == "earnings_report" else hist.get(r["code"], []),
-                                      shares=shares_at(r["code"], r["disclosed_at"]), fy_month=fy_month.get(r["code"])),
+                                      shares=shares_at(r["code"], r["disclosed_at"]), fy_month=fy_month.get(r["code"]),
+                                      fy_points=fy_points.get(r["code"])),
                      "pct": None if p is None else round(p * 100),
                      "up": p is not None and round(p * 100) > 50})
         rows[-1]["seg"] = segment_numbers(seg_by_id.get(r["disclosure_id"]),

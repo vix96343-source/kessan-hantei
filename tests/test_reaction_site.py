@@ -176,3 +176,29 @@ def test_revision_table_shows_all_periods():
     t = site.revision_table(rv)
     assert [(x["period"], x["main"]) for x in t] == [("中間期", True), ("通期", False)]
     assert t[0]["cur"][:2] == [24180, 1132] and t[0]["chg"][0] == -29.9
+
+
+def test_period_name_fiscal_quarter():
+    from src.site import _period_name
+    assert _period_name("2026-09", 3) == "27/3 2Q"
+    assert _period_name("2026-09", 12) == "26/12 3Q"
+    assert _period_name("2026-08", 2) == "27/2 2Q"
+    assert _period_name("2026-07", 3) == "26.05-07"            # 決算月から3か月刻みでない期はそのまま
+    # 決算期を変えた会社: その四半期の記録の決算期を使う(最新の決算月で決めない)
+    assert _period_name("2025-11", 12, {"2025-11": "2025-11", "2026-03": "2026-12"}) == "25/11 4Q"
+
+
+def test_fy_month_from_irbank_period():
+    from src.fy_months import month_of_quarters, title_month
+    assert month_of_quarters([{"period": "2025/09-4Q"}, {"period": "2026/09-3Q"}]) == 9
+    assert title_month("2027年３月期 第２四半期決算短信") == 3
+    assert title_month("業績予想の修正に関するお知らせ") is None
+
+
+def test_align_quarters_drops_duplicate_and_moves_shifted():
+    from src.site import _align_quarters
+    q = {"2026-03": {"end": "2026-03", "sales": 1}, "2026-05": {"end": "2026-05", "sales": 2},
+         "2026-06": {"end": "2026-06", "sales": 2}, "2025-05": {"end": "2025-05", "sales": 3}}
+    out = _align_quarters(q, 3, None)
+    assert sorted(out) == ["2025-06", "2026-03", "2026-06"]      # 2026-05 は 2026-06 と重複で捨て、2025-05 は 2025-06 へ
+    assert out["2025-06"]["sales"] == 3
