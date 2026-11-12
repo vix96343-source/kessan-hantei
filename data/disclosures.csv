@@ -1,4 +1,6 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261112576529,2026-11-12T17:45,3672,オルトプラスＨＤ,2026年９月期連結業績と前期実績との差異に関するお知らせ,actual_vs_forecast,False,,,,,,https://www.release.tdnet.info/inbs/140120261112576529.pdf,,東,2026-11-12T17:45
+140120261112576515,2026-11-12T17:45,3672,オルトプラスＨＤ,2026年９月期　決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261112576515.pdf,https://www.release.tdnet.info/inbs/081220261112576515.zip,東,2026-11-12T17:45
 140120261111574325,2026-11-12T17:40,3436,ＳＵＭＣＯ,2026年12月期 第3四半期決算短信〔日本基準〕（連結）（公認会計士等による期中レビューの完了）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261111574325.pdf,https://www.release.tdnet.info/inbs/081220261111574325.zip,東,2026-11-12T17:40
 140120261112576937,2026-11-12T17:00,195A,Ｇ－ＭＵＳＣＡＴ　Ｇ,2027年３月期 第２四半期 決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261112576937.pdf,,東,2026-11-12T17:00
 140120261112576813,2026-11-12T17:00,6193,Ｇ－バーチャレクス,2027年3月期第2四半期(中間期）決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261112576813.pdf,,東,2026-11-12T17:00
