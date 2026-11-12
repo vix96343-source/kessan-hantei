@@ -1,4 +1,10 @@
 disclosure_id,code,disclosed_at,n_q,period_end,status,data
+140120261112576624,9439,2026-11-12T15:45,1,2026-09-30,none,
+140120261111572828,4629,2026-11-12T15:45,2,2026-09-30,none,
+140120261110571649,4664,2026-11-12T15:45,2,2026-09-30,none,
+140120261110570591,3741,2026-11-12T15:45,2,2026-09-30,ok,"{""segments"": [{""name"": ""モバイルネットワーク"", ""orders"": 346176000.0, ""orders_prior"": null, ""orders_fy"": null, ""backlog"": 230452000.0, ""backlog_prior"": null, ""backlog_fy"": null, ""orders_yoy"": -6.3, ""backlog_yoy"": 19.9}, {""name"": ""インターネット"", ""orders"": 777198000.0, ""orders_prior"": null, ""orders_fy"": null, ""backlog"": 442808000.0, ""backlog_prior"": null, ""backlog_fy"": null, ""orders_yoy"": -16.3, ""backlog_yoy"": -14.0}, {""name"": ""社会基盤システム"", ""orders"": 1227084000.0, ""orders_prior"": null, ""orders_fy"": null, ""backlog"": 5729214000.0, ""backlog_prior"": null, ""backlog_fy"": null, ""orders_yoy"": -62.0, ""backlog_yoy"": 7.3}, {""name"": ""宇宙先端システム"", ""orders"": 1726493000.0, ""orders_prior"": null, ""orders_fy"": null, ""backlog"": 1117003000.0, ""backlog_prior"": null, ""backlog_fy"": null, ""orders_yoy"": 21.6, ""backlog_yoy"": 33.0}], ""total"": {""name"": ""計"", ""orders"": 4076952000.0, ""orders_prior"": null, ""orders_fy"": null, ""backlog"": 7519479000.0, ""backlog_prior"": null, ""backlog_fy"": null, ""orders_yoy"": -31.4, ""backlog_yoy"": 9.2}, ""unit"": 1000.0, ""tpl"": [{""header"": [[""ビジネスフィールド"", ""受注高（千円）"", ""前年同期比（％）"", ""受注残高（千円）"", ""前年同期比（％）""]], ""width"": 5, ""numeric_cols"": [1, 2, 3, 4], ""unit"": 1000.0, ""rows"": [[""モバイルネットワーク""], [""インターネット""], [""社会基盤システム""], [""宇宙先端システム""], [""計""]], ""parents"": [null, null, null, null, null], ""ctx"": null}]}"
+140120261102562402,2342,2026-11-12T15:45,2,2026-09-30,none,
+140120261028558521,5983,2026-11-12T15:45,2,2026-09-30,none,
 140120261112575757,2780,2026-11-12T15:40,2,2026-09-30,none,
 140120261112574937,250A,2026-11-12T15:40,2,2026-09-30,none,
 140120261111574602,9363,2026-11-12T15:40,2,2026-09-30,none,
