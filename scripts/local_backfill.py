@@ -14,7 +14,7 @@ sys.path.insert(0, str(ROOT))
 
 import pandas as pd  # noqa: E402
 
-from src import announce_times, breakdown, forecasts, ir_times, irdocs, judge, orders, segments, site  # noqa: E402
+from src import announce_times, breakdown, forecasts, ir_times, irdocs, judge, market_caps, orders, segments, site  # noqa: E402
 from src.config import DATA_DIR, load_config  # noqa: E402
 
 LOG = ROOT / "data" / "cache" / "local_backfill.log"
@@ -85,9 +85,15 @@ def main() -> int:
         log.warning("ir_times 失敗: %s", e)
     irt = ir_times.load(DATA_DIR) if stats.get("ir_times", {}).get("checked") else None
     new_urls = {k: v for k, v in irdocs._load_urls(DATA_DIR).items() if urls_before.get(k) != v}
+    # 決算時間サイトの並び順・足切り用の時価総額(IRBANK のスケジュール、6時間ごと)
+    try:
+        stats["market_caps"] = market_caps.update(cfg)
+    except Exception as e:
+        log.warning("market_caps 失敗: %s", e)
+    caps = market_caps.load(DATA_DIR) if stats.get("market_caps", {}).get("codes") else None
     rows = added_rows(before, snapshot())
     log.info("backfill %s / 追加 %s", stats, {k: len(v) for k, v in rows.items()})
-    if not rows and times is None and irt is None:
+    if not rows and times is None and irt is None and caps is None:
         return 0
     for attempt in range(5):
         if attempt:
@@ -98,6 +104,8 @@ def main() -> int:
                 times.to_csv(announce_times.path(DATA_DIR), index=False, encoding="utf-8")
             if irt is not None:
                 irt.to_csv(ir_times.path(DATA_DIR), index=False, encoding="utf-8")
+            if caps is not None:
+                caps.to_csv(market_caps.path(DATA_DIR), index=False, encoding="utf-8")
             if new_urls:                                   # 会社URLは Actions も足すので、取り直した分に足す
                 irdocs._save_urls({**irdocs._load_urls(DATA_DIR), **new_urls}, DATA_DIR)
         site.render_all(cfg)

@@ -14,7 +14,7 @@ from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader
 
-from . import announce_times, backtest, breakdown, calendar_fetch, consensus, disclosures, earnings, history, ir_times, irdocs, judge, order_adjust, orders, reaction, revisions, segments, universe
+from . import announce_times, backtest, breakdown, calendar_fetch, consensus, disclosures, earnings, history, ir_times, irdocs, judge, market_caps, order_adjust, orders, reaction, revisions, segments, universe
 from .config import DATA_DIR, ROOT, now_jst
 
 DOCS_DIR = ROOT / "docs"
@@ -921,6 +921,7 @@ def calendar_rows(data_dir: Path = DATA_DIR, cutoff: str = "15:00") -> list[dict
     hist = announce_times.histories(data_dir, disc)
     irt = ir_times.load(data_dir)
     irt = irt[irt["status"] == "found"].set_index(["code", "announce_date"])[["ir_time", "source_url"]].to_dict("index")
+    caps = market_caps.by_code(data_dir)
     df = cal[cal["announce_date"] >= now_jst().strftime("%Y-%m-%d")]
     df = df.merge(uni[["code", "name", "avg_turnover_20d"]], on="code", how="inner")
     rows = []
@@ -934,11 +935,12 @@ def calendar_rows(data_dir: Path = DATA_DIR, cutoff: str = "15:00") -> list[dict
                      "ir_url": ir["source_url"] if ir else "",
                      # IR の時刻が前回と違う(時刻を変えた)ときの前回の時刻
                      "prev": e["prev"] if ir and e and e["prev"] != ir["ir_time"] else "",
-                     "code": r.code, "name": r.name, "kind": f"決算{r.fiscal_q}",
+                     "code": r.code, "name": r.name, "kind": f"決算{r.fiscal_q}", "mcap": caps.get(r.code),
                      "same": f"{e['same']}/{e['n']}" if e and not actual else "",
                      "steady": bool(e) and e["same"] * 4 >= e["n"] * 3,
                      "others": "・".join(e["others"]) if e and not actual else ""})
-    return sorted(rows, key=lambda x: (x["date"], x["time"] or "99"))
+    # 同じ時刻の中は時価総額の大きい順(分からない会社は最後)
+    return sorted(rows, key=lambda x: (x["date"], x["time"] or "99", -(x["mcap"] or -1)))
 
 
 FACTOR_LABEL = {"progress_gap": "進捗率の差", "guidance_acceleration": "会社予想の加速",
