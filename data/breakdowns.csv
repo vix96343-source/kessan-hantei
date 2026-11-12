@@ -3464,3 +3464,4 @@ disclosure_id,code,disclosed_at,n_q,period_end,status,data
 140120261111573545,5273,2026-11-12T14:30,2,2026-09,none,
 140120261110570973,5108,2026-11-12T14:30,3,2026-09,none,
 140120261104564481,8341,2026-11-12T14:30,2,2026-09,none,
+140120261104564182,6846,2026-11-12T14:40,2,2026-09,ok,"{""title"": ""売上の内訳"", ""unit"": 1000.0, ""items"": [{""name"": ""電源機器"", ""sales"": 698549000.0, ""sales_prior"": null, ""sub"": false, ""adj"": false}, {""name"": ""表面処理装置"", ""sales"": 975694000.0, ""sales_prior"": null, ""sub"": false, ""adj"": false}, {""name"": ""電気溶接機"", ""sales"": 320800000.0, ""sales_prior"": null, ""sub"": false, ""adj"": false}, {""name"": ""その他"", ""sales"": 140491000.0, ""sales_prior"": null, ""sub"": false, ""adj"": false}], ""total"": {""sales"": 2135535000.0, ""sales_prior"": null}, ""tpl"": {""n"": 2, ""cur"": 0, ""prior"": null, ""names"": [""電源機器"", ""表面処理装置"", ""電気溶接機"", ""その他""], ""unit"": 1000.0}}"
