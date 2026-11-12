@@ -1,4 +1,5 @@
 disclosure_id,code,disclosed_at,n_q,period_end,status,data
+140120261023555600,1853,2026-11-12T18:00,2,2026-09-30,ok,"{""segments"": [], ""total"": {""name"": ""合計"", ""orders"": 18048000000.0, ""orders_prior"": 11273000000.0, ""orders_fy"": null, ""backlog"": null, ""backlog_prior"": null, ""backlog_fy"": null, ""orders_yoy"": 60.1, ""backlog_yoy"": null}, ""unit"": 1000000.0, ""tpl"": [{""header"": [[""項 目"", ""受 注 高"", ""受 注 高""]], ""width"": 3, ""numeric_cols"": [1, 2], ""unit"": null, ""rows"": [[""2027年３月期中間会計期間""], [""2026年３月期中間会計期間""]], ""parents"": [null, null], ""ctx"": null}]}"
 140120261112576515,3672,2026-11-12T17:45,4,2026-09-30,none,
 140120261111574325,3436,2026-11-12T17:40,3,2026-09-30,none,
 140120261112576740,6193,2026-11-12T17:00,2,2026-09-30,none,
