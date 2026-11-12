@@ -179,8 +179,14 @@ def _ym_shift(ym: str, months: int) -> str:
     return f"{i // 12}-{i % 12 + 1:02d}"
 
 
-def _period_name(end_ym: str) -> str:
-    """'2026-06' -> '26.04-06'(3ヵ月の決算期)"""
+def _period_name(end_ym: str, fy_month: int | None = None) -> str:
+    """'2026-06' -> 3月決算なら '27/3 1Q'(決算期の年/月と何Q)。決算月が分からないときは '26.04-06'(3ヵ月の期間)"""
+    if fy_month:
+        y, m = int(end_ym[:4]), int(end_ym[5:7])
+        k = (fy_month - m) % 12                        # 期末まであと何か月
+        if k % 3 == 0:
+            fy = _ym_shift(end_ym, k)
+            return f"{fy[2:4]}/{int(fy[5:7])} {4 - k // 3}Q"
     start = _ym_shift(end_ym, -2)
     return f"{start[2:4]}.{start[5:7]}-{end_ym[5:7]}"
 
@@ -202,7 +208,7 @@ def _man(v) -> int | None:
 
 
 def fin_panel(r: dict, arch: dict | None, hist: list[dict], n_quarters: int = 8,
-              shares: float | None = None) -> dict | None:
+              shares: float | None = None, fy_month: int | None = None) -> dict | None:
     """行を開いたときの業績表。quarters: 直近の単独四半期、plan: 今期の累計実績と会社予想・進捗率(百万円)。"""
     quarters = {q["end"]: dict(q) for q in hist}
     plan = None
@@ -231,6 +237,7 @@ def fin_panel(r: dict, arch: dict | None, hist: list[dict], n_quarters: int = 8,
         for f in FIN_FIELDS:
             prog = None if next_year or fc[f] in (None, 0) or cum[f] is None or fc[f] < 0                 else round(cum[f] / fc[f] * 100, 1)
             rows.append([FIN_LABELS[f]] + [_mil(c[f]) for c in cols] + [_mil(fc[f]), prog])
+        fy_month = int(fy_end[5:7])
         plan = {"fy": f"{fy_end[:4]}年{int(fy_end[5:7])}月期", "n_q": n_q,
                 "fc_label": "来期予想" if next_year else "会社予想", "rows": rows}
     qs = sorted(quarters.values(), key=lambda q: q["end"])[-n_quarters:]
@@ -239,7 +246,7 @@ def fin_panel(r: dict, arch: dict | None, hist: list[dict], n_quarters: int = 8,
         b = quarters.get(_ym_shift(q["end"], -months)) or {}
         return _growth(q.get(f), b.get(f))
 
-    table = [{"label": _period_name(q["end"]), **{f: _man(q.get(f)) for f in FIN_FIELDS},
+    table = [{"label": _period_name(q["end"], fy_month), **{f: _man(q.get(f)) for f in FIN_FIELDS},
               # YoY は前年の同じ四半期、QoQ は前の四半期と比べる(EPS は株数が同じなので純利益と同じ)
               **{f"{f}_yoy": growth_of(q, f, 12) for f in FIN_FIELDS},
               **{f"{f}_qoq": growth_of(q, f, 3) for f in FIN_FIELDS},
@@ -802,6 +809,12 @@ def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:
         xs = [t for t in earn_days.get(r["code"], []) if t < r["disclosed_at"][:10]]
         return max(xs) if xs else None
     arch = {a["disclosure_id"]: a for a in earnings.load_archive(data_dir).to_dict("records")}
+    fy_month = {}                                       # 会社 → 決算月(直近の短信の期末と何Qから)
+    for a in sorted(arch.values(), key=lambda a: str(a.get("period_end"))):
+        try:
+            fy_month[a["code"]] = int(_ym_shift(str(a["period_end"])[:7], 3 * (4 - int(float(a["n_q"]))))[5:7])
+        except (TypeError, ValueError):
+            pass
     hist = history.by_code(history.load(data_dir))
     revs = revisions.by_disclosure(data_dir)
     ords = orders.by_code(data_dir)
@@ -877,7 +890,7 @@ def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:
                      "fin": fin_panel(r, arch.get(r["disclosure_id"]) if r["kind"] == "earnings_report" else None,
                                       before(r, hist.get(r["code"], []), include_self=True)
                                       if r["kind"] == "earnings_report" else hist.get(r["code"], []),
-                                      shares=shares_at(r["code"], r["disclosed_at"])),
+                                      shares=shares_at(r["code"], r["disclosed_at"]), fy_month=fy_month.get(r["code"])),
                      "pct": None if p is None else round(p * 100),
                      "up": p is not None and round(p * 100) > 50})
         rows[-1]["seg"] = segment_numbers(seg_by_id.get(r["disclosure_id"]),
