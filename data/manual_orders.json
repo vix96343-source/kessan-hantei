@@ -1,0 +1,1148 @@
+{
+ "140120261106566778": {
+  "code": "1721",
+  "period_end": "2026-09-30",
+  "total": {
+   "orders_prior": 321528000000.0
+  },
+  "note": "前年同期比の増減額を増減率として読んでいたのを直した",
+  "segments": [
+   {
+    "name": "通信キャリア事業",
+    "orders": 156200000000.0,
+    "orders_prior": 146800000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   },
+   {
+    "name": "ITソリューション事業",
+    "orders": 62500000000.0,
+    "orders_prior": 70400000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   },
+   {
+    "name": "社会システム関連事業",
+    "orders": 138100000000.0,
+    "orders_prior": 104100000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   }
+  ],
+  "seg_src": "pres_image",
+  "seg_doc": "20261106566850",
+  "seg_page": 5
+ },
+ "140120261104563861": {
+  "code": "1814",
+  "period_end": "2026-09-30",
+  "total": {
+   "orders": 75607000000.0,
+   "orders_prior": 100855000000.0
+  },
+  "note": "短信の個別(単体)受注を合計としていたのを連結に直した",
+  "segments": [
+   {
+    "name": "マンション",
+    "orders": 57912000000.0,
+    "orders_prior": 62255000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   },
+   {
+    "name": "一般建築",
+    "orders": 11717000000.0,
+    "orders_prior": 34110000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   },
+   {
+    "name": "リニューアル",
+    "orders": 5268000000.0,
+    "orders_prior": 4228000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   },
+   {
+    "name": "その他",
+    "orders": 708000000.0,
+    "orders_prior": 260000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   }
+  ],
+  "seg_src": "pres_image",
+  "seg_doc": "20261105565347",
+  "seg_page": 7
+ },
+ "140120261109569824": {
+  "code": "1870",
+  "period_end": "2026-09-30",
+  "total": {
+   "orders_prior": 64314000000.0,
+   "backlog": 166950000000.0,
+   "backlog_prior": 149235000000.0
+  },
+  "note": "",
+  "segments": [
+   {
+    "name": "建築事業",
+    "orders": 40524000000.0,
+    "orders_prior": 44650000000.0,
+    "backlog": 107361000000.0,
+    "backlog_prior": 101993000000.0
+   },
+   {
+    "name": "土木事業",
+    "orders": 17414000000.0,
+    "orders_prior": 19663000000.0,
+    "backlog": 59588000000.0,
+    "backlog_prior": 47242000000.0
+   }
+  ],
+  "seg_src": "pres_image",
+  "seg_doc": "20261109569929",
+  "seg_page": 11
+ },
+ "140120260806512625": {
+  "code": "1961",
+  "period_end": "2026-06-30",
+  "total": {},
+  "note": "調整は合計(短信)と事業の和の差",
+  "segments": [
+   {
+    "name": "建築設備事業",
+    "orders": 62765000000.0,
+    "orders_prior": 60837000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   },
+   {
+    "name": "プラント設備事業",
+    "orders": 8655000000.0,
+    "orders_prior": 7652000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   },
+   {
+    "name": "不動産事業",
+    "orders": 649000000.0,
+    "orders_prior": 645000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   },
+   {
+    "name": "調整(合計との差)",
+    "orders": -1106000000.0,
+    "orders_prior": -206000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   }
+  ],
+  "seg_src": "pres_image",
+  "seg_doc": "20260806512725",
+  "seg_page": 7
+ },
+ "140120261027556637": {
+  "code": "1972",
+  "period_end": "2026-09-30",
+  "total": {
+   "backlog": 39300000000.0,
+   "backlog_prior": 36400000000.0
+  },
+  "note": "",
+  "segments": [
+   {
+    "name": "工事",
+    "orders": 21100000000.0,
+    "orders_prior": 19000000000.0,
+    "backlog": 36900000000.0,
+    "backlog_prior": 33000000000.0
+   },
+   {
+    "name": "製品販売",
+    "orders": 3200000000.0,
+    "orders_prior": 4100000000.0,
+    "backlog": 2400000000.0,
+    "backlog_prior": 3400000000.0
+   }
+  ],
+  "seg_src": "pres_image",
+  "seg_doc": "20261030561242",
+  "seg_page": 5
+ },
+ "140120261111572633": {
+  "code": "1982",
+  "period_end": "2026-09-30",
+  "total": {},
+  "note": "",
+  "segments": [
+   {
+    "name": "空調",
+    "orders": 44200000000.0,
+    "orders_prior": 19200000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   },
+   {
+    "name": "衛生",
+    "orders": 22300000000.0,
+    "orders_prior": 15800000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   },
+   {
+    "name": "電気",
+    "orders": 22900000000.0,
+    "orders_prior": 7800000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   },
+   {
+    "name": "その他",
+    "orders": 3100000000.0,
+    "orders_prior": 3400000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   }
+  ],
+  "seg_src": "pres_image",
+  "seg_doc": "20261111573112",
+  "seg_page": 4
+ },
+ "140120261105565568": {
+  "code": "2395",
+  "period_end": "2026-09-30",
+  "total": {
+   "name": "非臨床事業",
+   "orders": 19641000000.0,
+   "orders_prior": 15787000000.0,
+   "backlog": 43784000000.0,
+   "backlog_prior": 36486000000.0
+  },
+  "note": "短信の推移表の2024年の列を読んでいたのを直した",
+  "segments": [
+   {
+    "name": "国内",
+    "orders": 9038000000.0,
+    "orders_prior": 9328000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   },
+   {
+    "name": "海外",
+    "orders": 10602000000.0,
+    "orders_prior": 6459000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   }
+  ],
+  "seg_src": "tanshin_fix",
+  "seg_doc": "短信の非臨床事業の受注の推移(表)",
+  "seg_page": null
+ },
+ "140120261104563972": {
+  "code": "3837",
+  "period_end": "2026-09-30",
+  "total": {},
+  "note": "",
+  "segments": [
+   {
+    "name": "社会インフラ事業",
+    "orders": 5983000000.0,
+    "orders_prior": 5582000000.0,
+    "backlog": 2446000000.0,
+    "backlog_prior": 2217000000.0
+   },
+   {
+    "name": "先進インダストリー事業",
+    "orders": 2421000000.0,
+    "orders_prior": 3048000000.0,
+    "backlog": 1187000000.0,
+    "backlog_prior": 1155000000.0
+   }
+  ],
+  "seg_src": "pres_image",
+  "seg_doc": "20261105565416",
+  "seg_page": 10
+ },
+ "140120261102563287": {
+  "code": "4847",
+  "period_end": "2026-09-30",
+  "total": {},
+  "note": "",
+  "segments": [
+   {
+    "name": "システム開発",
+    "orders": 1349000000.0,
+    "orders_prior": 1792000000.0,
+    "backlog": 1957000000.0,
+    "backlog_prior": 1914000000.0
+   },
+   {
+    "name": "保守・自社製品・他社製品",
+    "orders": 639000000.0,
+    "orders_prior": 1231000000.0,
+    "backlog": 3932000000.0,
+    "backlog_prior": 5353000000.0
+   },
+   {
+    "name": "クラウドサービス",
+    "orders": 715000000.0,
+    "orders_prior": 159000000.0,
+    "backlog": 8979000000.0,
+    "backlog_prior": 9995000000.0
+   },
+   {
+    "name": "セキュリティ",
+    "orders": 274000000.0,
+    "orders_prior": 488000000.0,
+    "backlog": 1900000000.0,
+    "backlog_prior": 2973000000.0
+   }
+  ],
+  "seg_src": "pres_image",
+  "seg_doc": "20261104563634",
+  "seg_page": 8
+ },
+ "140120261014550149": {
+  "code": "6224",
+  "period_end": "2026-08-31",
+  "total": {
+   "name": "環境エネルギー"
+  },
+  "note": "説明資料の環境エネルギーの受注を合計として読んでいた(会社全体の受注は開示なし)"
+ },
+ "140120260514534195": {
+  "code": "6361",
+  "period_end": "2026-03",
+  "total": {
+   "orders_prior": 199800000000.0
+  },
+  "note": "",
+  "segments": [
+   {
+    "name": "精密・電子",
+    "orders": 151200000000.0,
+    "orders_prior": 73900000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   },
+   {
+    "name": "エネルギー",
+    "orders": 55700000000.0,
+    "orders_prior": 42300000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   },
+   {
+    "name": "建築・産業",
+    "orders": 70300000000.0,
+    "orders_prior": 59700000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   },
+   {
+    "name": "インフラ",
+    "orders": 14700000000.0,
+    "orders_prior": 20000000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   },
+   {
+    "name": "環境",
+    "orders": 32400000000.0,
+    "orders_prior": 3300000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   },
+   {
+    "name": "その他",
+    "orders": 300000000.0,
+    "orders_prior": 200000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   }
+  ],
+  "seg_src": "pres_image",
+  "seg_doc": "20260514535001",
+  "seg_page": 25
+ },
+ "140120261029558730": {
+  "code": "6366",
+  "period_end": "2026-09-30",
+  "total": {
+   "orders": 107600000000.0
+  },
+  "note": "",
+  "segments": [
+   {
+    "name": "エネルギー分野",
+    "orders": 56100000000.0,
+    "orders_prior": null,
+    "backlog": 395200000000.0,
+    "backlog_prior": null
+   },
+   {
+    "name": "地球環境分野",
+    "orders": 51500000000.0,
+    "orders_prior": null,
+    "backlog": 134400000000.0,
+    "backlog_prior": null
+   }
+  ],
+  "seg_src": "pres_image",
+  "seg_doc": "20261029558725",
+  "seg_page": 7
+ },
+ "140120261104563627": {
+  "code": "6368",
+  "period_end": "2026-09-30",
+  "total": {
+   "orders": 171268000000.0,
+   "orders_prior": 100281000000.0
+  },
+  "note": "",
+  "segments": [
+   {
+    "name": "水処理エンジニアリング事業",
+    "orders": 156577000000.0,
+    "orders_prior": 87294000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   },
+   {
+    "name": "機能商品事業",
+    "orders": 14690000000.0,
+    "orders_prior": 12987000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   }
+  ],
+  "seg_src": "pres_image",
+  "seg_doc": "20261104563684",
+  "seg_page": 2
+ },
+ "140120261006546619": {
+  "code": "6744",
+  "period_end": "2026-09-30",
+  "total": {
+   "orders_prior": 86064000000.0,
+   "backlog": 125882000000.0,
+   "backlog_prior": 99010000000.0
+  },
+  "note": "火災報知設備・消火設備・保守点検等は説明資料の表。その他は合計との差",
+  "segments": [
+   {
+    "name": "火災報知設備",
+    "orders": 29482000000.0,
+    "orders_prior": 28497000000.0,
+    "backlog": 26725000000.0,
+    "backlog_prior": 25043000000.0
+   },
+   {
+    "name": "消火設備",
+    "orders": 36955000000.0,
+    "orders_prior": 30741000000.0,
+    "backlog": 65801000000.0,
+    "backlog_prior": 55503000000.0
+   },
+   {
+    "name": "保守点検等",
+    "orders": 27946000000.0,
+    "orders_prior": 24334000000.0,
+    "backlog": 19611000000.0,
+    "backlog_prior": 16883000000.0
+   },
+   {
+    "name": "その他・消去(合計との差)",
+    "orders": 9388000000.0,
+    "orders_prior": 2492000000.0,
+    "backlog": 13745000000.0,
+    "backlog_prior": 1581000000.0
+   }
+  ],
+  "seg_src": "pres_image",
+  "seg_doc": "20261006546618",
+  "seg_page": 6
+ },
+ "140120261028558208": {
+  "code": "6754",
+  "period_end": "2026-09-30",
+  "total": {},
+  "note": "",
+  "segments": [
+   {
+    "name": "通信計測",
+    "orders": 58300000000.0,
+    "orders_prior": 31800000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   },
+   {
+    "name": "PQA",
+    "orders": 18100000000.0,
+    "orders_prior": 16100000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   },
+   {
+    "name": "環境計測",
+    "orders": 6900000000.0,
+    "orders_prior": 3300000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   },
+   {
+    "name": "その他",
+    "orders": 4500000000.0,
+    "orders_prior": 3700000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   }
+  ],
+  "seg_src": "pres_image",
+  "seg_doc": "20261029559437",
+  "seg_page": 9
+ },
+ "140120261028558279": {
+  "code": "7022",
+  "period_end": "2026-09-30",
+  "total": {},
+  "note": "",
+  "segments": [
+   {
+    "name": "製造業向け",
+    "orders": 4692000000.0,
+    "orders_prior": 3345000000.0,
+    "backlog": 4935000000.0,
+    "backlog_prior": 4727000000.0
+   },
+   {
+    "name": "建設業向け",
+    "orders": 6837000000.0,
+    "orders_prior": 7648000000.0,
+    "backlog": 10705000000.0,
+    "backlog_prior": 10143000000.0
+   },
+   {
+    "name": "レジャー",
+    "orders": 1585000000.0,
+    "orders_prior": 5384000000.0,
+    "backlog": 5350000000.0,
+    "backlog_prior": 5317000000.0
+   }
+  ],
+  "seg_src": "pres_image",
+  "seg_doc": "20261028558295",
+  "seg_page": 5
+ },
+ "140120261106568049": {
+  "code": "8151",
+  "period_end": "2026-09-30",
+  "total": {
+   "orders": 39573000000.0,
+   "orders_prior": 40151000000.0,
+   "backlog_prior": 24625000000.0
+  },
+  "note": "",
+  "segments": [
+   {
+    "name": "先進モビリティ",
+    "orders": 8672000000.0,
+    "orders_prior": 9762000000.0,
+    "backlog": 6089000000.0,
+    "backlog_prior": 6985000000.0
+   },
+   {
+    "name": "脱炭素／エネルギー",
+    "orders": 6607000000.0,
+    "orders_prior": 6359000000.0,
+    "backlog": 3047000000.0,
+    "backlog_prior": 2630000000.0
+   },
+   {
+    "name": "情報通信／情報セキュリティ",
+    "orders": 11096000000.0,
+    "orders_prior": 7817000000.0,
+    "backlog": 5204000000.0,
+    "backlog_prior": 3432000000.0
+   },
+   {
+    "name": "EMC／大型アンテナ",
+    "orders": 5352000000.0,
+    "orders_prior": 5130000000.0,
+    "backlog": 3666000000.0,
+    "backlog_prior": 3296000000.0
+   },
+   {
+    "name": "その他事業",
+    "orders": 7844000000.0,
+    "orders_prior": 11081000000.0,
+    "backlog": 7818000000.0,
+    "backlog_prior": 8279000000.0
+   }
+  ],
+  "seg_src": "pres_image",
+  "seg_doc": "20261111573233",
+  "seg_page": 16
+ },
+ "140120261030560430": {
+  "code": "8157",
+  "period_end": "2026-09-30",
+  "total": {
+   "orders": 61546000000.0,
+   "orders_prior": 55973000000.0,
+   "backlog": 41267000000.0,
+   "backlog_prior": 32782000000.0
+  },
+  "note": "短信の1事業(エンジニアリングサービス)の受注を合計として読んでいたのを直した",
+  "segments": [
+   {
+    "name": "エンジニアリングサービス",
+    "orders": 17509000000.0,
+    "orders_prior": 16147000000.0,
+    "backlog": 9970000000.0,
+    "backlog_prior": 8366000000.0
+   },
+   {
+    "name": "プロダクト",
+    "orders": 44036000000.0,
+    "orders_prior": 39825000000.0,
+    "backlog": 31296000000.0,
+    "backlog_prior": 24416000000.0
+   }
+  ],
+  "seg_src": "tanshin_fix",
+  "seg_doc": "短信の受注高の表",
+  "seg_page": null
+ },
+ "140120260515536915": {
+  "code": "9233",
+  "period_end": "2026-03",
+  "total": {
+   "orders_prior": 18553000000.0,
+   "backlog": 18706000000.0,
+   "backlog_prior": 18831000000.0
+  },
+  "note": "",
+  "segments": [
+   {
+    "name": "社会インフラマネジメント事業",
+    "orders": 10931000000.0,
+    "orders_prior": 12212000000.0,
+    "backlog": 14412000000.0,
+    "backlog_prior": 14176000000.0
+   },
+   {
+    "name": "国土保全コンサルタント事業",
+    "orders": 4409000000.0,
+    "orders_prior": 4663000000.0,
+    "backlog": 3530000000.0,
+    "backlog_prior": 3147000000.0
+   },
+   {
+    "name": "その他",
+    "orders": 949000000.0,
+    "orders_prior": 1677000000.0,
+    "backlog": 763000000.0,
+    "backlog_prior": 1507000000.0
+   }
+  ],
+  "seg_src": "pres_image",
+  "seg_doc": "20260515536976",
+  "seg_page": 9
+ },
+ "140120261028557802": {
+  "code": "9551",
+  "period_end": "2026-09-30",
+  "total": {
+   "orders": 141745000000.0,
+   "orders_prior": 108836000000.0,
+   "backlog": 444545000000.0,
+   "backlog_prior": 355716000000.0
+  },
+  "note": "短信の表で前年の列を今年として読んでいたのを直した",
+  "segments": [
+   {
+    "name": "環境エンジニアリング事業",
+    "orders": 29740000000.0,
+    "orders_prior": 22512000000.0,
+    "backlog": 124413000000.0,
+    "backlog_prior": 104746000000.0
+   },
+   {
+    "name": "システムソリューション事業",
+    "orders": 37367000000.0,
+    "orders_prior": 40910000000.0,
+    "backlog": 116394000000.0,
+    "backlog_prior": 94959000000.0
+   },
+   {
+    "name": "運営事業",
+    "orders": 27730000000.0,
+    "orders_prior": 18154000000.0,
+    "backlog": 132277000000.0,
+    "backlog_prior": 108678000000.0
+   },
+   {
+    "name": "海外事業",
+    "orders": 46906000000.0,
+    "orders_prior": 27258000000.0,
+    "backlog": 71459000000.0,
+    "backlog_prior": 47332000000.0
+   }
+  ],
+  "seg_src": "tanshin_fix",
+  "seg_doc": "短信の各セグメントの表",
+  "seg_page": null
+ },
+ "140120260731504375": {
+  "code": "8157",
+  "period_end": "2026-06",
+  "total": {
+   "orders": 31065000000.0,
+   "orders_prior": 27806000000.0,
+   "backlog": 35953000000.0,
+   "backlog_prior": 29219000000.0
+  },
+  "note": "1Qも1事業の受注を合計としていたのを直した",
+  "segments": [
+   {
+    "name": "エンジニアリングサービス",
+    "orders": 8279000000.0,
+    "orders_prior": 8560000000.0,
+    "backlog": 8454000000.0,
+    "backlog_prior": 8361000000.0
+   },
+   {
+    "name": "プロダクト",
+    "orders": 22786000000.0,
+    "orders_prior": 19245000000.0,
+    "backlog": 27499000000.0,
+    "backlog_prior": 20857000000.0
+   }
+  ],
+  "seg_src": "tanshin_fix",
+  "seg_doc": "短信"
+ },
+ "140120260804508568": {
+  "code": "2395",
+  "period_end": "2026-06",
+  "total": {
+   "name": "非臨床事業",
+   "orders": 9961000000.0,
+   "orders_prior": 8095000000.0,
+   "backlog": 44060000000.0,
+   "backlog_prior": 36120000000.0
+  },
+  "note": "推移表の2024年の列を読んでいたのを直した",
+  "segments": [
+   {
+    "name": "国内",
+    "orders": 4660000000.0,
+    "orders_prior": 4955000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   },
+   {
+    "name": "海外",
+    "orders": 5301000000.0,
+    "orders_prior": 3140000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   }
+  ],
+  "seg_src": "tanshin_fix",
+  "seg_doc": "短信"
+ },
+ "140120260728500512": {
+  "code": "9551",
+  "period_end": "2026-06",
+  "total": {
+   "orders": 74262000000.0,
+   "orders_prior": 69645000000.0,
+   "backlog": 425884000000.0,
+   "backlog_prior": 355291000000.0
+  },
+  "note": "1つ目のセグメントの前年を合計としていたのを直した",
+  "segments": [
+   {
+    "name": "環境エンジニアリング事業",
+    "orders": 21013000000.0,
+    "orders_prior": 16588000000.0,
+    "backlog": 129652000000.0,
+    "backlog_prior": 109549000000.0
+   },
+   {
+    "name": "システムソリューション事業",
+    "orders": 19346000000.0,
+    "orders_prior": 26213000000.0,
+    "backlog": 109130000000.0,
+    "backlog_prior": 90636000000.0
+   },
+   {
+    "name": "運営事業",
+    "orders": 15172000000.0,
+    "orders_prior": 13364000000.0,
+    "backlog": 127480000000.0,
+    "backlog_prior": 110582000000.0
+   },
+   {
+    "name": "海外事業",
+    "orders": 18729000000.0,
+    "orders_prior": 13478000000.0,
+    "backlog": 59621000000.0,
+    "backlog_prior": 44522000000.0
+   }
+  ],
+  "seg_src": "tanshin_fix",
+  "seg_doc": "短信"
+ },
+ "140120260729501418": {
+  "code": "7022",
+  "period_end": "2026-06",
+  "total": {
+   "orders": 7329000000.0,
+   "orders_prior": 6079000000.0,
+   "backlog": 21820000000.0,
+   "backlog_prior": 14922000000.0
+  },
+  "note": "PDFの文字が重なって(7,329 → 77777,,,,,33333…)桁が壊れていたのを直した",
+  "segments": [
+   {
+    "name": "製造業向け",
+    "orders": 2404000000.0,
+    "orders_prior": 1501000000.0,
+    "backlog": 5460000000.0,
+    "backlog_prior": 5096000000.0
+   },
+   {
+    "name": "建設業向け",
+    "orders": 4033000000.0,
+    "orders_prior": 3875000000.0,
+    "backlog": 11227000000.0,
+    "backlog_prior": 8979000000.0
+   },
+   {
+    "name": "レジャー",
+    "orders": 891000000.0,
+    "orders_prior": 702000000.0,
+    "backlog": 5133000000.0,
+    "backlog_prior": 846000000.0
+   }
+  ],
+  "seg_src": "tanshin_fix",
+  "seg_doc": "短信"
+ },
+ "140120260729501407": {
+  "code": "1972",
+  "period_end": "2026-06",
+  "total": {
+   "orders": 9359000000.0,
+   "orders_prior": 9117000000.0,
+   "backlog": 35642000000.0,
+   "backlog_prior": 36172000000.0
+  },
+  "note": "減収額(163百万円)を受注としていたのを直した"
+ },
+ "140120260803506389": {
+  "code": "6366",
+  "period_end": "2026-06",
+  "total": {
+   "orders": 30992000000.0,
+   "backlog": 560896000000.0,
+   "orders_yoy": -76.7
+  },
+  "note": "「309億92百万円」「5,608億96百万円」を読み違えていたのを直した"
+ },
+ "140120260730503721": {
+  "code": "6023",
+  "period_end": "2026-06",
+  "total": {
+   "orders": 32300000000.0,
+   "backlog": 122659000000.0,
+   "orders_yoy": -14.3,
+   "backlog_yoy": 33.4
+  },
+  "note": "馬力(数量)の列を金額としていたのを直した",
+  "segments": [
+   {
+    "name": "舶用機関関連",
+    "orders": 24860000000.0,
+    "orders_prior": null,
+    "backlog": 105783000000.0,
+    "backlog_prior": null,
+    "orders_yoy": -24.5,
+    "backlog_yoy": 30.9
+   },
+   {
+    "name": "陸用機関関連",
+    "orders": 6271000000.0,
+    "orders_prior": null,
+    "backlog": 14957000000.0,
+    "backlog_prior": null,
+    "orders_yoy": 69.9,
+    "backlog_yoy": 55.5
+   },
+   {
+    "name": "その他の部門",
+    "orders": 1168000000.0,
+    "orders_prior": null,
+    "backlog": 1917000000.0,
+    "backlog_prior": null,
+    "orders_yoy": 9.7,
+    "backlog_yoy": 30.8
+   }
+  ],
+  "seg_src": "tanshin_fix",
+  "seg_doc": "短信"
+ },
+ "140120260805510788": {
+  "code": "9908",
+  "period_end": "2026-06",
+  "total": {
+   "orders": 39294456000.0,
+   "orders_prior": 31819687000.0,
+   "backlog": 54204468000.0,
+   "backlog_prior": 40861506000.0
+  },
+  "note": "千円の表を読み違えていたのを直した"
+ },
+ "140120260730503321": {
+  "code": "1959",
+  "period_end": "2026-06",
+  "total": {
+   "orders": 146350000000.0,
+   "orders_prior": 126056000000.0
+  },
+  "note": "通期予想(495,000)を実績としていたのを直した。空調管工事は合計からの差(表の数字が欠けていた)",
+  "segments": [
+   {
+    "name": "配電線工事",
+    "orders": 15077000000.0,
+    "orders_prior": 13816000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   },
+   {
+    "name": "屋内線工事",
+    "orders": 77682000000.0,
+    "orders_prior": 72045000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   },
+   {
+    "name": "空調管工事",
+    "orders": 53591000000.0,
+    "orders_prior": 40195000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   }
+  ],
+  "seg_src": "tanshin_fix",
+  "seg_doc": "短信"
+ },
+ "140120260807514081": {
+  "code": "7505",
+  "period_end": "2026-06",
+  "total": {
+   "orders": 44765000000.0
+  },
+  "note": "「44,765百万円」の先頭の4が落ちていたのを直した"
+ },
+ "140120260805510933": {
+  "code": "6016",
+  "period_end": "2026-06",
+  "total": {
+   "orders": 10496546000.0,
+   "orders_prior": 8539879999.999999,
+   "orders_fy": 36804281000.0,
+   "backlog": 37567755000.0,
+   "backlog_prior": 27564641000.0,
+   "backlog_fy": 34454033000.0
+  },
+  "note": "千円の表を百万円として読んでいた(1000倍)のを直した",
+  "segments": [
+   {
+    "name": "舶用内燃機関",
+    "orders": 4899400000.0,
+    "orders_prior": 3670300000.0,
+    "orders_fy": 19334382000.0,
+    "backlog": 28747400000.0,
+    "backlog_prior": 20505400000.0,
+    "backlog_fy": 26659400000.0,
+    "orders_yoy": 33.5,
+    "backlog_yoy": 40.2
+   },
+   {
+    "name": "修理・部品等",
+    "orders": 5597146000.0,
+    "orders_prior": 4869580000.0,
+    "orders_fy": 17469899000.0,
+    "backlog": 8820355000.0,
+    "backlog_prior": 7059241000.0,
+    "backlog_fy": 7794633000.0,
+    "orders_yoy": 14.9,
+    "backlog_yoy": 24.9
+   }
+  ],
+  "seg_src": "tanshin_fix",
+  "seg_doc": "短信"
+ },
+ "140120260508520490": {
+  "code": "7500",
+  "period_end": "2026-03",
+  "total": {
+   "orders": 36195966000.0,
+   "orders_prior": null,
+   "orders_fy": null,
+   "backlog": 28515863000.0,
+   "backlog_prior": null,
+   "backlog_fy": null
+  },
+  "note": "千円の表を百万円として読んでいた(1000倍)のを直した",
+  "segments": [
+   {
+    "name": "制御・情報機器システム",
+    "orders": 20916265000.0,
+    "orders_prior": null,
+    "orders_fy": null,
+    "backlog": 19368398000.0,
+    "backlog_prior": null,
+    "backlog_fy": null,
+    "orders_yoy": 18.1,
+    "backlog_yoy": 26.3
+   },
+   {
+    "name": "計測器",
+    "orders": 5096493000.0,
+    "orders_prior": null,
+    "orders_fy": null,
+    "backlog": 2088088000.0,
+    "backlog_prior": null,
+    "backlog_fy": null,
+    "orders_yoy": 20.0,
+    "backlog_yoy": 42.7
+   },
+   {
+    "name": "理化学機器",
+    "orders": 7642988000.0,
+    "orders_prior": null,
+    "orders_fy": null,
+    "backlog": 3780169000.0,
+    "backlog_prior": null,
+    "backlog_fy": null,
+    "orders_yoy": 4.3,
+    "backlog_yoy": -0.5
+   },
+   {
+    "name": "産業機器・その他",
+    "orders": 2540218000.0,
+    "orders_prior": null,
+    "orders_fy": null,
+    "backlog": 3279206000.0,
+    "backlog_prior": null,
+    "backlog_fy": null,
+    "orders_yoy": -50.4,
+    "backlog_yoy": -40.5
+   }
+  ],
+  "seg_src": "tanshin_fix",
+  "seg_doc": "短信"
+ },
+ "140120260806512414": {
+  "code": "7500",
+  "period_end": "2026-06",
+  "total": {
+   "orders": 48351000000.0,
+   "backlog": 30944000000.0,
+   "orders_yoy": 10.3,
+   "backlog_yoy": 9.5,
+   "orders_prior": null,
+   "backlog_prior": null
+  },
+  "segments": [
+   {
+    "name": "制御・情報機器システム",
+    "orders": 27686000000.0,
+    "orders_prior": null,
+    "backlog": 21459000000.0,
+    "backlog_prior": null,
+    "orders_yoy": 21.3,
+    "backlog_yoy": 27.7
+   },
+   {
+    "name": "計測器",
+    "orders": 6345000000.0,
+    "orders_prior": null,
+    "backlog": 2210000000.0,
+    "backlog_prior": null,
+    "orders_yoy": 19.5,
+    "backlog_yoy": 32.6
+   },
+   {
+    "name": "理化学機器",
+    "orders": 10763000000.0,
+    "orders_prior": null,
+    "backlog": 4106000000.0,
+    "backlog_prior": null,
+    "orders_yoy": 13.9,
+    "backlog_yoy": 6.3
+   },
+   {
+    "name": "産業機器・その他",
+    "orders": 3556000000.0,
+    "orders_prior": null,
+    "backlog": 3167000000.0,
+    "backlog_prior": null,
+    "orders_yoy": -43.1,
+    "backlog_yoy": -46.7
+   }
+  ],
+  "seg_src": "tanshin_fix",
+  "seg_doc": "短信",
+  "note": "通期の表を読み違えていた(38,719・増減率45120%)のを直した"
+ },
+ "140120260729501632": {
+  "code": "6754",
+  "period_end": "2026-06",
+  "total": {
+   "orders_prior": 25200000000.0
+  },
+  "segments": [
+   {
+    "name": "通信計測",
+    "orders": 33600000000.0,
+    "orders_prior": 13900000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   },
+   {
+    "name": "PQA",
+    "orders": 9500000000.0,
+    "orders_prior": 7600000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   },
+   {
+    "name": "環境計測",
+    "orders": 4100000000.0,
+    "orders_prior": 1900000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   },
+   {
+    "name": "その他",
+    "orders": 1800000000.0,
+    "orders_prior": 1700000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   }
+  ],
+  "seg_src": "pres_image",
+  "seg_doc": "20261029559437",
+  "seg_page": 9,
+  "note": "2Q説明資料の四半期の受注高の図(億円)"
+ }
+}

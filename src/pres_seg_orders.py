@@ -366,6 +366,7 @@ def _texts_local(data_dir: Path):
 
 def build_local(data_dir: Path = DATA_DIR, codes: set[str] | None = None) -> dict:
     res = fill(_texts_local(data_dir), data_dir, codes)
+    res["manual"] = apply_manual(data_dir)
     log.info("説明資料のセグメント別受注: %s", res)
     return res
 
@@ -375,6 +376,49 @@ def update(cfg: dict, data_dir: Path = DATA_DIR) -> int:
     df = orders.load(data_dir)
     since = (pd.Timestamp.now(tz="Asia/Tokyo") - pd.Timedelta(days=3)).strftime("%Y-%m-%d")
     ids = set(df[(df["status"] == "ok") & (df["disclosed_at"].str[:10] >= since)]["disclosure_id"])
-    if not ids:
+    n = fill(_texts_local(data_dir), data_dir, only_ids=ids)["filled"] if ids else 0
+    return n + apply_manual(data_dir)                    # 手で入れた値を、後から自動の読み取りで上書きされても当て直す
+
+
+MANUAL = "manual_orders.json"
+
+
+def _yoy(cur, prior):
+    return None if cur is None or not prior else round((cur / prior - 1) * 100, 1)
+
+
+def apply_manual(data_dir: Path = DATA_DIR) -> int:
+    """data/manual_orders.json(説明資料の図・画像を見て入れた値と、短信の読み違いの直し)を受注の記録に当てる。
+    {disclosure_id: {"total": {直す項目}, "segments": [{name, orders, orders_prior, backlog, backlog_prior}], "seg_src", "seg_doc", "seg_page"}}
+    何度当てても同じ結果。値が変わる記録だけ書く"""
+    f = Path(data_dir) / MANUAL
+    if not f.exists():
         return 0
-    return fill(_texts_local(data_dir), data_dir, only_ids=ids)["filled"]
+    man = json.loads(f.read_text(encoding="utf-8"))
+    df = orders.load(data_dir)
+    rows = []
+    for r in df[df["disclosure_id"].isin(man) & (df["status"] == "ok")].to_dict("records"):
+        e = man[r["disclosure_id"]]
+        d = json.loads(r["data"])
+        t = {**(d.get("total") or {}), **e.get("total", {})}
+        for m in ("orders", "backlog"):
+            if f"{m}_yoy" in e.get("total", {}):
+                continue                                 # 短信の率をそのまま(前年の金額が無いとき)
+            if m in e.get("total", {}) or f"{m}_prior" in e.get("total", {}):
+                t[f"{m}_yoy"] = _yoy(t.get(m), t.get(f"{m}_prior"))
+        new = {**d, "total": t}
+        if e.get("segments"):
+            new["segments"] = [{**s, **{f"{m}_yoy": _yoy(s.get(m), s.get(f"{m}_prior")) if s.get(f"{m}_prior")
+                                        else s.get(f"{m}_yoy") for m in ("orders", "backlog")}} for s in e["segments"]]
+            new["seg_src"] = e.get("seg_src", "pres_image")
+            new["seg_doc"] = e.get("seg_doc")
+            if e.get("seg_page"):
+                new["seg_page"] = e["seg_page"]
+        if new != d:
+            rows.append({**r, "data": json.dumps(new, ensure_ascii=False)})
+    if rows:
+        out = pd.concat([df[~df["disclosure_id"].isin([x["disclosure_id"] for x in rows])],
+                         pd.DataFrame(rows).reindex(columns=orders.COLUMNS)])
+        out.sort_values(["disclosed_at", "disclosure_id"], ascending=False).to_csv(orders.path(data_dir), index=False,
+                                                                                 encoding="utf-8")
+    return len(rows)

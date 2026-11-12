@@ -302,3 +302,10 @@ def test_period_heading_above_each_table():
     assert x["total"]["orders"] == 141_582e6 and x["total"]["orders_prior"] == 85_656e6
     assert x["total"]["backlog"] == 80_002e6 and x["total"]["backlog_fy"] == 64_803e6
     assert x["segments"][0]["orders"] == 136_661e6
+
+
+def test_change_amount_column_is_not_pct():
+    from src.orders import _col_kind
+    assert _col_kind("前年同期比 増減額") is None          # コムシス: 増減額 35,425 を YoY にしていた
+    assert _col_kind("前年同期比 増減率") == "pct"
+    assert _col_kind("前年同期比") == "pct"

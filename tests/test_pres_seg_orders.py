@@ -30,3 +30,24 @@ def test_pages_named_by_heading_or_remaining_segment():
 def test_rejects_when_segments_do_not_add_up():
     text = "合計 100 120 +20 +20.0%\nA事業 50 60 +10 +20.0%\nB事業 40 50 +10 +25.0%"
     assert ps.read(text, {"total": {"orders": 120e6}}, []) is None
+
+
+def test_apply_manual_patches_total_and_segments(tmp_path):
+    import json
+    import pandas as pd
+    from src import orders, pres_seg_orders as pso
+    d = {"total": {"name": "合計", "orders": 17509e6, "orders_yoy": 8.4, "backlog": None}, "segments": []}
+    row = {c: "" for c in orders.COLUMNS}
+    row.update({"disclosure_id": "X1", "code": "8157", "status": "ok", "disclosed_at": "2026-10-30T12:30",
+                "period_end": "2026-09-30", "n_q": 2, "data": json.dumps(d, ensure_ascii=False)})
+    pd.DataFrame([row]).reindex(columns=orders.COLUMNS).to_csv(orders.path(tmp_path), index=False, encoding="utf-8")
+    man = {"X1": {"total": {"orders": 61546e6, "orders_prior": 55973e6},
+                  "segments": [{"name": "A", "orders": 17509e6, "orders_prior": 16147e6, "backlog": None, "backlog_prior": None},
+                               {"name": "B", "orders": 44036e6, "orders_prior": 39825e6, "backlog": None, "backlog_prior": None}],
+                  "seg_src": "tanshin_fix", "seg_doc": "短信"}}
+    (tmp_path / pso.MANUAL).write_text(json.dumps(man, ensure_ascii=False), encoding="utf-8")
+    assert pso.apply_manual(tmp_path) == 1
+    out = json.loads(orders.load(tmp_path).iloc[0]["data"])
+    assert out["total"]["orders"] == 61546e6 and out["total"]["orders_yoy"] == 10.0
+    assert [s["orders_yoy"] for s in out["segments"]] == [8.4, 10.6]
+    assert pso.apply_manual(tmp_path) == 0          # 2回目は変わらない

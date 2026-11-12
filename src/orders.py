@@ -150,6 +150,8 @@ def _col_kind(label: str) -> str | None:
     l = re.sub(r"\s", "", label)
     if "構成比" in l:
         return None
+    if re.search(r"増減額|差額", l) and "率" not in l:
+        return None                                    # 「前年同期比 増減額」は率ではない(コムシス: 増減額 35,425 を YoY にしていた)
     if "率" in l or re.search(r"比(?!較)", l):
         return "pct"
     if re.search(r"増減|対前|比較|差", l):
