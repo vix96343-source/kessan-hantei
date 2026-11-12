@@ -19,8 +19,9 @@ from .config import DATA_DIR, ROOT, now_jst
 
 DOCS_DIR = ROOT / "docs"
 # 決算速報に出す開示: 決算短信と、業績・配当予想の修正
-KIND_LABEL = {"earnings_report": "決算", "forecast_revision": "業績", "dividend_revision": "配当",
-              "forecast_dividend_revision": "業績 配当"}
+# 種別の表示: 決算短信は「決算」、業績・配当予想の修正は「修正」(短信の中で予想も修正していれば「決算 修正」と横に並べる)
+KIND_LABEL = {"earnings_report": "決算", "forecast_revision": "修正", "dividend_revision": "修正",
+              "forecast_dividend_revision": "修正"}
 FEED_KINDS = {"earnings_report", "forecast_revision", "forecast_dividend_revision", "dividend_revision"}
 
 
@@ -857,8 +858,9 @@ def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:
                      "code": r["code"], "name": company_name(r["name"], r["code"] in listed),
                      "kind": kind_label(r, f),
                      "group": "決算" if r["kind"] == "earnings_report" else "修正",
-                     # 種別に出す文字: 決算 / 業績(業績予想の修正) / 配当(配当予想の修正) / 業績 配当(両方を横に並べる)
-                     "label": KIND_LABEL.get(r["kind"], "修正"),
+                     # 種別に出す文字: 決算 / 修正(業績・配当予想の修正) / 決算 修正(短信の中で予想も修正、横に並べる)
+                     "label": "決算 修正" if r["kind"] == "earnings_report" and str((f or {}).get("revised")) == "True"
+                     else KIND_LABEL.get(r["kind"], "修正"),
                      "period": period_label(r, f),
                      "url": r["pdf_url"], "pdfs": pdf_links(
                          r, presentations, ir_docs,

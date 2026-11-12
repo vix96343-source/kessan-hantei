@@ -54,7 +54,7 @@ table#list td { padding: 2px 8px; font-weight: 400; color: #b4bbc6; background: 
 table#list tr.row.alt td { background: #161b25 !important; }
 table#list tr.row:hover td { background: #1f2635 !important; }
 table#list td.c-date, table#list td.c-time, table#list td.c-code, table#list td.c-name { color: #b4bbc6; }
-table#list td.c-kind { color: #7dffa8; }                       /* 種別(決算・業績・配当)は淡い緑 */
+table#list td.c-kind { color: #7dffa8; }                       /* 種別(決算・修正)は淡い緑 */
 table#list td.c-time, table#list td.c-code { text-align: center; }
 table#list td.c-kind, table#list th.c-kind { text-align: left; padding-left: 4px; padding-right: 0; }   /* 種別は企業名のすぐ右に左寄せ */
 table#list td.c-kind + td.n, table#list th.c-kind + th.n { padding-left: 14px; }   /* 売上の欄を種別に詰める */
@@ -448,7 +448,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
         <td class="c-date">${r.date.slice(5).replace('-', '/')}</td><td class="c-time">T${esc(r.time)}</td>
         <td class="c-code">${esc(r.code)}</td>
         <td class="c-name" title="${esc(r.name)} ${esc(r.title)}">${esc(r.name)}${isNew ? '<span class="badge-new">NEW</span>' : ''}</td>
-        <td class="c-kind"><a class="pdf" href="${esc(r.url)}" target="_blank" rel="noopener" title="${esc(r.title)}">${esc(r.label || r.group).replace(' ', '<br>')}</a>${r.live ? '<span class="live">速報</span>' : ''}</td>${numCells(r)}</tr>`;
+        <td class="c-kind"><a class="pdf" href="${esc(r.url)}" target="_blank" rel="noopener" title="${esc(r.title)}">${esc(r.label || r.group)}</a>${r.live ? '<span class="live">速報</span>' : ''}</td>${numCells(r)}</tr>`;
       if (open.has(r.id)) html += detail(r);
     });
     $('tb').innerHTML = html || `<tr><td colspan="20" class="more">${state.onlyNew ? '新着はありません' : '該当する開示はありません'}</td></tr>`;
@@ -488,7 +488,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
   const TDNET = 'https://www.release.tdnet.info/inbs/';
   const FUNDS = new Set({{ funds | tojson }});         // ETF・ETN・REIT 等(サイトのデータと同じく取り込まない)
   const live = new Map();                              // id -> 速報の行(サイトのデータに載ったら消す)
-  const LABEL = { earnings_report: '決算', forecast_revision: '業績', dividend_revision: '配当', forecast_dividend_revision: '業績 配当' };
+  const LABEL = { earnings_report: '決算', forecast_revision: '修正', dividend_revision: '修正', forecast_dividend_revision: '修正' };
   // 表題からの種別の判定(src/datasources/tdnet.py の classify_title と同じ考え方)
   const RE = {
     corr: /^[\s(（【]*訂正|^[\s]*[(（【][^)）】]*訂正[^)）】]*[)）】]|一部訂正|訂正版|データ訂正/,
