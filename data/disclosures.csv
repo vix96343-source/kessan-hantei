@@ -1,4 +1,7 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261112576777,2026-11-12T16:10,269A,Ｇ－Ｓａｐｅｅｔ,2026年9月期決算短信〔日本基準〕(非連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261112576777.pdf,https://www.release.tdnet.info/inbs/081220261112576777.zip,東,2026-11-12T16:10
+140120261112576200,2026-11-12T16:10,269A,Ｇ－Ｓａｐｅｅｔ,2026年9月期 通期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261112576200.pdf,,東,2026-11-12T16:10
+140120261029559733,2026-11-12T16:10,3096,オーシャン,令和9年3月期第2四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261029559733.pdf,https://www.release.tdnet.info/inbs/081220261029559733.zip,東,2026-11-12T16:10
 140120261112576675,2026-11-12T16:00,6466,ＴＶＥ,2026年９月期　決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261112576675.pdf,https://www.release.tdnet.info/inbs/081220261112576675.zip,東,2026-11-12T16:00
 140120261112576569,2026-11-12T16:00,6072,ＥＲＴＨ　Ｇｒｏｕｐ,2027年３月期 第２四半期（中間期）決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261112576569.pdf,https://www.release.tdnet.info/inbs/081220261112576569.zip,東,2026-11-12T16:00
 140120261112576517,2026-11-12T16:00,6545,Ｇ－ＩＩＦ,2027年３月期第２四半期（中間期）決算補足説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261112576517.pdf,,東,2026-11-12T16:00
