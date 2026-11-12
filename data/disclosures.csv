@@ -1,4 +1,6 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261112577111,2026-11-12T18:00,1853,森組,2027年３月期の配当予想の修正（無配）に関するお知らせ,dividend_revision,False,down,,,,,https://www.release.tdnet.info/inbs/140120261112577111.pdf,,東,2026-11-12T18:00
+140120261023555600,2026-11-12T18:00,1853,森組,2026年3月期第2四半期（中間期）決算短信〔日本基準〕（非連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261023555600.pdf,https://www.release.tdnet.info/inbs/081220261023555600.zip,東,2026-11-12T18:00
 140120261112577003,2026-11-12T17:50,330A,Ｇ－ＴａｌｅｎｔＸ,2027年3月期 第2四半期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261112577003.pdf,,東,2026-11-12T17:50
 140120261112576529,2026-11-12T17:45,3672,オルトプラスＨＤ,2026年９月期連結業績と前期実績との差異に関するお知らせ,actual_vs_forecast,False,,,,,,https://www.release.tdnet.info/inbs/140120261112576529.pdf,,東,2026-11-12T17:45
 140120261112576515,2026-11-12T17:45,3672,オルトプラスＨＤ,2026年９月期　決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261112576515.pdf,https://www.release.tdnet.info/inbs/081220261112576515.zip,東,2026-11-12T17:45
