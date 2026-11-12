@@ -179,7 +179,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
 <div class="more" id="more"></div>
 </div>
 <footer>
-  出典: TDnet(日本取引所グループ)・四半期業績と受注の過去分は IRBANK。決算の行: 値とYoYは決算短信1ページ目の連結(期首からの累計・前年同期比)、QoQは3か月(四半期単独)の値どうしの前四半期比。修正の行: 値は修正後の予想、YoYは前期実績比、QoQ欄は前回予想からの修正率。受注高・受注残は行を開くと表示(短信に受注の表がある会社のみ)。前回が赤字のときの増減率は (今回−前回)÷|前回|。決算短信と業績・配当予想の修正を表示。種別のボタンを押すとPDFが開きます(短信=決算短信、資料=決算説明資料・補足資料(短信から14日以内)、修正=業績・配当予想の修正)。平日7:30〜20時は15秒ごとに自動更新(TDnet の新しい開示は5秒ごとに直接確認し「速報」として先に表示)。行をクリック/タップすると数値(売上・営業益の伸び、進捗率、修正率など)が開きます。<br>
+  出典: TDnet(日本取引所グループ)・四半期業績と受注の過去分は IRBANK。決算の行: 値とYoYは決算短信1ページ目の連結(期首からの累計・前年同期比)、QoQは3か月(四半期単独)の値どうしの前四半期比。修正の行: 数値は出さず、種別の「修正」から開示のPDFを開く。受注高・受注残は行を開くと表示(短信に受注の表がある会社のみ)。前回が赤字のときの増減率は (今回−前回)÷|前回|。決算短信と業績・配当予想の修正を表示。種別のボタンを押すとPDFが開きます(短信=決算短信、資料=決算説明資料・補足資料(短信から14日以内)、修正=業績・配当予想の修正)。平日7:30〜20時は15秒ごとに自動更新(TDnet の新しい開示は5秒ごとに直接確認し「速報」として先に表示)。行をクリック/タップすると数値(売上・営業益の伸び、進捗率、修正率など)が開きます。<br>
 </footer>
 
 <script id="index" type="application/json">{{ index_json | safe }}</script>
@@ -253,8 +253,25 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
     });
   }
 
+  // 同じ日に決算短信と修正を出した会社は決算の行1本にまとめ、種別に「決算」「修正」のリンクを横に並べる
+  function mergeRev(rows) {
+    const earn = new Map(rows.filter(r => r.group === '決算').map(r => [r.code + '|' + r.date, r]));
+    const rev = new Map();
+    const out = rows.filter(r => {
+      const e = r.group === '修正' && earn.get(r.code + '|' + r.date);
+      if (e && !rev.has(e.id)) rev.set(e.id, r);
+      return !e;
+    });
+    return out.map(r => {
+      if (r.group !== '決算') return r;
+      const v = rev.get(r.id), p = (r.pdfs || []).filter(x => x.label === '業績修正' || x.label === '業績修正短信').pop();
+      const url = v ? v.url : (r.label || '').includes('修正') && p ? p.url : null;
+      return url ? { ...r, revUrl: url, revTitle: v ? v.title : p.title } : r;
+    });
+  }
+
   function visible() {
-    return sorted(allRows().filter(r => !state.onlyNew || fresh.has(r.id)));
+    return sorted(mergeRev(allRows()).filter(r => !state.onlyNew || fresh.has(r.id)));
   }
 
   // 決算短信の数値(単独四半期)と YoY・QoQ
@@ -274,7 +291,8 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
   const cumMark = x => x && x.cum && x.v != null ? { ...x, v: x.v.toLocaleString('ja-JP') + '累', raw: true } : x;
   function numCells(r) {
     const keys = ['sales', 'op', 'ordinary', 'net', 'eps'];
-    const main = r.nums ? keys.map(k => cells3(r.group === '決算' ? cumMark(r.nums[k] || {}) : (r.nums[k] || {}), k === 'eps')).join('') : keys.map(() => blank3).join('');
+    // 修正の行は数値を出さない(種別の「修正」ボタンで開示のPDFへ)
+    const main = r.nums && r.group === '決算' ? keys.map(k => cells3(r.group === '決算' ? cumMark(r.nums[k] || {}) : (r.nums[k] || {}), k === 'eps')).join('') : keys.map(() => blank3).join('');
     return main;
   }
 
@@ -448,7 +466,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
         <td class="c-date">${r.date.slice(5).replace('-', '/')}</td><td class="c-time">T${esc(r.time)}</td>
         <td class="c-code">${esc(r.code)}</td>
         <td class="c-name" title="${esc(r.name)} ${esc(r.title)}">${esc(r.name)}${isNew ? '<span class="badge-new">NEW</span>' : ''}</td>
-        <td class="c-kind"><a class="pdf" href="${esc(r.url)}" target="_blank" rel="noopener" title="${esc(r.title)}">${esc(r.label || r.group)}</a>${r.live ? '<span class="live">速報</span>' : ''}</td>${numCells(r)}</tr>`;
+        <td class="c-kind"><a class="pdf" href="${esc(r.url)}" target="_blank" rel="noopener" title="${esc(r.title)}">${esc(r.revUrl ? '決算' : r.label || r.group)}</a>${r.revUrl ? ` <a class="pdf" href="${esc(r.revUrl)}" target="_blank" rel="noopener" title="${esc(r.revTitle || '')}">修正</a>` : ''}${r.live ? '<span class="live">速報</span>' : ''}</td>${numCells(r)}</tr>`;
       if (open.has(r.id)) html += detail(r);
     });
     $('tb').innerHTML = html || `<tr><td colspan="20" class="more">${state.onlyNew ? '新着はありません' : '該当する開示はありません'}</td></tr>`;
