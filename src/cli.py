@@ -5,7 +5,7 @@ import logging
 import sys
 from datetime import date, timedelta
 
-from . import backtest, breakdown, calendar_fetch, consensus, disclosures, earnings, forecasts, irdocs, judge, order_adjust, orders, pres_orders, reaction, revisions, segments, site, universe
+from . import backtest, breakdown, calendar_fetch, consensus, disclosures, earnings, forecasts, irdocs, judge, order_adjust, orders, pres_orders, pres_tables, reaction, revisions, segments, site, universe
 from .config import DATA_DIR, load_config, now_jst
 
 
@@ -41,6 +41,7 @@ def _details(cfg, stats) -> bool:
             return 0
     stats["orders"] = step(orders.update, "受注")             # 短信の受注高・受注残高の表
     stats["orders"] += step(pres_orders.update, "説明資料の受注")  # 短信に受注が無い会社は説明資料の表から
+    stats["orders"] += step(pres_tables.update, "説明資料の推移表")  # 説明資料の四半期推移の表の品目別の売上・受注
     stats["order_adjust"] = step(order_adjust.update, "受注の補正")  # 受注の3か月の値の1の誤差を説明資料で直す
     stats["segments"] = step(segments.update, "セグメント")    # 短信のセグメント別の売上・利益
     stats["segments"] += step(breakdown.update, "内訳")       # 品目別・製品別などの売上の内訳(セグメントが1つの会社など)

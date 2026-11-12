@@ -549,10 +549,27 @@ def _heading_metric(table) -> str | None:
     return _metric(hits[-1].group(0)) or ("orders" if "受注" in hits[-1].group(0) else None)
 
 
+_HEAD_PERIOD = re.compile(r"(前|当)(第[1-4１-４]四半期|中間)?(連結)?(累計)?(会計|事業)?(期間|年度)$")
+
+
+def _head_period(above: str) -> str | None:
+    """表のすぐ上の見出しの期間: 当期間 → cur(当年度は cur_annual)、前の中間・四半期 → prior、前年度 → prior_fy"""
+    h = above[-80:]
+    for _ in range(3):
+        h = re.sub(r"[(（][^()（）]*[)）]$", "", h)
+    m = _HEAD_PERIOD.search(h)
+    if not m or not (m.group(3) or m.group(5) or m.group(2)):
+        return None
+    if m.group(1) == "当":
+        return "cur_annual" if m.group(6) == "年度" else "cur"
+    return "prior_fy" if m.group(6) == "年度" else "prior"
+
+
 def parse_qualitative(html: str, cum_sales: float | None = None) -> dict | None:
     """qualitative.htm 全体から受注の表を探して読む。無ければ None。"""
     soup = BeautifulSoup(html, "html.parser")
     facts, unit, tpls = [], None, []
+    heads = []
     prev_grid = None
     for t in soup.find_all("table"):
         text = t.get_text(" ", strip=True)
@@ -605,12 +622,26 @@ def parse_qualitative(html: str, cum_sales: float | None = None) -> dict | None:
                 not any(_num(c) is not None for r in g_prev for c in r) and len(g_prev[0]) == len(g0[0]):
             head = g_prev
         f, u, tpl = parse_table(t, ctx, head)
+        # 表のすぐ上の見出しが期間の表(「前中間連結会計期間(自…至…)」「当中間連結会計期間」「前連結会計年度」と同じ形の表が
+        # 3つ並ぶ FUJI): 列の見出しに期間が無い値(cur)を見出しの期間にする(前年の表を今期と取り違えない)
+        hp = _head_period(above)
+        if f and hp in ("prior", "prior_fy"):
+            f = [{**x, "period": hp} if x["period"] == "cur" and x["kind"] == "value" else x for x in f
+                 if not (x["period"] == "cur" and x["kind"] == "pct")]
+            heads.append(hp)
+        elif f and hp:
+            heads.append(hp)
         if f:
             facts += [{**x, "tbl": len(tpls), "u": u} for x in f]   # どの表の値か(合計が2つの表に出る会社用)
             unit = unit or u
             tpls.append(tpl)
     if not facts:
         return None
+    # 決算(通期)の短信の「前連結会計年度」の表は前年(prior)。四半期の短信では前の期末(fy)
+    if "cur_annual" in heads:
+        facts = [{**x, "period": "prior"} if x["period"] == "prior_fy" else x for x in facts]
+    else:
+        facts = [{**x, "period": "fy"} if x["period"] == "prior_fy" else x for x in facts]
     unit = unit or _guess_unit(facts, cum_sales)
     x = _assemble(_same_unit(facts, unit), unit)
     if x:
