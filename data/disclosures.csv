@@ -1,4 +1,9 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261112574902,2026-11-12T15:35,4488,Ｇ－ＡＩｉｎｓｉｄｅ,連結決算への移行に伴う連結業績予想の公表に関するお知らせ,forecast_initial,False,,,,,,https://www.release.tdnet.info/inbs/140120261112574902.pdf,https://www.release.tdnet.info/inbs/091220261112574902.zip,東,2026-11-12T15:37
+140120261112574676,2026-11-12T15:35,4488,Ｇ－ＡＩｉｎｓｉｄｅ,2027年３月期 第２四半期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261112574676.pdf,,東,2026-11-12T15:37
+140120261111574613,2026-11-12T15:35,4488,Ｇ－ＡＩｉｎｓｉｄｅ,2027年３月期第２四半期（中間期）決算短信〔日本基準〕(非連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261111574613.pdf,https://www.release.tdnet.info/inbs/081220261111574613.zip,東,2026-11-12T15:37
+140120261111573712,2026-11-12T15:32,1384,ホクリヨウ,通期業績予想及び配当予想の修正に関するお知らせ,forecast_dividend_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261111573712.pdf,,東,2026-11-12T15:37
+140120261111573260,2026-11-12T15:32,1384,ホクリヨウ,2027年３月期　第２四半期（中間期）決算短信〔日本基準〕（非連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261111573260.pdf,https://www.release.tdnet.info/inbs/081220261111573260.zip,東,2026-11-12T15:37
 140120261112576308,2026-11-12T15:31,6180,Ｇ－ＧＭＯメディア,通期業績予想の修正に関するお知らせ,forecast_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261112576308.pdf,,東,2026-11-12T15:31
 140120261112576285,2026-11-12T15:31,6180,Ｇ－ＧＭＯメディア,2026年12月期 第3四半期決算補足説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261112576285.pdf,,東,2026-11-12T15:31
 140120261112575912,2026-11-12T15:31,3788,ＧＭＯＧＳＨＤ,2026年12月期_第3四半期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261112575912.pdf,,東,2026-11-12T15:31
