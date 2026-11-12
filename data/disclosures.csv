@@ -1,4 +1,5 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261111574232,2026-11-12T09:30,6787,メイコー,2026年度上期 決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261111574232.pdf,,東,2026-11-12T09:30
 140120261112574650,2026-11-12T09:00,9519,レノバ,2027年3月期　第2四半期決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261112574650.pdf,,東,2026-11-12T09:00
 140120261111574625,2026-11-12T09:00,4183,三井化学,(訂正)「2026年度第２四半期（中間期）決算の概要及び2026年度業績予想の概要」の一部訂正について,forecast_initial,True,,,,,,https://www.release.tdnet.info/inbs/140120261111574625.pdf,,東,2026-11-12T09:00
 140120261020553580,2026-11-12T09:00,3241,ウィル,2026年12月期 第3四半期決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261020553580.pdf,https://www.release.tdnet.info/inbs/081220261020553580.zip,東,2026-11-12T09:00
