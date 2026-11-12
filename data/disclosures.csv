@@ -1,4 +1,5 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261112574895,2026-11-12T16:40,8228,マルイチ産商,2027年3月期　第2四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261112574895.pdf,https://www.release.tdnet.info/inbs/081220261112574895.zip,名,2026-11-12T16:40
 140120261112576770,2026-11-12T16:30,3538,ウイルプラスＨＤ,2027年6月期 第1四半期決算補足説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261112576770.pdf,,東,2026-11-12T16:30
 140120261112576699,2026-11-12T16:30,4720,城南進研,2027年３月期第２四半期（中間期）連結業績予想と実績値との差異および特別損失の計上に関するお知らせ,actual_vs_forecast,False,,,,,,https://www.release.tdnet.info/inbs/140120261112576699.pdf,,東札,2026-11-12T16:30
 140120261112576691,2026-11-12T16:30,7078,Ｇ－ＩＮＣ　ＨＤ,2027年５月期 第２四半期決算補足資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261112576691.pdf,,東,2026-11-12T16:30
