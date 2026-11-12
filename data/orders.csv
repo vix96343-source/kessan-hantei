@@ -1,4 +1,12 @@
 disclosure_id,code,disclosed_at,n_q,period_end,status,data
+140120261112575757,2780,2026-11-12T15:40,2,2026-09-30,none,
+140120261112574937,250A,2026-11-12T15:40,2,2026-09-30,none,
+140120261111574602,9363,2026-11-12T15:40,2,2026-09-30,none,
+140120261111574323,9221,2026-11-12T15:40,2,2026-09-30,none,
+140120261111573796,9073,2026-11-12T15:40,2,2026-09-30,none,
+140120261111573496,7927,2026-11-12T15:40,2,2026-09-30,none,
+140120261030560882,6055,2026-11-12T15:40,2,2026-09-30,none,
+140120261023555436,6962,2026-11-12T15:40,2,2026-09-30,none,
 140120261111574613,4488,2026-11-12T15:35,,,none,
 140120261111573260,1384,2026-11-12T15:32,,,none,
 140120261112575745,3788,2026-11-12T15:31,,,none,
@@ -140,7 +148,7 @@ disclosure_id,code,disclosed_at,n_q,period_end,status,data
 140120261111574044,5988,2026-11-12T15:30,2,2026-09-30,none,
 140120261111574029,4082,2026-11-12T15:30,2,2026-09-30,none,
 140120261111574013,5715,2026-11-12T15:30,2,2026-09-30,none,
-140120261111573982,6540,2026-11-12T15:30,,,ok,"{""total"": {""name"": ""合計"", ""orders"": null, ""orders_yoy"": null, ""backlog"": 12012000000.0, ""backlog_yoy"": null, ""backlog_fy"": null}, ""segments"": [], ""src"": ""narrative""}"
+140120261111573982,6540,2026-11-12T15:30,,,ok,"{""total"": {""name"": ""合計"", ""orders"": null, ""orders_yoy"": null, ""backlog"": 12012000000.0, ""backlog_yoy"": null, ""backlog_fy"": null}, ""segments"": [{""name"": ""専門店"", ""orders"": null, ""orders_prior"": null, ""orders_fy"": null, ""orders_yoy"": null, ""backlog"": 1519000000.0, ""backlog_prior"": null, ""backlog_fy"": null, ""backlog_yoy"": null}, {""name"": ""大型店・複合商業施設"", ""orders"": null, ""orders_prior"": null, ""orders_fy"": null, ""orders_yoy"": null, ""backlog"": 2155000000.0, ""backlog_prior"": null, ""backlog_fy"": null, ""backlog_yoy"": null}, {""name"": ""オフィス・余暇施設等"", ""orders"": null, ""orders_prior"": null, ""orders_fy"": null, ""orders_yoy"": null, ""backlog"": 8336000000.0, ""backlog_prior"": null, ""backlog_fy"": null, ""backlog_yoy"": null}], ""src"": ""narrative"", ""seg_src"": ""pres_yoy"", ""seg_doc"": ""20261112574964""}"
 140120261111573978,4255,2026-11-12T15:30,,,none,
 140120261111573950,231A,2026-11-12T15:30,,,none,
 140120261111573933,5991,2026-11-12T15:30,2,2026-09-30,none,
