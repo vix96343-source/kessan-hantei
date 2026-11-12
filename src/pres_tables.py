@@ -578,11 +578,15 @@ def update(cfg: dict, data_dir: Path = DATA_DIR) -> int:
     hq = _hq(data_dir)
     checked = _load_checked(data_dir)
     n0 = len(checked)
-    pres = disc[disc["kind"] == "earnings_presentation"].sort_values("disclosed_at").tail(300)
+    # 監視を止めないよう、直近3日の資料だけ・1回に15件まで(新しい順。残りは次の回)
+    since = (pd.Timestamp.now(tz="Asia/Tokyo") - pd.Timedelta(days=3)).strftime("%Y-%m-%d")
+    pres = disc[(disc["kind"] == "earnings_presentation") & (disc["disclosed_at"].str[:10] >= since)]
+    pres = pres[~pres["disclosure_id"].isin(checked)].sort_values("disclosed_at", ascending=False).head(15)
     session = None
     merged, ids = {}, set()
     for p in pres.to_dict("records"):
-        if p["disclosure_id"] in checked or p["code"] not in reps:
+        if p["code"] not in reps:
+            checked.add(p["disclosure_id"])
             continue
         per = _period_of(reps[p["code"]], p["disclosed_at"][:10])
         if not per:
