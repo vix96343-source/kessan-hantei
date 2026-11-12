@@ -138,7 +138,7 @@ def _metric(label: str) -> str | None:
     l = re.sub(r"\s", "", label)
     if re.search(r"件|損失|前期繰越|期首", l):         # 期首の繰越残高は期末の受注残ではない
         return None
-    if re.search(r"受注残|手持受注|次期繰越|繰越工事高|^手持(工事)?高", l):   # 手持高: 東亜建設
+    if re.search(r"受注残|手持受注|次期繰越|繰越工事高|^手持(工事)?高|^繰越高", l):   # 手持高: 東亜建設、繰越高: 守谷商会
         return "backlog"
     if re.search(r"受注(高|額|総額|金額|工事高|実績)|受注$|受注[(（]", l):
         return "orders"
@@ -395,8 +395,12 @@ def _grid_facts(header: list[list[str]], data: list[list[str]], numeric_cols: li
     return facts, all_header
 
 
+_UNIT_TAIL = re.compile(r"\s*[（(](千円|百万円|億円)[)）]\s*$")
+
+
 def _seg_key(name: str) -> str:
-    return re.sub(r"\s", "", name)
+    # 「合計（千円）」「建築事業（千円）」のように単位が付いた行の名前(1798)は単位を外す
+    return re.sub(r"\s", "", _UNIT_TAIL.sub("", name))
 
 
 def _assemble(facts: list[dict], unit: float) -> dict | None:
@@ -405,8 +409,10 @@ def _assemble(facts: list[dict], unit: float) -> dict | None:
     order = []
     for f in facts:
         k = _seg_key(f["seg"])
+        if re.search(r"利益|EBITDA|マージン", k):        # 受注の表の中の業績の行(日本製鋼所: 営業利益・EBITDA)
+            continue
         if k not in segs:
-            segs[k] = {"name": f["seg"]}
+            segs[k] = {"name": _UNIT_TAIL.sub("", f["seg"])}
             order.append(k)
         s = segs[k]
         if f.get("group"):
@@ -531,7 +537,7 @@ def _heading_metric(table) -> str | None:
         if len(before) > 120:
             break
     b = re.sub(r"\s", "", before)[-60:]
-    hits = list(re.finditer(r"受注残高?|手持受注|受注高|受注実績|受注額", b))
+    hits = list(re.finditer(r"受注残高?|手持受注|受注高|受注実績|受注額|(?<!前期)(?<!期首)繰越高", b))
     if not hits:
         return None
     rest = b[hits[-1].end():]
@@ -554,8 +560,9 @@ def parse_qualitative(html: str, cum_sales: float | None = None) -> dict | None:
         if "……" in text or len(text) > 6000:
             continue
         prev_grid = _grid(t)
-        if re.search(r"流動資産|資産合計|負債合計|純資産合計", re.sub(r"\s", "", text)):
-            continue                                   # 財政状態・貸借対照表の表(期末残高を受注残と取り違えない)
+        if re.search(r"流動資産|資産合計|負債合計|純資産合計|償却期間|顧客関係", re.sub(r"\s", "", text)):
+            continue                                   # 財政状態・貸借対照表の表(期末残高を受注残と取り違えない)、
+            #                                            企業結合で計上した無形資産の「受注残」(6395)
         ctx = None
         # すぐ上の見出しが「受注予想」「業績予想」「業績見込」の表は読まない(東急建設: 表の中に予想の字が無い通期個別受注予想の表、
         # テクノ菱和: 「連結業績見込は、次のとおり」の受注高 125,000百万円)
