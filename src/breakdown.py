@@ -152,6 +152,9 @@ def parse_html(html: str, cum_sales: float | None, seg_names=()) -> dict | None:
         data = [r for r in g if r and any(_num(c) is not None for c in r[1:])]
         if len(data) < 3:
             continue
+        # 銀行の有価証券・貸出金の残高の表(セブン銀行: 地方債・社債の平残が経常収益と偶然合った)は売上の内訳ではない
+        if any(re.fullmatch(r"国債|地方債|社債|株式|貸出金|預金", _key(r[0])) for r in data if r):
+            continue
         head = g[:g.index(data[0])]
         width = max(len(r) for r in g)
         cols = [_key(" ".join(dict.fromkeys(r[j] for r in head if j < len(r) and r[j]))) for j in range(width)]
