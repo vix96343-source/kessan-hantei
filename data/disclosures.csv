@@ -1,4 +1,9 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261112577321,2026-11-13T16:45,5194,相模ゴム,2027年３月期 第２四半期（中間期）連結業績予想値と実績値との差異及び営業外収益（為替差益）計上に関するお知らせ,actual_vs_forecast,False,,,,,,https://www.release.tdnet.info/inbs/140120261112577321.pdf,,東,2026-11-13T16:45
+140120261112577292,2026-11-13T16:45,5194,相模ゴム,2027年３月期　第２四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261112577292.pdf,https://www.release.tdnet.info/inbs/081220261112577292.zip,東,2026-11-13T16:45
+140120261112576726,2026-11-13T16:45,6863,ニレコ,2027年３月期通期業績予想の修正および中期経営計画「NIRECO-VISION 100」の数値目標変更（上方修正）ならびに期末配当予想の修正に関するお知らせ,forecast_dividend_revision,False,up,,,,,https://www.release.tdnet.info/inbs/140120261112576726.pdf,,東,2026-11-13T16:45
+140120261112576696,2026-11-13T16:45,6863,ニレコ,2027年３月期第２四半期（中間期）連結業績予想と実績の差異に関するお知らせ,actual_vs_forecast,False,,,,,,https://www.release.tdnet.info/inbs/140120261112576696.pdf,,東,2026-11-13T16:45
+140120261112576689,2026-11-13T16:45,6863,ニレコ,2027年３月期 第２四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261112576689.pdf,https://www.release.tdnet.info/inbs/081220261112576689.zip,東,2026-11-13T16:45
 140120261113580116,2026-11-13T16:30,4241,アテクト,2027年３月期第２四半期連結決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261113580116.pdf,,東,2026-11-13T16:30
 140120261113579842,2026-11-13T16:30,3768,リスクモンスター,2027年3月期第2四半期（中間期）決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261113579842.pdf,,東,2026-11-13T16:30
 140120261113579738,2026-11-13T16:30,2160,Ｇ－ＧＮＩ,2026年12月期 第3四半期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261113579738.pdf,,東,2026-11-13T16:30
