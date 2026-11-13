@@ -1,4 +1,5 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261112577501,2026-11-13T17:45,458A,Ｐ－プラン・ドゥ,通期業績予想の修正に関するお知らせ,forecast_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261112577501.pdf,,東,2026-11-13T17:45
 140120261113580232,2026-11-13T17:30,4571,Ｇ－ＮＡＮＯ,2027年3月期第2四半期決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261113580232.pdf,,東,2026-11-13T17:30
 140120261113580226,2026-11-13T17:30,648A,Ｇ－ルクレ,2026年9月期 決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261113580226.pdf,,東,2026-11-13T17:30
 140120261113580030,2026-11-13T17:30,4395,Ｇ－アクリート,2026年12月期 第２四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261113580030.pdf,https://www.release.tdnet.info/inbs/081220261113580030.zip,東,2026-11-13T17:30
