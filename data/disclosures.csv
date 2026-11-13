@@ -1,4 +1,15 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261113579901,2026-11-13T15:35,9612,ラックランド,2026年12月期連結業績予想の修正に関するお知らせ,forecast_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261113579901.pdf,,東,2026-11-13T15:35
+140120261113579851,2026-11-13T15:35,9612,ラックランド,2026年12月期 第３四半期決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261113579851.pdf,https://www.release.tdnet.info/inbs/081220261113579851.zip,東,2026-11-13T15:35
+140120261113579346,2026-11-13T15:35,4598,Ｇ－ＤＥＬＴＡ－Ｐ,2027年３月期第２四半期決算補足説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261113579346.pdf,,東,2026-11-13T15:35
+140120261113578911,2026-11-13T15:35,4598,Ｇ－ＤＥＬＴＡ－Ｐ,2027年３月期第２四半期（中間期）決算短信〔日本基準〕(非連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261113578911.pdf,https://www.release.tdnet.info/inbs/081220261113578911.zip,東,2026-11-13T15:35
+140120261112577539,2026-11-13T15:35,175A,Ｇ－ウィルスマート,2026年12月期 第３四半期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261112577539.pdf,,東,2026-11-13T15:35
+140120261112576929,2026-11-13T15:35,6233,ＫＬＡＳＳ,令和８年９月期決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261112576929.pdf,https://www.release.tdnet.info/inbs/081220261112576929.zip,東,2026-11-13T15:35
+140120261112575715,2026-11-13T15:35,6233,ＫＬＡＳＳ,令和８年９月期 決算補足説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261112575715.pdf,,東,2026-11-13T15:35
+140120261112575399,2026-11-13T15:35,6227,ＡＩメカテック,2027年６月期 第１四半期決算短信補足説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261112575399.pdf,,東,2026-11-13T15:35
+140120261112575378,2026-11-13T15:35,6227,ＡＩメカテック,2027年６月期 第１四半期決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261112575378.pdf,https://www.release.tdnet.info/inbs/081220261112575378.zip,東,2026-11-13T15:35
+140120261112574892,2026-11-13T15:35,4392,ＦＩＧ,2026年12月期 第３四半期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261112574892.pdf,,東福,2026-11-13T15:35
+140120261112574869,2026-11-13T15:35,4392,ＦＩＧ,2026年12月期 第３四半期決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261112574869.pdf,https://www.release.tdnet.info/inbs/081220261112574869.zip,東福,2026-11-13T15:35
 140120261112577053,2026-11-13T15:32,4594,Ｇ－ブライトパス,2027年３月期　第２四半期（中間期）決算短信〔日本基準〕（非連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261112577053.pdf,https://www.release.tdnet.info/inbs/081220261112577053.zip,東,2026-11-13T15:32
 140120261113579207,2026-11-13T15:31,7048,Ｇ－ベルトラ,2026年12月期 第３四半期 決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261113579207.pdf,,東,2026-11-13T15:32
 140120261113579111,2026-11-13T15:31,3633,ＧＭＯペパボ,2026年12月期 第3四半期 決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261113579111.pdf,,東,2026-11-13T15:32
