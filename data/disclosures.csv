@@ -1,4 +1,7 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261113580025,2026-11-13T16:15,5254,Ｇ－Ａｒｅｎｔ,2027年6月期 第1四半期 決算説明会 事前質問の回答,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261113580025.pdf,,東,2026-11-13T16:15
+140120261113578527,2026-11-13T16:15,8306,三菱ＵＦＪ,通期業績目標の修正および期末配当予想の修正について,dividend_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261113578527.pdf,,東名,2026-11-13T16:15
+140120261112577371,2026-11-13T16:15,8306,三菱ＵＦＪ,2027年3月期 第2四半期（中間期）決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261112577371.pdf,https://www.release.tdnet.info/inbs/081220261112577371.zip,東名,2026-11-13T16:15
 140120261022554520,2026-11-13T16:10,2928,Ａ－ＲＩＺＡＰ　Ｇ,2027年３月期  第２四半期（中間期）決算短信〔ＩＦＲＳ〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261022554520.pdf,https://www.release.tdnet.info/inbs/081220261022554520.zip,札,2026-11-13T16:10
 140120261113580013,2026-11-13T16:05,4011,Ｇ－ヘッドウォーター,2026年12月期第3四半期決算短信補足説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261113580013.pdf,,東,2026-11-13T16:05
 140120261112577017,2026-11-13T16:03,334A,Ｇ－ＶＰＪ,通期業績予想および配当予想の修正（決定）に関するお知らせ,forecast_dividend_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261112577017.pdf,,東,2026-11-13T16:03
