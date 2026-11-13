@@ -1,4 +1,14 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261112576995,2026-11-13T11:00,8089,ナイス,2027年３月期　第２四半期（中間期）決算補足説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261112576995.pdf,,東,2026-11-13T11:00
+140120261112576932,2026-11-13T11:00,8089,ナイス,2027年３月期　第２四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261112576932.pdf,https://www.release.tdnet.info/inbs/081220261112576932.zip,東,2026-11-13T11:00
+140120261112576272,2026-11-13T11:00,7296,ＦＣＣ,2027年３月期第２四半期決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261112576272.pdf,,東,2026-11-13T11:00
+140120261111574583,2026-11-13T11:00,6699,ダイヤＨＤ,剰余金の配当（中間配当無配）・期末配当予想の修正に関するお知らせ,dividend_revision,False,down,,,,,https://www.release.tdnet.info/inbs/140120261111574583.pdf,,東,2026-11-13T11:00
+140120261111574578,2026-11-13T11:00,6699,ダイヤＨＤ,営業外費用の計上及び2027年３月期第２四半期連結累計期間の業績予想と実績値との差異に関するお知らせ,actual_vs_forecast,False,,,,,,https://www.release.tdnet.info/inbs/140120261111574578.pdf,,東,2026-11-13T11:00
+140120261111574555,2026-11-13T11:00,6699,ダイヤＨＤ,2027年３月期第２四半期（中間期）決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261111574555.pdf,,東,2026-11-13T11:00
+140120261111574517,2026-11-13T11:00,6699,ダイヤＨＤ,2027年３月期第２四半期(中間期)決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261111574517.pdf,https://www.release.tdnet.info/inbs/081220261111574517.zip,東,2026-11-13T11:00
+140120261109569522,2026-11-13T11:00,5237,ノザワ,2027年3月期 第2四半期(中間期) 決算補足説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261109569522.pdf,,東,2026-11-13T11:00
+140120261109569510,2026-11-13T11:00,5237,ノザワ,2027年３月期第２四半期（中間期）連結業績予想値と実績値の差異及び通期連結業績予想の修正に関するお知らせ,forecast_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261109569510.pdf,,東,2026-11-13T11:00
+140120261106566908,2026-11-13T11:00,5237,ノザワ,2027年３月期　第２四半期(中間期)決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261106566908.pdf,https://www.release.tdnet.info/inbs/081220261106566908.zip,東,2026-11-13T11:00
 140120261112576865,2026-11-13T10:30,7791,ドリームベッド,2027年3月期第2四半期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261112576865.pdf,,東,2026-11-13T10:30
 140120261106567616,2026-11-13T10:00,3798,ＵＬＳグループ,2027年3月期第2四半期（中間期）決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261106567616.pdf,,東,2026-11-13T10:00
 140120261113577675,2026-11-13T08:55,9274,ＫＰＰグループＨＤ,2027年３月期第２四半期（中間期）決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261113577675.pdf,https://www.release.tdnet.info/inbs/081220261113577675.zip,東,2026-11-13T08:55
