@@ -23,7 +23,7 @@ from .datasources.http import RateLimitedSession
 log = logging.getLogger(__name__)
 
 COLUMNS = ["disclosure_id", "code", "disclosed_at", "n_q", "period_end", "status", "data"]
-KINDS = r"品目別|製品別|商品別|部門別|品種別|用途別|分野別|事業別|サービス別|業態別|ブランド別|地域別|仕向地別"
+KINDS = r"製品ライン|品目別|製品別|商品別|部門別|品種別|用途別|分野別|事業別|サービス別|業態別|ブランド別|地域別|仕向地別"
 _UNITS = {"百万円": 1e6, "千円": 1e3, "億円": 1e8}
 QUAL_DIR = Path.home() / "kessan-pdfs" / "qual"            # 手元でのみ: 短信の補足情報(qualitative.htm)の保存先
 
@@ -146,7 +146,7 @@ def parse_html(html: str, cum_sales: float | None, seg_names=()) -> dict | None:
     soup = BeautifulSoup(html, "html.parser")
     text = soup.get_text("\n")
     segs = {_key(n) for n in seg_names}
-    found = []
+    found, prior_tables = [], []
     for t in soup.find_all("table"):
         g = _grid(t)
         data = [r for r in g if r and any(_num(c) is not None for c in r[1:])]
@@ -169,9 +169,16 @@ def parse_html(html: str, cum_sales: float | None, seg_names=()) -> dict | None:
                 bool(re.search(r"前(中間|第|同|年同)", h)) and not re.search(r"前(連結会計年度|事業年度|期末)", h)
         cur = [j for j in num_cols if amount(j, True)]
         prior = [j for j in num_cols if amount(j, False)]
+        period = None
         if not cur:                                    # 当期の金額の列が1つだけの表(「売上高(百万円)」と前年比など)
             cur = [j for j in num_cols if re.search(r"円", cols[j]) and not re.search(r"構成比|増減|前年比|比率|%|％", cols[j])
                    and not re.search(r"前(中間|第|同|年|期|連結|事業)", cols[j])]
+            if len(cur) != 1 and num_cols and re.search(r"(合計|計)$", cols[num_cols[-1]]):
+                # 製品ライン×セグメントの表(ツガミ: 列が 日本 中国 … 合計)。期間は表の上の「当中間連結会計期間」「前中間…」
+                prev = _key("".join(reversed([str(x) for x in t.find_all_previous(string=True, limit=40)])))
+                mp = list(re.finditer(r"(当|前)(中間|第[0-9]四半期|四半期|連結会計年度|事業年度|連結累計|累計)", prev))
+                if mp:
+                    period, cur = mp[-1].group(1), [num_cols[-1]]
             if len(cur) != 1:
                 continue
         # 単位(見出しや表の上の文)
@@ -180,7 +187,7 @@ def parse_html(html: str, cum_sales: float | None, seg_names=()) -> dict | None:
         c0 = cur[0]
         # 合計の行: 当期の金額が連結売上と単位の丸めの範囲で一致する行(合わない表は内訳ではない)
         tot = next((r for r in data if c0 < len(r) and _is_total(r) and _num(r[c0]) is not None
-                    and abs(_num(r[c0]) * unit - cum_sales) <= max(unit, abs(cum_sales) * 0.001)), None)
+                    and (period == "前" or abs(_num(r[c0]) * unit - cum_sales) <= max(unit, abs(cum_sales) * 0.001))), None)
         if tot is None:
             continue
         tv = _num(tot[c0])
@@ -189,6 +196,8 @@ def parse_html(html: str, cum_sales: float | None, seg_names=()) -> dict | None:
         before = _key("".join(reversed([str(x) for x in t.find_all_previous(string=True, limit=15)])))
         ms = list(re.finditer(r"(" + KINDS + r")(実績|売上高?|売上収益|販売実績|の状況)?", before))
         title = ms[-1].group(0) if ms else ("収益の分解" if "収益" in before[-80:] and "分解" in before[-80:] else "売上の内訳")
+        if not ms and "製品ライン" in _key(t.get_text()):
+            title = "製品ライン別"
         if any(re.search(_PL, label(r)) for r in data):
             continue                                   # 損益計算書(売上原価・販管費…)は内訳ではない
         items = []
@@ -206,11 +215,23 @@ def parse_html(html: str, cum_sales: float | None, seg_names=()) -> dict | None:
         tp = _num(tot[p0]) if p0 is not None and p0 < len(tot) else None
         if segs and sum(i["name"] in segs for i in items) * 2 >= len(items):
             continue
+        if period == "前":                            # 前期の表: 当期の表に前期の値として付ける(下)
+            prior_tables.append((items, tv * unit))
+            continue
         found.append({"title": re.sub(r"[（()）]", "", title), "unit": unit, "items": items,
                       "total": {"sales": tv * unit, "sales_prior": None if tp is None else tp * unit},
                       "tpl": {"n": len(num_cols), "cur": num_cols.index(c0),
                               "prior": None if p0 is None else num_cols.index(p0),
                               "names": [i["name"] for i in items], "unit": unit}})
+    for f in found:                                    # 前期の表(期間が表の上に書いてある表)の値を同じ名前の品目に付ける
+        if f["total"]["sales_prior"] is None:
+            for pt, ptot in prior_tables:
+                pv = {i["name"]: i["sales"] for i in pt}
+                if {i["name"] for i in f["items"]} == set(pv):
+                    for i in f["items"]:
+                        i["sales_prior"] = pv[i["name"]]
+                    f["total"]["sales_prior"] = ptot
+                    break
     named = [f for f in found if re.search(KINDS, f["title"])]
     return (named or found or [None])[0]
 

@@ -396,10 +396,20 @@ def apply_manual(data_dir: Path = DATA_DIR) -> int:
         return 0
     man = json.loads(f.read_text(encoding="utf-8"))
     df = orders.load(data_dir)
+    # 短信に受注の表が無い会社(ツガミ: 説明資料のグラフだけ)は、記録が none でも、記録が無くても(n_q と disclosed_at を書いた分)入れる
+    add = [{"disclosure_id": k, "code": e["code"], "disclosed_at": e["disclosed_at"], "n_q": str(e["n_q"]),
+            "period_end": e["period_end"], "status": "none", "data": ""}
+           for k, e in man.items() if k not in set(df["disclosure_id"]) and e.get("n_q") and e.get("disclosed_at")]
+    if add:
+        df = pd.concat([df, pd.DataFrame(add).reindex(columns=orders.COLUMNS)])
     rows = []
-    for r in df[df["disclosure_id"].isin(man) & (df["status"] == "ok")].to_dict("records"):
+    use = (df["status"] == "ok") | ((df["status"] == "none") & df["disclosure_id"].map(
+        lambda k: (man.get(k) or {}).get("total", {}).get("orders") is not None))
+    for r in df[df["disclosure_id"].isin(man) & use].to_dict("records"):
         e = man[r["disclosure_id"]]
-        d = json.loads(r["data"])
+        d = json.loads(r["data"]) if r["status"] == "ok" else             {"segments": [], "total": {"name": "合計", "orders": None, "orders_prior": None, "orders_fy": None,
+                                       "backlog": None, "backlog_prior": None, "backlog_fy": None}, "unit": 1e6}
+        r["status"] = "ok"
         t = {**(d.get("total") or {}), **e.get("total", {})}
         for m in ("orders", "backlog"):
             if f"{m}_yoy" in e.get("total", {}):
@@ -414,7 +424,7 @@ def apply_manual(data_dir: Path = DATA_DIR) -> int:
             new["seg_doc"] = e.get("seg_doc")
             if e.get("seg_page"):
                 new["seg_page"] = e["seg_page"]
-        if new != d:
+        if new != d or r["disclosure_id"] in {x["disclosure_id"] for x in add} or not r["data"]:
             rows.append({**r, "data": json.dumps(new, ensure_ascii=False)})
     if rows:
         out = pd.concat([df[~df["disclosure_id"].isin([x["disclosure_id"] for x in rows])],

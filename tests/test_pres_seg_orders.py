@@ -51,3 +51,24 @@ def test_apply_manual_patches_total_and_segments(tmp_path):
     assert out["total"]["orders"] == 61546e6 and out["total"]["orders_yoy"] == 10.0
     assert [s["orders_yoy"] for s in out["segments"]] == [8.4, 10.6]
     assert pso.apply_manual(tmp_path) == 0          # 2回目は変わらない
+
+
+def test_apply_manual_fills_none_and_missing_records(tmp_path):
+    """短信に受注の表が無い会社(ツガミ: 説明資料のグラフだけ): none の記録も、記録の無い期(n_q と disclosed_at あり)も入れる"""
+    import json
+    import pandas as pd
+    from src import orders, pres_seg_orders as pso
+    row = {c: "" for c in orders.COLUMNS}
+    row.update({"disclosure_id": "X2", "code": "6101", "status": "none", "disclosed_at": "2026-11-12T13:00",
+                "period_end": "2026-09-30", "n_q": 2})
+    pd.DataFrame([row]).reindex(columns=orders.COLUMNS).to_csv(orders.path(tmp_path), index=False, encoding="utf-8")
+    man = {"X2": {"code": "6101", "period_end": "2026-09-30", "total": {"orders": 1184.2e8, "orders_prior": 531.3e8},
+                  "segments": [{"name": "内需", "orders": 61.8e8, "orders_prior": 27.5e8}], "seg_src": "pres_chart"},
+           "X1": {"code": "6101", "period_end": "2026-06-30", "n_q": 1, "disclosed_at": "2026-07-27T00:00",
+                  "total": {"orders": 643.3e8, "orders_prior": 279.0e8}}}
+    (tmp_path / pso.MANUAL).write_text(json.dumps(man, ensure_ascii=False), encoding="utf-8")
+    assert pso.apply_manual(tmp_path) == 2
+    df = orders.load(tmp_path).set_index("disclosure_id")
+    assert set(df["status"]) == {"ok"} and df.loc["X1", "n_q"] == "1"
+    assert json.loads(df.loc["X2", "data"])["total"]["orders_yoy"] == 122.9
+    assert pso.apply_manual(tmp_path) == 0

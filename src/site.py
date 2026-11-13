@@ -14,7 +14,7 @@ from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader
 
-from . import announce_times, backtest, breakdown, fy_months, calendar_fetch, consensus, disclosures, earnings, history, ir_times, irdocs, judge, order_adjust, orders, reaction, revisions, segments, universe
+from . import announce_times, backtest, breakdown, fy_months, calendar_fetch, consensus, disclosures, earnings, history, ir_times, irdocs, judge, market_caps, order_adjust, orders, reaction, revisions, segments, universe
 from .config import DATA_DIR, ROOT, now_jst
 
 DOCS_DIR = ROOT / "docs"
