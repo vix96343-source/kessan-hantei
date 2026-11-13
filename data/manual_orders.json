@@ -1206,5 +1206,337 @@
   "seg_doc": "20261111574526",
   "seg_page": 12,
   "note": "短信に受注の表が無く、決算説明資料p11の月次グラフ(億円・数字なし)の棒と面の高さをPDFの図形の座標から読んだ値(0.1億円単位、概算)。前四半期末残+受注−売上=期末残 が±1.5億円(2Qは7億円)で合う(1Qは2Qの説明資料のグラフから)"
+ },
+ "140120261102562991": {
+  "code": "7011",
+  "period_end": "2026-09-30",
+  "total": {
+   "orders": 3612500000000.0,
+   "orders_prior": 3314700000000.0,
+   "backlog": 14225600000000.0,
+   "backlog_prior": null
+  },
+  "segments": [
+   {
+    "name": "エナジー",
+    "orders": 2304200000000.0,
+    "orders_prior": 1981200000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   },
+   {
+    "name": "プラント・インフラ",
+    "orders": 689500000000.0,
+    "orders_prior": 490600000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   },
+   {
+    "name": "インダストリアル・ソリューション",
+    "orders": 375600000000.0,
+    "orders_prior": 325400000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   },
+   {
+    "name": "航空・防衛・宇宙",
+    "orders": 296800000000.0,
+    "orders_prior": 545000000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   },
+   {
+    "name": "その他及び全社又は消去",
+    "orders": -53700000000.0,
+    "orders_prior": -27700000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   }
+  ],
+  "seg_src": "presentation",
+  "seg_doc": "20261102562993",
+  "seg_page": 10,
+  "note": "説明資料p7・p10(億円)。受注残はp5の14兆2,256億円"
+ },
+ "140120261109569857": {
+  "code": "7012",
+  "period_end": "2026-09-30",
+  "total": {
+   "orders": 1041200000000.0,
+   "orders_prior": 1015400000000.0,
+   "backlog": null,
+   "backlog_prior": null
+  },
+  "segments": [
+   {
+    "name": "航空宇宙システム",
+    "orders": 204100000000.0,
+    "orders_prior": 285100000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   },
+   {
+    "name": "車両",
+    "orders": 57300000000.0,
+    "orders_prior": 27700000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   },
+   {
+    "name": "エネルギーソリューション&マリン",
+    "orders": 227200000000.0,
+    "orders_prior": 237500000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   },
+   {
+    "name": "精密機械・ロボット",
+    "orders": 178900000000.0,
+    "orders_prior": 126200000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   },
+   {
+    "name": "パワースポーツ&エンジン",
+    "orders": 318400000000.0,
+    "orders_prior": 292700000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   },
+   {
+    "name": "その他",
+    "orders": 55000000000.0,
+    "orders_prior": 45900000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   }
+  ],
+  "seg_src": "presentation",
+  "seg_doc": "20261109569870",
+  "seg_page": 6,
+  "note": "説明資料p5・p6(億円)"
+ },
+ "M7012-2026-06": {
+  "code": "7012",
+  "period_end": "2026-06-30",
+  "total": {
+   "orders": 525700000000.0,
+   "orders_prior": 446300000000.0,
+   "backlog": null,
+   "backlog_prior": null
+  },
+  "segments": [
+   {
+    "name": "航空宇宙システム",
+    "orders": 72600000000.0,
+    "orders_prior": 98900000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   },
+   {
+    "name": "車両",
+    "orders": 42900000000.0,
+    "orders_prior": 14800000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   },
+   {
+    "name": "エネルギーソリューション&マリン",
+    "orders": 125200000000.0,
+    "orders_prior": 86600000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   },
+   {
+    "name": "精密機械・ロボット",
+    "orders": 89400000000.0,
+    "orders_prior": 63900000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   },
+   {
+    "name": "パワースポーツ&エンジン",
+    "orders": 170500000000.0,
+    "orders_prior": 160200000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   },
+   {
+    "name": "その他",
+    "orders": 24800000000.0,
+    "orders_prior": 21700000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   }
+  ],
+  "seg_src": "presentation",
+  "seg_doc": "20261109569870",
+  "seg_page": 49,
+  "note": "2Q説明資料p49の四半期別受注高(億円)",
+  "n_q": 1,
+  "disclosed_at": "2026-08-01T00:00"
+ },
+ "140120260812518439": {
+  "code": "261A",
+  "period_end": "2026-06-30",
+  "total": {
+   "orders": 11312000000.0,
+   "orders_prior": null,
+   "backlog": 23309000000.0,
+   "backlog_prior": null
+  },
+  "seg_src": "tanshin_fix",
+  "seg_doc": "20260812518439",
+  "seg_page": 2,
+  "note": "2Q短信の本文(連結受注高・受注残高)",
+  "n_q": 2,
+  "disclosed_at": "2026-08-12T00:00"
+ },
+ "140120260807514690": {
+  "code": "6338",
+  "period_end": "2026-06-30",
+  "total": {
+   "orders": 4753408000.0,
+   "orders_prior": null,
+   "backlog": 4364137000.0,
+   "backlog_prior": null
+  },
+  "segments": [
+   {
+    "name": "電子機器事業",
+    "orders": 4299161000.0,
+    "orders_prior": null,
+    "backlog": 3961944000.0,
+    "backlog_prior": null
+   },
+   {
+    "name": "繊維機器事業",
+    "orders": 92699000.0,
+    "orders_prior": null,
+    "backlog": 30780000.0,
+    "backlog_prior": null
+   },
+   {
+    "name": "医療機器事業",
+    "orders": 361547000.0,
+    "orders_prior": null,
+    "backlog": 371412000.0,
+    "backlog_prior": null
+   }
+  ],
+  "seg_src": "tanshin_fix",
+  "seg_doc": "20260807514690",
+  "seg_page": null,
+  "note": "3Q短信の受注実績の表(千円)",
+  "n_q": 3,
+  "disclosed_at": "2026-08-07T00:00"
+ },
+ "140120260806511254": {
+  "code": "1808",
+  "period_end": "2026-06-30",
+  "total": {
+   "orders": 248776000000.0,
+   "orders_prior": 128336000000.0,
+   "backlog": null,
+   "backlog_prior": null
+  },
+  "seg_src": "tanshin_fix",
+  "seg_doc": "20260806511254",
+  "seg_page": 12,
+  "note": "1Q短信の個別受注実績",
+  "n_q": 1,
+  "disclosed_at": "2026-08-06T00:00"
+ },
+ "140120260726599663": {
+  "code": "7011",
+  "period_end": "2026-06-30",
+  "total": {
+   "orders": 2022400000000.0,
+   "orders_prior": 1609200000000.0,
+   "backlog": null,
+   "backlog_prior": null
+  },
+  "segments": [
+   {
+    "name": "エナジー",
+    "orders": 1359300000000.0,
+    "orders_prior": 871300000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   },
+   {
+    "name": "プラント・インフラ",
+    "orders": 368800000000.0,
+    "orders_prior": 239500000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   },
+   {
+    "name": "インダストリアル・ソリューション",
+    "orders": 193000000000.0,
+    "orders_prior": 162700000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   },
+   {
+    "name": "航空・防衛・宇宙",
+    "orders": 120900000000.0,
+    "orders_prior": 350800000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   },
+   {
+    "name": "その他及び全社又は消去",
+    "orders": -19700000000.0,
+    "orders_prior": -15200000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   }
+  ],
+  "seg_src": "presentation",
+  "seg_doc": "20260726599668",
+  "seg_page": null,
+  "note": "1Q説明資料(億円、前年は除くML)",
+  "n_q": 1,
+  "disclosed_at": "2026-08-04T00:00"
+ },
+ "140120260810517152": {
+  "code": "6540",
+  "period_end": "2026-06-30",
+  "total": {
+   "orders": null,
+   "orders_prior": null,
+   "backlog": 10049000000.0,
+   "backlog_prior": 8111000000.0
+  },
+  "segments": [
+   {
+    "name": "専門店",
+    "orders": null,
+    "orders_prior": null,
+    "backlog": 2611000000.0,
+    "backlog_prior": 2521000000.0
+   },
+   {
+    "name": "大型店・複合商業施設",
+    "orders": null,
+    "orders_prior": null,
+    "backlog": 2174000000.0,
+    "backlog_prior": 2031000000.0
+   },
+   {
+    "name": "オフィス・余暇施設等",
+    "orders": null,
+    "orders_prior": null,
+    "backlog": 5263000000.0,
+    "backlog_prior": 3558000000.0
+   }
+  ],
+  "seg_src": "presentation",
+  "seg_doc": "20260812517657",
+  "seg_page": 10,
+  "note": "2Q説明資料p10の受注残高(百万円)",
+  "n_q": 2,
+  "disclosed_at": "2026-08-12T00:00"
  }
 }

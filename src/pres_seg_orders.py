@@ -403,11 +403,12 @@ def apply_manual(data_dir: Path = DATA_DIR) -> int:
     if add:
         df = pd.concat([df, pd.DataFrame(add).reindex(columns=orders.COLUMNS)])
     rows = []
-    use = (df["status"] == "ok") | ((df["status"] == "none") & df["disclosure_id"].map(
-        lambda k: (man.get(k) or {}).get("total", {}).get("orders") is not None))
+    use = (df["status"] == "ok") | ((df["status"] != "ok") & df["disclosure_id"].map(
+        lambda k: any((man.get(k) or {}).get("total", {}).get(f) is not None for f in ("orders", "backlog"))))
     for r in df[df["disclosure_id"].isin(man) & use].to_dict("records"):
         e = man[r["disclosure_id"]]
-        d = json.loads(r["data"]) if r["status"] == "ok" else             {"segments": [], "total": {"name": "合計", "orders": None, "orders_prior": None, "orders_fy": None,
+        d = json.loads(r["data"]) if r["status"] == "ok" else \
+            {"segments": [], "total": {"name": "合計", "orders": None, "orders_prior": None, "orders_fy": None,
                                        "backlog": None, "backlog_prior": None, "backlog_fy": None}, "unit": 1e6}
         r["status"] = "ok"
         t = {**(d.get("total") or {}), **e.get("total", {})}
