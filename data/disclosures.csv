@@ -1,4 +1,7 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261112577017,2026-11-13T16:03,334A,Ｇ－ＶＰＪ,通期業績予想および配当予想の修正（決定）に関するお知らせ,forecast_dividend_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261112577017.pdf,,東,2026-11-13T16:03
+140120261112576998,2026-11-13T16:03,334A,Ｇ－ＶＰＪ,2026年12月期第3四半期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261112576998.pdf,,東,2026-11-13T16:03
+140120261112576969,2026-11-13T16:03,334A,Ｇ－ＶＰＪ,2026年12月期第3四半期決算短信〔日本基準〕(非連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261112576969.pdf,https://www.release.tdnet.info/inbs/081220261112576969.zip,東,2026-11-13T16:03
 140120261113580031,2026-11-13T16:00,6464,ツバキ・ナカシマ,2026年12月期　第3四半期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261113580031.pdf,,東,2026-11-13T16:00
 140120261113579931,2026-11-13T16:00,5998,アドバネクス,2027年３月期第２四半期決算補足資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261113579931.pdf,,東,2026-11-13T16:00
 140120261113579895,2026-11-13T16:00,593A,Ｇ－ティアフォー,2026年９月期　通期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261113579895.pdf,,東,2026-11-13T16:00
