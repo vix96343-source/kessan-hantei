@@ -1,4 +1,6 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261112574905,2026-11-13T12:20,1921,巴,業績予想および配当予想の修正に関するお知らせ,forecast_dividend_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261112574905.pdf,,東札,2026-11-13T12:20
+140120261029558726,2026-11-13T12:20,1921,巴,令和９年３月期　第２四半期(中間期)決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261029558726.pdf,https://www.release.tdnet.info/inbs/081220261029558726.zip,東札,2026-11-13T12:20
 140120261112575460,2026-11-13T12:15,7264,ＭＵＲＯ,2027年３月期第２四半期（中間期）決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261112575460.pdf,https://www.release.tdnet.info/inbs/081220261112575460.zip,東,2026-11-13T12:15
 140120261109568813,2026-11-13T12:15,199A,Ｐ－メディエア,2026年9月期決算短信〔日本基準〕（非連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261109568813.pdf,,東,2026-11-13T12:15
 140120261113578529,2026-11-13T12:00,6533,オーケストラＨＤ,2026年12月期 第3四半期 決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261113578529.pdf,,東,2026-11-13T12:00
