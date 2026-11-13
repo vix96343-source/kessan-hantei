@@ -1,4 +1,5 @@
 disclosure_id,code,disclosed_at,n_q,period_end,status,data
+140120261113580185,2652,2026-11-13T17:15,4,2026-09-30,none,
 140120261112577256,7823,2026-11-13T17:05,2,2026-09-30,none,
 140120261113580128,3133,2026-11-13T17:00,2,2026-09-30,none,
 140120261113580023,5133,2026-11-13T17:00,2,2026-09-30,ok,"{""total"": {""name"": ""合計"", ""orders"": 5928000000.0, ""orders_yoy"": null, ""backlog"": 5565000000.0, ""backlog_yoy"": null, ""backlog_fy"": null}, ""segments"": [], ""src"": ""narrative""}"
