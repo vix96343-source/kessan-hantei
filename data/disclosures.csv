@@ -1,4 +1,8 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261113578207,2026-11-13T13:20,1892,徳倉建,2027年３月期第２四半期（中間期）業績予想値と実績値との差異に関するお知らせ,actual_vs_forecast,False,,,,,,https://www.release.tdnet.info/inbs/140120261113578207.pdf,,名,2026-11-13T13:20
+140120261113577990,2026-11-13T13:20,1892,徳倉建,2027年３月期　第２四半期決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261113577990.pdf,https://www.release.tdnet.info/inbs/081220261113577990.zip,名,2026-11-13T13:20
+140120261112577154,2026-11-13T13:20,546A,ＭＩＲＡＩＮＩ,2027年３月期通期連結業績予想の修正（上方修正）及び期末配当予想の修正（増配）に関するお知らせ,forecast_dividend_revision,False,up,,,,,https://www.release.tdnet.info/inbs/140120261112577154.pdf,,東名,2026-11-13T13:20
+140120261109569669,2026-11-13T13:20,546A,ＭＩＲＡＩＮＩ,2027年３月期 第２四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261109569669.pdf,https://www.release.tdnet.info/inbs/081220261109569669.zip,東名,2026-11-13T13:20
 140120261113579243,2026-11-13T13:05,146A,コロンビア・ワークス,2026年12月期第３四半期決算概要(補足テキスト),earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261113579243.pdf,,東,2026-11-13T13:05
 140120261113579177,2026-11-13T13:00,2384,ＳＢＳＨＤ,2026年度 第3四半期　決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261113579177.pdf,,東,2026-11-13T13:00
 140120261113578792,2026-11-13T13:00,3845,アイフリーク,2027年３月期　第２四半期決算補足説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261113578792.pdf,,東,2026-11-13T13:00
