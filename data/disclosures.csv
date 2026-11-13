@@ -1,4 +1,7 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261113578209,2026-11-13T13:40,7875,竹田ｉＰ,剰余金の配当（中間配当・増配）に関するお知らせ,dividend_revision,False,up,,,,,https://www.release.tdnet.info/inbs/140120261113578209.pdf,,東名,2026-11-13T13:40
+140120261113578167,2026-11-13T13:40,7875,竹田ｉＰ,2027年３月期 第２四半期（中間期）決算補足資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261113578167.pdf,,東名,2026-11-13T13:40
+140120261113578089,2026-11-13T13:40,7875,竹田ｉＰ,2027年３月期 第２四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261113578089.pdf,https://www.release.tdnet.info/inbs/081220261113578089.zip,東名,2026-11-13T13:40
 140120261113578960,2026-11-13T13:30,6177,Ｇ－ＡｐｐＢａｎｋ,2026年12月期第3四半期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261113578960.pdf,,東,2026-11-13T13:30
 140120261113578935,2026-11-13T13:30,6177,Ｇ－ＡｐｐＢａｎｋ,2026年12月期第3四半期決算短信（日本基準）（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261113578935.pdf,https://www.release.tdnet.info/inbs/081220261113578935.zip,東,2026-11-13T13:30
 140120261113578481,2026-11-13T13:30,6033,Ｇ－エクストリーム,2027年３月期 第２四半期 決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261113578481.pdf,,東,2026-11-13T13:30
