@@ -45,17 +45,15 @@ jobs:
           # ジョブの上限(6時間)の手前の 5時間40分 まで
           end_ts=$(( $(date +%s) + 340 * 60 ))
           echo "watching until $(TZ=Asia/Tokyo date -d @$end_ts '+%m/%d %H:%M') JST"
-          last_ir=0
           last_push=0
-          last_details=0
           push() {
-            # 公開(GitHub Pages)は1回20〜30秒かかり、次の push で途中のものが取り消されるので、40秒に1回までにまとめる
+            # 公開(GitHub Pages)は1回25〜30秒かかり、次の push で途中のものが取り消されるので、35秒に1回までにまとめる
             [ -z "$(git log "origin/${GITHUB_REF_NAME}..HEAD" --oneline 2>/dev/null)" ] && return 0
-            [ "$1" != "now" ] && [ $(( $(date +%s) - last_push )) -lt 40 ] && return 0
+            [ "$1" != "now" ] && [ $(( $(date +%s) - last_push )) -lt 35 ] && return 0
             last_push=$(date +%s)
             # 手元のバックフィルと同じファイルがぶつかったら監視側を採る(手元の分は次の回に作り直される)。
             # ぶつかって作業を捨てると、ピークの数値の公開が1回分(2分ほど)遅れる
-            if ! { git pull -q --rebase -X theirs origin "${GITHUB_REF_NAME}" && git push -q; }; then
+            if ! { git pull -q --rebase --autostash -X theirs origin "${GITHUB_REF_NAME}" && git push -q; }; then
               # 競合したらこの回の結果は捨てて最新に合わせる(次の回で取り直す)
               git rebase --abort 2>/dev/null || true
               git fetch -q origin "${GITHUB_REF_NAME}" && git reset -q --hard "origin/${GITHUB_REF_NAME}"
@@ -66,29 +64,38 @@ jobs:
             git add data/ docs/
             git diff --cached --quiet || git commit -q -m "data: $1 $(TZ=Asia/Tokyo date '+%Y-%m-%d %H:%M')"
           }
+          # 監視の後半(受注・セグメント・品目別・IR探し)は別プロセスで並行して回す。
+          # 以前は前半と交互に回していたため、後半の30〜90秒の間は TDnet を見ておらず、数値の公開が2〜4分遅れた。
+          # 後半はサイトを作らず印を置くだけで、サイトの作成・コミット・公開は前半(15秒おき)だけが行う
+          details_loop() {
+            local last_ir=0 s now dow
+            while [ "$(date +%s)" -lt "$end_ts" ]; do
+              s=$(date +%s)
+              python -m src.cli details --defer-render || echo "::warning::details failed"
+              now=$(TZ=Asia/Tokyo date +%H%M); dow=$(TZ=Asia/Tokyo date +%u)
+              # TDnet に無い説明資料を各社IRサイトで探す(5分に1回、60秒で打ち切る)
+              if [ "$dow" -le 5 ] && [ "$now" -ge 0730 ] && [ "$now" -lt 2000 ] && [ $(( $(date +%s) - last_ir )) -ge 300 ]; then
+                timeout 60 python -m src.cli irdocs --budget 25 --defer-render || echo "::warning::irdocs timeout or failed"
+                last_ir=$(date +%s)
+              fi
+              # 場中(平日 7:30〜20:00)は20秒おき、それ以外は5分おき
+              iv=300; [ "$dow" -le 5 ] && [ "$now" -ge 0730 ] && [ "$now" -lt 2000 ] && iv=20
+              [ $(( $(date +%s) - s )) -lt "$iv" ] && sleep $(( iv - ($(date +%s) - s) ))
+            done
+          }
+          details_loop 2>&1 | sed -u 's/^/[details] /' &
+          details_pid=$!
           while [ "$(date +%s)" -lt "$end_ts" ]; do
             t0=$(date +%s)
             now=$(TZ=Asia/Tokyo date +%H%M); dow=$(TZ=Asia/Tokyo date +%u); today=$(TZ=Asia/Tokyo date +%F)
             market=0
             [ "$dow" -le 5 ] && [ "$now" -ge 0730 ] && [ "$now" -lt 2000 ] && market=1
             # GitHub の画面で手動登録(data/manual_docs.csv)された変更などを取り込む
-            git pull -q --rebase -X theirs origin "${GITHUB_REF_NAME}" || { git rebase --abort 2>/dev/null; true; }
-            # 数値(短信は20件ずつ・売買代金の大きい会社から)を先に公開し、受注・セグメント・IR探しは後回し
+            git pull -q --rebase --autostash -X theirs origin "${GITHUB_REF_NAME}" || { git rebase --abort 2>/dev/null; true; }
+            # 数値(短信は20件ずつ・売買代金の大きい会社から)。後半が置いた印があればサイトも作り直す
             python -m src.cli disclosures --days 0 --fast || echo "::warning::tick failed"
             commit watch
             push
-            # 数値を読み終えていない短信が残っている間は次の回へ(ただし 90 秒に1回は後半も回す)
-            if [ "$(cat data/cache/earnings_backlog.txt 2>/dev/null || echo 0)" = 0 ] || [ $(( $(date +%s) - last_details )) -ge 90 ]; then
-              python -m src.cli details || echo "::warning::details failed"
-              last_details=$(date +%s)
-              # TDnet に無い説明資料を各社IRサイトで探す。開示の確認を遅らせないよう5分に1回、長くても60秒で打ち切る
-              if [ "$market" = 1 ] && [ $(( $(date +%s) - last_ir )) -ge 300 ]; then
-                timeout 60 python -m src.cli irdocs --budget 25 || echo "::warning::irdocs timeout or failed"
-                last_ir=$(date +%s)
-              fi
-              commit watch
-              push
-            fi
             # 平日 20:05 以降に1日1回: 決算予定(JPX は17時頃更新)・アナリスト予想・株価反応・(月曜)銘柄一覧
             if [ "$dow" -le 5 ] && [ "$now" -ge 2005 ] && [ "$(cat data/daily_done.txt 2>/dev/null)" != "$today" ]; then
               timeout 45m python -m src.cli run || echo "::warning::daily failed"
@@ -97,9 +104,14 @@ jobs:
               push now
             fi
             elapsed=$(( $(date +%s) - t0 ))
+            # 数値を読み終えていない短信が残っている間は待たずに次の回へ
             interval=15; [ "$market" = 1 ] || interval=300
+            [ "$(cat data/cache/earnings_backlog.txt 2>/dev/null || echo 0)" != 0 ] && interval=0
             [ "$elapsed" -lt "$interval" ] && sleep $(( interval - elapsed ))
           done
+          wait "$details_pid" 2>/dev/null || true
+          python -m src.cli disclosures --days 0 --fast || true    # 後半の最後の分をサイトに
+          commit watch
           push now
           # 次の監視を起動して引き継ぐ(定時実行に頼らない)
           gh workflow run watch.yml --ref "${GITHUB_REF_NAME}" && echo "next watch dispatched"

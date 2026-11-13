@@ -10,6 +10,38 @@ from .config import DATA_DIR, load_config, now_jst
 
 
 BACKLOG = DATA_DIR / "cache" / "earnings_backlog.txt"   # 数値をまだ読んでいない短信の数(watch.yml が見る)
+# 監視の後半(details・irdocs)は別プロセスで並行して回す(watch.yml)。後半はサイトを作らずこの印を置き、
+# サイトは前半(disclosures --fast)が次の回(15秒以内)に作る(2つのプロセスが同時に docs/ を書かないように)
+RENDER_FLAG = DATA_DIR / "cache" / "render_needed"
+
+
+def _request_render(defer: bool, cfg) -> list[str]:
+    if defer:
+        RENDER_FLAG.parent.mkdir(parents=True, exist_ok=True)
+        RENDER_FLAG.write_text("1", encoding="utf-8")
+        return []
+    return site.render_all(cfg)
+
+
+def _atomic_csv():
+    """CSV を一時ファイルに書いてから置き換える(並行する監視の前半・後半が書きかけの CSV を読まないように)"""
+    import os
+    from pathlib import Path
+    import pandas as pd
+    orig = pd.DataFrame.to_csv
+    if getattr(orig, "_atomic", False):
+        return
+
+    def to_csv(self, path_or_buf=None, *a, **k):
+        if isinstance(path_or_buf, (str, Path)) and str(path_or_buf).endswith(".csv"):
+            dst = Path(path_or_buf)
+            tmp = dst.with_name(f"{dst.name}.{os.getpid()}.partial")
+            r = orig(self, tmp, *a, **k)
+            os.replace(tmp, dst)
+            return r
+        return orig(self, path_or_buf, *a, **k)
+    to_csv._atomic = True
+    pd.DataFrame.to_csv = to_csv
 FAST_LIMIT = 20     # --fast の1回に読む短信の数(1秒/件なので約20秒ごとに公開できる)
 
 
@@ -26,6 +58,9 @@ def cmd_disclosures(args, cfg):
         changed = _details(cfg, stats) or changed
     # 変化が無い回はページも作り直さない(生成時刻だけ変わる無駄なコミットを防ぐ)
     # (IRサイトの説明資料探しは固まっても監視を止めないよう、watch.yml で別プロセスとして実行する)
+    if RENDER_FLAG.exists():                      # 並行する後半(受注・セグメント・IR探し)が変えた分
+        RENDER_FLAG.unlink(missing_ok=True)
+        changed = True
     if changed or not (site.DOCS_DIR / "index.html").exists() or manual_changed():
         stats["pages"] = site.render_all(cfg)
     print(json.dumps(stats, ensure_ascii=False))
@@ -54,7 +89,7 @@ def cmd_details(args, cfg):
     """監視の1回の後半: 受注・セグメント・品目別など(短信の zip は数値を読んだときのものを使う)"""
     stats = {}
     if _details(cfg, stats):
-        stats["pages"] = site.render_all(cfg)
+        stats["pages"] = _request_render(args.defer_render, cfg)
     print(json.dumps(stats, ensure_ascii=False))
 
 
@@ -77,7 +112,7 @@ def cmd_irdocs(args, cfg):
     """TDnet に無い説明資料を各社IRサイトで探し、見つかればサイトを作り直す"""
     stats = irdocs.update(cfg, time_budget_sec=args.budget)
     if stats["found"]:
-        stats["pages"] = site.render_all(cfg)
+        stats["pages"] = _request_render(args.defer_render, cfg)
     print(json.dumps(stats, ensure_ascii=False))
 
 
@@ -188,6 +223,7 @@ def main(argv=None):
     s.set_defaults(func=cmd_disclosures)
 
     s = sub.add_parser("details", help="受注・セグメント・品目別など(監視の後半)")
+    s.add_argument("--defer-render", action="store_true", help="サイトは作らず、監視の前半に作らせる(並行実行用)")
     s.set_defaults(func=cmd_details)
 
     s = sub.add_parser("universe", help="M1: プライム・スタンダード銘柄一覧と平均売買代金を更新")
@@ -202,6 +238,7 @@ def main(argv=None):
 
     s = sub.add_parser("irdocs", help="TDnet に無い決算説明資料を各社IRサイトで探す")
     s.add_argument("--budget", type=float, default=600, help="使う時間の上限(秒)")
+    s.add_argument("--defer-render", action="store_true", help="サイトは作らず、監視の前半に作らせる(並行実行用)")
     s.set_defaults(func=cmd_irdocs)
 
     s = sub.add_parser("consensus", help="アナリスト予想の平均(yfinance)を取る")
@@ -240,6 +277,7 @@ def main(argv=None):
     s.set_defaults(func=cmd_revisions)
 
     args = p.parse_args(argv)
+    _atomic_csv()
     args.func(args, load_config())
 
 
