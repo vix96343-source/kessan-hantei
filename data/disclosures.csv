@@ -1,4 +1,12 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261113580277,2026-11-13T18:00,3726,フォーシーズＨＤ,2026年9月期_通期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261113580277.pdf,,東,2026-11-13T18:00
+140120261113580271,2026-11-13T18:00,3726,フォーシーズＨＤ,2026年９月期決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261113580271.pdf,https://www.release.tdnet.info/inbs/081220261113580271.zip,東,2026-11-13T18:00
+140120261113580253,2026-11-13T18:00,3726,フォーシーズＨＤ,剰余金の配当（無配）に関するお知らせ,dividend_revision,False,down,,,,,https://www.release.tdnet.info/inbs/140120261113580253.pdf,,東,2026-11-13T18:00
+140120261113580235,2026-11-13T18:00,3726,フォーシーズＨＤ,特別損失の計上並びに通期連結業績予想と今期実績値との差異に関するお知らせ,actual_vs_forecast,False,,,,,,https://www.release.tdnet.info/inbs/140120261113580235.pdf,,東,2026-11-13T18:00
+140120261113579608,2026-11-13T18:00,362A,Ｐ－エクシオＨＤ,2027年３月期 第２四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261113579608.pdf,,東,2026-11-13T18:00
+140120261113579363,2026-11-13T18:00,418A,ウリドキ,業績予想の修正に関するお知らせ,forecast_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261113579363.pdf,,名,2026-11-13T18:00
+140120261113579151,2026-11-13T18:00,1783,ｆａｎｔａｓｉｓｔａ,2026年９月期 決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261113579151.pdf,https://www.release.tdnet.info/inbs/081220261113579151.zip,東,2026-11-13T18:00
+140120261111573925,2026-11-13T18:00,4192,Ｇ－スパイダープラス,2026年12月期 第３四半期 決算説明スクリプト,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261111573925.pdf,,東,2026-11-13T18:00
 140120261112577501,2026-11-13T17:45,458A,Ｐ－プラン・ドゥ,通期業績予想の修正に関するお知らせ,forecast_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261112577501.pdf,,東,2026-11-13T17:45
 140120261113580232,2026-11-13T17:30,4571,Ｇ－ＮＡＮＯ,2027年3月期第2四半期決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261113580232.pdf,,東,2026-11-13T17:30
 140120261113580226,2026-11-13T17:30,648A,Ｇ－ルクレ,2026年9月期 決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261113580226.pdf,,東,2026-11-13T17:30
