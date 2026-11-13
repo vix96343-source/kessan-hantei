@@ -1,4 +1,18 @@
 disclosure_id,code,disclosed_at,n_q,period_end,status,data
+140120261113579337,3245,2026-11-13T14:30,4,2026-09-30,none,
+140120261113579210,7120,2026-11-13T14:30,2,2026-09-30,none,
+140120261113577725,7821,2026-11-13T14:30,1,2026-09-30,none,
+140120261112577218,6358,2026-11-13T14:30,2,2026-09-30,none,
+140120261112576933,6247,2026-11-13T14:30,2,2026-09-30,ok,"{""segments"": [{""name"": ""熱交換器事業"", ""orders"": 10588000000.0, ""orders_prior"": null, ""orders_fy"": null, ""backlog"": null, ""backlog_prior"": null, ""backlog_fy"": null, ""orders_yoy"": null, ""backlog_yoy"": null}, {""name"": ""プロセスエンジニアリング事業"", ""orders"": 8977000000.0, ""orders_prior"": null, ""orders_fy"": null, ""backlog"": null, ""backlog_prior"": null, ""backlog_fy"": null, ""orders_yoy"": null, ""backlog_yoy"": null}, {""name"": ""バルブ事業"", ""orders"": 2806000000.0, ""orders_prior"": null, ""orders_fy"": null, ""backlog"": null, ""backlog_prior"": null, ""backlog_fy"": null, ""orders_yoy"": null, ""backlog_yoy"": null}, {""name"": ""その他事業"", ""orders"": 14000000.0, ""orders_prior"": null, ""orders_fy"": null, ""backlog"": null, ""backlog_prior"": null, ""backlog_fy"": null, ""orders_yoy"": null, ""backlog_yoy"": null}], ""total"": {""name"": ""合計"", ""orders"": 22385000000.0, ""orders_prior"": null, ""orders_fy"": null, ""backlog"": null, ""backlog_prior"": null, ""backlog_fy"": null, ""orders_yoy"": null, ""backlog_yoy"": null}, ""unit"": 1000000.0, ""tpl"": [{""header"": [["""", ""熱交換器事業"", ""プロセスエンジニアリング事業"", ""バルブ事業"", ""その他事業""]], ""width"": 5, ""numeric_cols"": [1, 2, 3, 4], ""unit"": 1000000.0, ""rows"": [[""受注高""], [""売上高""], [""セグメント損益""]], ""parents"": [null, null, null], ""ctx"": null}]}"
+140120261112576029,3777,2026-11-13T14:30,3,2026-09-30,none,
+140120261111572696,9450,2026-11-13T14:30,1,2026-09-30,none,
+140120261110572349,8750,2026-11-13T14:30,2,2026-09-30,none,
+140120261105566415,550A,2026-11-13T14:30,2,2026-09-30,none,
+140120261104564872,3940,2026-11-13T14:30,3,2026-09-30,none,
+140120261102562970,3461,2026-11-13T14:30,4,2026-09-30,none,
+140120261102562892,9085,2026-11-13T14:30,2,2026-09-30,none,
+140120261029558818,7555,2026-11-13T14:30,2,2026-09-30,none,
+140120261027557056,8600,2026-11-13T14:30,2,2026-09-30,none,
 140120261112577420,8117,2026-11-13T14:20,2,2026-09-30,none,
 140120261112576646,2267,2026-11-13T14:20,2,2026-09-30,none,
 140120261113579276,2351,2026-11-13T14:00,,,none,
