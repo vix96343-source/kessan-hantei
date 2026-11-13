@@ -1,4 +1,7 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261111572944,2026-11-13T11:45,5619,Ｇ－マーソ,2026年12月期 第３四半期決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261111572944.pdf,https://www.release.tdnet.info/inbs/081220261111572944.zip,東,2026-11-13T11:45
+140120261111572927,2026-11-13T11:45,5619,Ｇ－マーソ,通期業績予想の修正に関するお知らせ,forecast_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261111572927.pdf,,東,2026-11-13T11:45
+140120261111572925,2026-11-13T11:45,5619,Ｇ－マーソ,2026年12月期 第３四半期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261111572925.pdf,,東,2026-11-13T11:45
 140120261113577893,2026-11-13T11:30,4372,Ｇ－ユミルリンク,2026年12月期第3四半期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261113577893.pdf,,東,2026-11-13T11:30
 140120261113577784,2026-11-13T11:30,6484,ＫＶＫ,2027年３月期　第２四半期（中間期）決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261113577784.pdf,,東,2026-11-13T11:30
 140120261113577770,2026-11-13T11:30,6484,ＫＶＫ,2027年３月期　第２四半期（中間期）連結業績予想と実績との差異に関するお知らせ,actual_vs_forecast,False,,,,,,https://www.release.tdnet.info/inbs/140120261113577770.pdf,,東,2026-11-13T11:30
