@@ -1,4 +1,6 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261113580185,2026-11-13T17:15,2652,まんだらけ,2026年９月期　決算短信〔日本基準〕（非連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261113580185.pdf,https://www.release.tdnet.info/inbs/081220261113580185.zip,東,2026-11-13T17:15
+140120261112576070,2026-11-13T17:15,3694,オプティム,2027年3月期 第2四半期（中間期）決算短信 補足説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261112576070.pdf,,東,2026-11-13T17:15
 140120261112577256,2026-11-13T17:05,7823,アートネイチャー,2027年３月期第２四半期（中間期）決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261112577256.pdf,https://www.release.tdnet.info/inbs/081220261112577256.zip,東,2026-11-13T17:05
 140120261112576718,2026-11-13T17:05,7823,アートネイチャー,2027年3月期 第２四半期決算補足資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261112576718.pdf,,東,2026-11-13T17:05
 140120261113580202,2026-11-13T17:00,217A,Ｐ－サポート,通期連結業績予想と実績の差異に関するお知らせ,actual_vs_forecast,False,,,,,,https://www.release.tdnet.info/inbs/140120261113580202.pdf,,東,2026-11-13T17:00
