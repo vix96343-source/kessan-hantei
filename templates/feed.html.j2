@@ -47,8 +47,8 @@ tbody tr.row.alt td { background: var(--row2); }
 tr.row { cursor: pointer; } tr.row:hover td { background: #262b42 !important; }
 /* 配色: 文字は落ち着いた灰白、色は「変化」にだけ使う。変化が大きいほど色を濃く(±30%以上は色の帯)。
    プラスは赤、マイナスは水色。背景は暗い青灰色で、行は1行おきにわずかに色を変えて横に追いやすく */
-table#list { width: auto; min-width: 520px; font-size: 14px; line-height: 1.3; background: #12161e; }
-table#list th { font-size: 13px; font-weight: 400; padding: 2px 8px; text-align: center; color: #7d8696;
+table#list { width: auto; min-width: 520px; font-size: 13px; line-height: 1.3; background: #12161e; }
+table#list th { font-size: 12px; font-weight: 400; padding: 2px 8px; text-align: center; color: #7d8696;
   background: #12161e; border: 0; }
 table#list td { padding: 2px 8px; font-weight: 400; color: #b4bbc6; background: #12161e !important; border: 0; }
 table#list tr.row.alt td { background: #161b25 !important; }
@@ -58,7 +58,7 @@ table#list td.c-kind { color: #7dffa8; }                       /* 種別(決算�
 table#list td.c-time, table#list td.c-code { text-align: center; }
 table#list td.c-kind, table#list th.c-kind { text-align: left; padding-left: 4px; padding-right: 0; }   /* 種別は企業名のすぐ右に左寄せ */
 table#list td.c-kind + td.n, table#list th.c-kind + th.n { padding-left: 14px; }   /* 売上の欄を種別に詰める */
-table#list td.c-kind .live { color: #9aa4b2; font-size: 12px; margin-left: 4px; }   /* TDnet から直接読んだ速報 */
+table#list td.c-kind .live { color: #9aa4b2; font-size: 11px; margin-left: 4px; }   /* TDnet から直接読んだ速報 */
 table#list th.n, table#list th.g { padding-left: 6px; padding-right: 6px; }   /* 数値の横の間隔(2026-11-11 11→6px) */
 table#list td.n, table#list td.g { text-align: right; padding-left: 6px; padding-right: 6px; font-variant-numeric: tabular-nums; }
 table#list td.n { color: #b4bbc6; }
@@ -80,8 +80,8 @@ td.c-pct.up { color: var(--green); font-weight: 700; } td.c-pct.down { color: va
 tr.new td { background: var(--new) !important; }
 tr.dayrow td { padding: 22px 6px 6px; background: var(--bg); border: 0; white-space: nowrap; }
 tr.dayrow:first-child td { padding-top: 8px; }
-tr.dayrow .dd { color: #e4e8ee; font-weight: 700; font-size: 15px; }
-tr.dayrow .dn { color: var(--muted); font-size: 13px; margin-left: 10px; }
+tr.dayrow .dd { color: #e4e8ee; font-weight: 700; font-size: 14px; }
+tr.dayrow .dn { color: var(--muted); font-size: 12px; margin-left: 10px; }
 .badge-new { display: inline-block; font-size: 10px; font-weight: 700; color: #1b1500; background: var(--warn);
   border-radius: 3px; padding: 0 4px; margin-left: 6px; vertical-align: 1px; }
 tr.detail td { white-space: normal; background: #0c1220 !important; padding: 8px 12px 12px; }
