@@ -410,6 +410,9 @@ def apply_manual(data_dir: Path = DATA_DIR) -> int:
         d = json.loads(r["data"]) if r["status"] == "ok" else \
             {"segments": [], "total": {"name": "合計", "orders": None, "orders_prior": None, "orders_fy": None,
                                        "backlog": None, "backlog_prior": None, "backlog_fy": None}, "unit": 1e6}
+        if r["status"] != "ok" or not r["period_end"] or not r["n_q"]:   # 期の無い記録(短信の記録が取れていない)は手で入れた期
+            r["n_q"] = r["n_q"] or str(e.get("n_q") or "")
+            r["period_end"] = r["period_end"] or e.get("period_end", "")
         r["status"] = "ok"
         t = {**(d.get("total") or {}), **e.get("total", {})}
         for m in ("orders", "backlog"):
