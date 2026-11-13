@@ -1,4 +1,10 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261113578365,2026-11-13T16:20,7076,名南Ｍ＆Ａ,通期連結業績予想の修正及び配当予想の修正に関するお知らせ,forecast_dividend_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261113578365.pdf,,名,2026-11-13T16:20
+140120261112577414,2026-11-13T16:20,7076,名南Ｍ＆Ａ,2026年９月期 決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261112577414.pdf,https://www.release.tdnet.info/inbs/081220261112577414.zip,名,2026-11-13T16:20
+140120261112576888,2026-11-13T16:20,5342,ジャニス工,2027年3月期　第2四半期決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261112576888.pdf,https://www.release.tdnet.info/inbs/081220261112576888.zip,名,2026-11-13T16:20
+140120261111574210,2026-11-13T16:20,2485,ティア,2026年9月期決算参考資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261111574210.pdf,,東名,2026-11-13T16:20
+140120261111573351,2026-11-13T16:20,5342,ジャニス工,2027年３月期第2四半期（累計）連結業績予想と実績値との差異に関するお知らせ,actual_vs_forecast,False,,,,,,https://www.release.tdnet.info/inbs/140120261111573351.pdf,https://www.release.tdnet.info/inbs/091220261111573351.zip,名,2026-11-13T16:20
+140120261110571011,2026-11-13T16:20,2485,ティア,2026年9月期　決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261110571011.pdf,https://www.release.tdnet.info/inbs/081220261110571011.zip,東名,2026-11-13T16:20
 140120261113580025,2026-11-13T16:15,5254,Ｇ－Ａｒｅｎｔ,2027年6月期 第1四半期 決算説明会 事前質問の回答,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261113580025.pdf,,東,2026-11-13T16:15
 140120261113578527,2026-11-13T16:15,8306,三菱ＵＦＪ,通期業績目標の修正および期末配当予想の修正について,dividend_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261113578527.pdf,,東名,2026-11-13T16:15
 140120261112577371,2026-11-13T16:15,8306,三菱ＵＦＪ,2027年3月期 第2四半期（中間期）決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261112577371.pdf,https://www.release.tdnet.info/inbs/081220261112577371.zip,東名,2026-11-13T16:15
