@@ -2904,5 +2904,1219 @@
   "note": "4Q説明資料p33の1Q+2Q",
   "n_q": 2,
   "disclosed_at": "2026-05-01T00:00"
+ },
+ "140120261023555108": {
+  "code": "6976",
+  "period_end": "2026-09-30",
+  "total": {
+   "orders": 339000000000.0,
+   "orders_prior": 163700000000.0,
+   "backlog": 214800000000.0,
+   "backlog_prior": 53800000000.0
+  },
+  "segments": [
+   {
+    "name": "コンデンサ",
+    "orders": 271000000000.0,
+    "orders_prior": 115700000000.0,
+    "backlog": 181800000000.0,
+    "backlog_prior": 37900000000.0
+   },
+   {
+    "name": "インダクタ",
+    "orders": 46700000000.0,
+    "orders_prior": 29800000000.0,
+    "backlog": 22400000000.0,
+    "backlog_prior": 7600000000.0
+   },
+   {
+    "name": "その他",
+    "orders": 21300000000.0,
+    "orders_prior": 18200000000.0,
+    "backlog": 10600000000.0,
+    "backlog_prior": 8300000000.0
+   }
+  ],
+  "seg_src": "pres_image",
+  "seg_doc": "20261105564982",
+  "seg_page": 8,
+  "note": "説明資料p8のグラフの数値(億円)を1Q+2Qで累計"
+ },
+ "M6976-2026-06": {
+  "code": "6976",
+  "period_end": "2026-06-30",
+  "total": {
+   "orders": 148200000000.0,
+   "orders_prior": 80800000000.0,
+   "backlog": 136200000000.0,
+   "backlog_prior": 63700000000.0
+  },
+  "segments": [
+   {
+    "name": "コンデンサ",
+    "orders": 118600000000.0,
+    "orders_prior": 57500000000.0,
+    "backlog": 112800000000.0,
+    "backlog_prior": 45500000000.0
+   },
+   {
+    "name": "インダクタ",
+    "orders": 18800000000.0,
+    "orders_prior": 14200000000.0,
+    "backlog": 13300000000.0,
+    "backlog_prior": 8700000000.0
+   },
+   {
+    "name": "その他",
+    "orders": 10800000000.0,
+    "orders_prior": 9100000000.0,
+    "backlog": 10100000000.0,
+    "backlog_prior": 9500000000.0
+   }
+  ],
+  "seg_src": "pres_image",
+  "seg_doc": "20261105564982",
+  "seg_page": 8,
+  "note": "2Q説明資料p8の1Q",
+  "n_q": 1,
+  "disclosed_at": "2026-08-01T00:00"
+ },
+ "140120261029560100": {
+  "code": "6981",
+  "period_end": "2026-09-30",
+  "total": {
+   "orders": 1427300000000.0,
+   "orders_prior": 918100000000.0,
+   "backlog": 782700000000.0,
+   "backlog_prior": 302900000000.0
+  },
+  "seg_src": "pres_image",
+  "seg_doc": "20261029558990",
+  "seg_page": 11,
+  "note": "説明資料p11の26Q2受注高7,534億円+1Q説明資料の26Q1受注高6,739億円。前年は25Q1 4,311・25Q2 4,870(各説明資料)"
+ },
+ "140120260729501513": {
+  "code": "6981",
+  "period_end": "2026-06-30",
+  "total": {
+   "orders": 673900000000.0,
+   "orders_prior": 431100000000.0,
+   "backlog": 617800000000.0,
+   "backlog_prior": 302500000000.0
+  },
+  "seg_src": "pres_image",
+  "seg_doc": "20260729501513",
+  "seg_page": null,
+  "note": "1Q説明資料(億円)。前年は25Q1説明資料",
+  "n_q": 1,
+  "disclosed_at": "2026-07-30T00:00"
+ },
+ "140120261111573722": {
+  "code": "3670",
+  "period_end": "2026-09-30",
+  "total": {
+   "orders": 778000000.0,
+   "orders_prior": 816000000.0,
+   "backlog": 378000000.0,
+   "backlog_prior": 273000000.0,
+   "name": "ソリューション事業"
+  },
+  "seg_src": "pres_image",
+  "seg_doc": "20261111573777",
+  "seg_page": 16,
+  "note": "説明資料p16のソリューション事業(百万円)"
+ },
+ "M3670-2026-06": {
+  "code": "3670",
+  "period_end": "2026-06-30",
+  "total": {
+   "orders": 402000000.0,
+   "orders_prior": 336000000.0,
+   "backlog": 311000000.0,
+   "backlog_prior": 334000000.0,
+   "name": "ソリューション事業"
+  },
+  "seg_src": "pres_image",
+  "seg_doc": "20261111573777",
+  "seg_page": 16,
+  "note": "2Q説明資料p16の1Q",
+  "n_q": 1,
+  "disclosed_at": "2026-08-01T00:00"
+ },
+ "140120261006546381": {
+  "code": "6458",
+  "period_end": "2026-09-30",
+  "total": {
+   "orders": 25210000000.0,
+   "orders_prior": 22069000000.0,
+   "backlog": 35536000000.0,
+   "backlog_prior": 27483000000.0
+  },
+  "segments": [
+   {
+    "name": "日本",
+    "orders": 24426000000.0,
+    "orders_prior": 20662000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   },
+   {
+    "name": "アジア",
+    "orders": 784000000.0,
+    "orders_prior": 1407000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   }
+  ],
+  "seg_src": "pres_image",
+  "seg_doc": "20261110570525",
+  "seg_page": 9,
+  "note": "説明資料p9のグラフの数値(百万円)"
+ },
+ "140120261112574686": {
+  "code": "336A",
+  "period_end": "2026-09-30",
+  "total": {
+   "orders": null,
+   "orders_prior": null,
+   "backlog": 3760000000.0,
+   "backlog_prior": null
+  },
+  "seg_src": "pres_image",
+  "seg_doc": "20261112575134",
+  "seg_page": 40,
+  "note": "説明資料p40の受注残高(当期売上予定、億円)",
+  "n_q": 2
+ },
+ "140120261112575418": {
+  "code": "6614",
+  "period_end": "2026-09-30",
+  "total": {
+   "orders": null,
+   "orders_prior": null,
+   "backlog": 2555000000.0,
+   "backlog_prior": 1934000000.0
+  },
+  "seg_src": "pres_chart",
+  "seg_doc": "20261112575448",
+  "seg_page": 6,
+  "note": "説明資料p6の月次受注残高グラフ(百万円)をPDFの図形座標から読んだ値。前年は「前年2Q末比+621」から。1Q末比▲72と合う",
+  "n_q": 2
+ },
+ "M6614-2026-06": {
+  "code": "6614",
+  "period_end": "2026-06-30",
+  "total": {
+   "orders": null,
+   "orders_prior": null,
+   "backlog": 2628000000.0,
+   "backlog_prior": 1998000000.0
+  },
+  "seg_src": "pres_chart",
+  "seg_doc": "20261112575448",
+  "seg_page": 6,
+  "note": "2Q説明資料p6のグラフの6月(図形座標から)",
+  "n_q": 1,
+  "disclosed_at": "2026-08-01T00:00"
+ },
+ "140120261112575879": {
+  "code": "3679",
+  "period_end": "2026-09-30",
+  "total": {
+   "orders": null,
+   "orders_prior": null,
+   "backlog": 1555000000.0,
+   "backlog_prior": 1370000000.0,
+   "name": "人材紹介事業"
+  },
+  "seg_src": "pres_image",
+  "seg_doc": "20261112575731",
+  "seg_page": 22,
+  "note": "説明資料p22の人材紹介事業の受注残高(月次グラフを目盛りから読んだ概算、百万円)",
+  "n_q": 2
+ },
+ "M3679-2026-06": {
+  "code": "3679",
+  "period_end": "2026-06-30",
+  "total": {
+   "orders": null,
+   "orders_prior": null,
+   "backlog": 1700000000.0,
+   "backlog_prior": 1305000000.0,
+   "name": "人材紹介事業"
+  },
+  "seg_src": "pres_image",
+  "seg_doc": "20261112575731",
+  "seg_page": 22,
+  "note": "同グラフの6月(概算)",
+  "n_q": 2,
+  "disclosed_at": "2026-08-01T00:00"
+ },
+ "140120261111573483": {
+  "code": "9622",
+  "period_end": "2026-09-30",
+  "total": {
+   "orders": 54339000000.0,
+   "orders_prior": 53209000000.0,
+   "backlog": 14765000000.0,
+   "backlog_prior": 13915000000.0
+  },
+  "segments": [
+   {
+    "name": "複合商業施設・総合スーパー",
+    "orders": null,
+    "orders_prior": null,
+    "backlog": 3537000000.0,
+    "backlog_prior": 1936000000.0
+   },
+   {
+    "name": "食品スーパー・コンビニエンスストア",
+    "orders": null,
+    "orders_prior": null,
+    "backlog": 1654000000.0,
+    "backlog_prior": 596000000.0
+   },
+   {
+    "name": "各種専門店",
+    "orders": null,
+    "orders_prior": null,
+    "backlog": 2961000000.0,
+    "backlog_prior": 3228000000.0
+   },
+   {
+    "name": "飲食店",
+    "orders": null,
+    "orders_prior": null,
+    "backlog": 1298000000.0,
+    "backlog_prior": 1525000000.0
+   },
+   {
+    "name": "サービス等",
+    "orders": null,
+    "orders_prior": null,
+    "backlog": 5314000000.0,
+    "backlog_prior": 6627000000.0
+   }
+  ],
+  "seg_src": "pres_image",
+  "seg_doc": "20261111573530",
+  "seg_page": 13,
+  "note": "説明資料p13の四半期受注高(百万円)を1Q〜3Qで累計、p14の市場分野別受注残高",
+  "n_q": 3
+ },
+ "M9622-2026-06": {
+  "code": "9622",
+  "period_end": "2026-06-30",
+  "total": {
+   "orders": 33388000000.0,
+   "orders_prior": 35231000000.0,
+   "backlog": 12388000000.0,
+   "backlog_prior": 13111000000.0
+  },
+  "seg_src": "pres_image",
+  "seg_doc": "20261111573530",
+  "seg_page": 13,
+  "note": "3Q説明資料p13の1Q+2Q",
+  "n_q": 2,
+  "disclosed_at": "2026-08-01T00:00"
+ },
+ "M9622-2026-03": {
+  "code": "9622",
+  "period_end": "2026-03-31",
+  "total": {
+   "orders": 15954000000.0,
+   "orders_prior": 16212000000.0,
+   "backlog": 9636000000.0,
+   "backlog_prior": 10101000000.0
+  },
+  "seg_src": "pres_image",
+  "seg_doc": "20261111573530",
+  "seg_page": 13,
+  "note": "3Q説明資料p13の1Q",
+  "n_q": 1,
+  "disclosed_at": "2026-05-01T00:00"
+ },
+ "140120261110571878": {
+  "code": "4447",
+  "period_end": "2026-09-30",
+  "total": {
+   "orders": null,
+   "orders_prior": null,
+   "backlog": 728000000.0,
+   "backlog_prior": 712000000.0
+  },
+  "segments": [
+   {
+    "name": "セキュアクラウドシステム事業",
+    "orders": null,
+    "orders_prior": null,
+    "backlog": 706000000.0,
+    "backlog_prior": null
+   },
+   {
+    "name": "エモーショナルシステム事業",
+    "orders": null,
+    "orders_prior": null,
+    "backlog": 22000000.0,
+    "backlog_prior": null
+   }
+  ],
+  "seg_src": "pres_image",
+  "seg_doc": "20261110571954",
+  "seg_page": 13,
+  "note": "説明資料p12・p13の受注残(百万円)",
+  "n_q": 4
+ },
+ "140120261112574985": {
+  "code": "2170",
+  "period_end": "2026-09-30",
+  "total": {
+   "orders": null,
+   "orders_prior": null,
+   "backlog": 14000000000.0,
+   "backlog_prior": null,
+   "name": "コンサル・クラウド事業",
+   "backlog_yoy": 9.4
+  },
+  "seg_src": "pres_image",
+  "seg_doc": "20261112575113",
+  "seg_page": 38,
+  "note": "説明資料p38のコンサル・クラウド事業の受注残高(約140億円、前年比109.4%)",
+  "n_q": 3
+ },
+ "140120261111573174": {
+  "code": "3968",
+  "period_end": "2026-09-30",
+  "total": {
+   "orders": 22314000000.0,
+   "orders_prior": 26835000000.0,
+   "backlog": 15799000000.0,
+   "backlog_prior": 17414000000.0
+  },
+  "segments": [
+   {
+    "name": "プロダクト",
+    "orders": 13557000000.0,
+    "orders_prior": 17187000000.0,
+    "backlog": 4423000000.0,
+    "backlog_prior": 7601000000.0
+   },
+   {
+    "name": "サービス",
+    "orders": 8757000000.0,
+    "orders_prior": 9647000000.0,
+    "backlog": 11376000000.0,
+    "backlog_prior": 9813000000.0
+   }
+  ],
+  "seg_src": "pres_image",
+  "seg_doc": "20261111574494",
+  "seg_page": 8,
+  "note": "説明資料p8の四半期受注高(百万円)を1Q〜3Qで累計",
+  "n_q": 3
+ },
+ "M3968-2026-06": {
+  "code": "3968",
+  "period_end": "2026-06-30",
+  "total": {
+   "orders": 15468000000.0,
+   "orders_prior": 20262000000.0,
+   "backlog": 15291000000.0,
+   "backlog_prior": 18698000000.0
+  },
+  "segments": [
+   {
+    "name": "プロダクト",
+    "orders": 9478000000.0,
+    "orders_prior": 13740000000.0,
+    "backlog": 4191000000.0,
+    "backlog_prior": 9781000000.0
+   },
+   {
+    "name": "サービス",
+    "orders": 5990000000.0,
+    "orders_prior": 6522000000.0,
+    "backlog": 11099000000.0,
+    "backlog_prior": 8917000000.0
+   }
+  ],
+  "seg_src": "pres_image",
+  "seg_doc": "20261111574494",
+  "seg_page": 8,
+  "note": "3Q説明資料p8の1Q+2Q",
+  "n_q": 2,
+  "disclosed_at": "2026-08-01T00:00"
+ },
+ "M3968-2026-03": {
+  "code": "3968",
+  "period_end": "2026-03-31",
+  "total": {
+   "orders": 8619000000.0,
+   "orders_prior": 5999000000.0,
+   "backlog": 15166000000.0,
+   "backlog_prior": 9649000000.0
+  },
+  "segments": [
+   {
+    "name": "プロダクト",
+    "orders": 5534000000.0,
+    "orders_prior": 3609000000.0,
+    "backlog": 4687000000.0,
+    "backlog_prior": 2901000000.0
+   },
+   {
+    "name": "サービス",
+    "orders": 3085000000.0,
+    "orders_prior": 2390000000.0,
+    "backlog": 10478000000.0,
+    "backlog_prior": 6747000000.0
+   }
+  ],
+  "seg_src": "pres_image",
+  "seg_doc": "20261111574494",
+  "seg_page": 8,
+  "note": "3Q説明資料p8の1Q",
+  "n_q": 1,
+  "disclosed_at": "2026-05-01T00:00"
+ },
+ "140120261110572067": {
+  "code": "255A",
+  "period_end": "2026-09-30",
+  "total": {
+   "orders": 21245000000.0,
+   "orders_prior": 9922000000.0,
+   "backlog": 16424000000.0,
+   "backlog_prior": 6847000000.0,
+   "name": "半導体事業"
+  },
+  "seg_src": "pres_image",
+  "seg_doc": "20261110572073",
+  "seg_page": 19,
+  "note": "説明資料p19の半導体事業の四半期受注高(百万円)を1Q+2Q"
+ },
+ "M255A-2026-06": {
+  "code": "255A",
+  "period_end": "2026-06-30",
+  "total": {
+   "orders": 11826000000.0,
+   "orders_prior": 5149000000.0,
+   "backlog": 14165000000.0,
+   "backlog_prior": 7790000000.0,
+   "name": "半導体事業"
+  },
+  "seg_src": "pres_image",
+  "seg_doc": "20261110572073",
+  "seg_page": 19,
+  "note": "2Q説明資料p19の1Q",
+  "n_q": 1,
+  "disclosed_at": "2026-08-01T00:00"
+ },
+ "140120261110570433": {
+  "code": "6272",
+  "period_end": "2026-09-30",
+  "total": {
+   "orders": 15241000000.0,
+   "orders_prior": null,
+   "backlog": 14099000000.0,
+   "backlog_prior": null,
+   "name": "食品加工機械製造販売事業"
+  },
+  "seg_src": "pres_image",
+  "seg_doc": "20261110571409",
+  "seg_page": 10,
+  "note": "説明資料p10の食品加工機械製造販売事業(1Q-2Q受注高、10/1時点受注残、百万円)"
+ },
+ "140120261109569670": {
+  "code": "5071",
+  "period_end": "2026-09-30",
+  "total": {
+   "orders": 8122000000.0,
+   "orders_prior": 8676000000.0,
+   "backlog": null,
+   "backlog_prior": null
+  },
+  "seg_src": "pres_image",
+  "seg_doc": "20261109569697",
+  "seg_page": 13,
+  "note": "説明資料p13の四半期受注高(百万円)をQ1+Q2",
+  "n_q": 2
+ },
+ "M5071-2026-06": {
+  "code": "5071",
+  "period_end": "2026-06-30",
+  "total": {
+   "orders": 3411000000.0,
+   "orders_prior": 4323000000.0,
+   "backlog": null,
+   "backlog_prior": null
+  },
+  "seg_src": "pres_image",
+  "seg_doc": "20261109569697",
+  "seg_page": 13,
+  "note": "2Q説明資料p13のQ1",
+  "n_q": 1,
+  "disclosed_at": "2026-08-01T00:00"
+ },
+ "140120261106568124": {
+  "code": "6223",
+  "period_end": "2026-09-30",
+  "total": {
+   "orders": 26818000000.0,
+   "orders_prior": 27621000000.0,
+   "backlog": 18038000000.0,
+   "backlog_prior": 23186000000.0
+  },
+  "seg_src": "pres_image",
+  "seg_doc": "20261106568137",
+  "seg_page": 8,
+  "note": "説明資料p8の四半期受注高(百万円)をQ1〜Q3で累計(前年比97.1%と合う)"
+ },
+ "M6223-2026-06": {
+  "code": "6223",
+  "period_end": "2026-06-30",
+  "total": {
+   "orders": 15564000000.0,
+   "orders_prior": 21541000000.0,
+   "backlog": 14173000000.0,
+   "backlog_prior": 24636000000.0
+  },
+  "seg_src": "pres_image",
+  "seg_doc": "20261106568137",
+  "seg_page": 8,
+  "note": "3Q説明資料p8のQ1+Q2",
+  "n_q": 2,
+  "disclosed_at": "2026-08-01T00:00"
+ },
+ "M6223-2026-03": {
+  "code": "6223",
+  "period_end": "2026-03-31",
+  "total": {
+   "orders": 7294000000.0,
+   "orders_prior": 6340000000.0,
+   "backlog": 14276000000.0,
+   "backlog_prior": 16514000000.0
+  },
+  "seg_src": "pres_image",
+  "seg_doc": "20261106568137",
+  "seg_page": 8,
+  "note": "3Q説明資料p8のQ1",
+  "n_q": 1,
+  "disclosed_at": "2026-05-01T00:00"
+ },
+ "140120261105566426": {
+  "code": "3774",
+  "period_end": "2026-09-30",
+  "total": {
+   "orders": 170261000000.0,
+   "orders_prior": 90816000000.0,
+   "backlog": 213963000000.0,
+   "backlog_prior": 132915000000.0,
+   "name": "システムインテグレーション"
+  },
+  "segments": [
+   {
+    "name": "SI構築",
+    "orders": 89365000000.0,
+    "orders_prior": 36728000000.0,
+    "backlog": 60634000000.0,
+    "backlog_prior": 24237000000.0
+   },
+   {
+    "name": "SI運用保守",
+    "orders": 80896000000.0,
+    "orders_prior": 54088000000.0,
+    "backlog": 153329000000.0,
+    "backlog_prior": 108678000000.0
+   }
+  ],
+  "seg_src": "pres_image",
+  "seg_doc": "20261029559758",
+  "seg_page": 12,
+  "note": "説明資料p12のSI(構築+運用保守)の受注額・受注残(百万円)。全社の受注は非開示"
+ },
+ "M3774-2026-06": {
+  "code": "3774",
+  "period_end": "2026-06-30",
+  "total": {
+   "orders": 71379000000.0,
+   "orders_prior": 45317000000.0,
+   "backlog": 179550000000.0,
+   "backlog_prior": 127200000000.0,
+   "name": "システムインテグレーション"
+  },
+  "segments": [
+   {
+    "name": "SI構築",
+    "orders": 40208000000.0,
+    "orders_prior": 17073000000.0,
+    "backlog": 47956000000.0,
+    "backlog_prior": 21189000000.0
+   },
+   {
+    "name": "SI運用保守",
+    "orders": 31171000000.0,
+    "orders_prior": 28244000000.0,
+    "backlog": 131594000000.0,
+    "backlog_prior": 106011000000.0
+   }
+  ],
+  "seg_src": "pres_image",
+  "seg_doc": "20261029559758",
+  "seg_page": 12,
+  "note": "2Q説明資料p12の1Q",
+  "n_q": 1,
+  "disclosed_at": "2026-08-01T00:00"
+ },
+ "140120261106567141": {
+  "code": "6448",
+  "period_end": "2026-09-30",
+  "total": {
+   "orders": 51190000000.0,
+   "orders_prior": 30020000000.0,
+   "backlog": null,
+   "backlog_prior": null,
+   "name": "マシナリー(産業機器)"
+  },
+  "seg_src": "pres_chart",
+  "seg_doc": "20261109569324",
+  "seg_page": 28,
+  "note": "説明資料p28のマシナリー事業(産業機器)受注額グラフ(数字なし)をPDFの図形座標から読んだ値(億円、概算)を1Q+2Q",
+  "n_q": 2
+ },
+ "M6448-2026-06": {
+  "code": "6448",
+  "period_end": "2026-06-30",
+  "total": {
+   "orders": 24390000000.0,
+   "orders_prior": 13520000000.0,
+   "backlog": null,
+   "backlog_prior": null,
+   "name": "マシナリー(産業機器)"
+  },
+  "seg_src": "pres_chart",
+  "seg_doc": "20261109569324",
+  "seg_page": 28,
+  "note": "同グラフの26Q1・25Q1",
+  "n_q": 1,
+  "disclosed_at": "2026-08-01T00:00"
+ },
+ "140120261105566028": {
+  "code": "9831",
+  "period_end": "2026-09-30",
+  "total": {
+   "orders": 98761000000.0,
+   "orders_prior": 101364000000.0,
+   "backlog": 141957000000.0,
+   "backlog_prior": 121621000000.0,
+   "name": "住建セグメント"
+  },
+  "segments": [
+   {
+    "name": "ヤマダホームズ",
+    "orders": 48819000000.0,
+    "orders_prior": 46715000000.0,
+    "backlog": 58066000000.0,
+    "backlog_prior": 43831000000.0
+   },
+   {
+    "name": "ヒノキヤグループ",
+    "orders": 49942000000.0,
+    "orders_prior": 54649000000.0,
+    "backlog": 83891000000.0,
+    "backlog_prior": 77790000000.0
+   }
+  ],
+  "seg_src": "pres_image",
+  "seg_doc": "20261105566291",
+  "seg_page": 20,
+  "note": "説明資料p20の住建セグメント受注金額(百万円)、受注残高は注文住宅"
+ },
+ "140120261019552890": {
+  "code": "6339",
+  "period_end": "2026-09-30",
+  "total": {
+   "orders": 88800000000.0,
+   "orders_prior": 74700000000.0,
+   "backlog": null,
+   "backlog_prior": null
+  },
+  "seg_src": "pres_image",
+  "seg_doc": "20261019552893",
+  "seg_page": 3,
+  "note": "説明資料p3の2Q実績受注高(億円)"
+ },
+ "140120261102562838": {
+  "code": "4012",
+  "period_end": "2026-09-30",
+  "total": {
+   "orders": null,
+   "orders_prior": null,
+   "backlog": 2239000000.0,
+   "backlog_prior": 1903000000.0,
+   "name": "システムサービス事業"
+  },
+  "seg_src": "pres_image",
+  "seg_doc": "20261105565322",
+  "seg_page": 8,
+  "note": "説明資料p8のシステムサービス事業の受注残高(百万円)"
+ },
+ "M4012-2026-06": {
+  "code": "4012",
+  "period_end": "2026-06-30",
+  "total": {
+   "orders": null,
+   "orders_prior": null,
+   "backlog": 2166000000.0,
+   "backlog_prior": 1831000000.0,
+   "name": "システムサービス事業"
+  },
+  "seg_src": "pres_image",
+  "seg_doc": "20261105565322",
+  "seg_page": 8,
+  "note": "3Q説明資料p8の2Q",
+  "n_q": 2,
+  "disclosed_at": "2026-08-01T00:00"
+ },
+ "140120261102562827": {
+  "code": "6240",
+  "period_end": "2026-09-30",
+  "total": {
+   "orders": null,
+   "orders_prior": null,
+   "backlog": 4927000000.0,
+   "backlog_prior": 3936000000.0,
+   "name": "建機用フィルタ(確定受注残)"
+  },
+  "seg_src": "pres_image",
+  "seg_doc": "20261104563462",
+  "seg_page": 32,
+  "note": "説明資料p32の建機用フィルタビジネスの確定受注残高(百万円)"
+ },
+ "M6240-2026-06": {
+  "code": "6240",
+  "period_end": "2026-06-30",
+  "total": {
+   "orders": null,
+   "orders_prior": null,
+   "backlog": 4911000000.0,
+   "backlog_prior": 3988000000.0,
+   "name": "建機用フィルタ(確定受注残)"
+  },
+  "seg_src": "pres_image",
+  "seg_doc": "20261104563462",
+  "seg_page": 32,
+  "note": "2Q説明資料p32のQ1",
+  "n_q": 1,
+  "disclosed_at": "2026-08-01T00:00"
+ },
+ "140120261028558442": {
+  "code": "6395",
+  "period_end": "2026-09-30",
+  "total": {
+   "orders": 153130000000.0,
+   "orders_prior": 131660000000.0,
+   "backlog": 98720000000.0,
+   "backlog_prior": 82340000000.0,
+   "name": "建設用クレーン(RT・AT)"
+  },
+  "seg_src": "pres_chart",
+  "seg_doc": "20261104563856",
+  "seg_page": 9,
+  "note": "説明資料p9の建設用クレーン(RT・AT)新規受注・受注残高グラフ(数字なし)をPDFの図形座標から読んだ値(億円、概算)。新規受注はQ1〜Q3の和"
+ },
+ "M6395-2026-06": {
+  "code": "6395",
+  "period_end": "2026-06-30",
+  "total": {
+   "orders": 93200000000.0,
+   "orders_prior": 84460000000.0,
+   "backlog": 88230000000.0,
+   "backlog_prior": 69430000000.0,
+   "name": "建設用クレーン(RT・AT)"
+  },
+  "seg_src": "pres_chart",
+  "seg_doc": "20261104563856",
+  "seg_page": 9,
+  "note": "説明資料p9の建設用クレーン(RT・AT)新規受注・受注残高グラフ(数字なし)をPDFの図形座標から読んだ値(億円、概算)",
+  "n_q": 2,
+  "disclosed_at": "2026-08-01T00:00"
+ },
+ "M6395-2026-03": {
+  "code": "6395",
+  "period_end": "2026-03-31",
+  "total": {
+   "orders": 65210000000.0,
+   "orders_prior": 51910000000.0,
+   "backlog": 108190000000.0,
+   "backlog_prior": 82410000000.0,
+   "name": "建設用クレーン(RT・AT)"
+  },
+  "seg_src": "pres_chart",
+  "seg_doc": "20261104563856",
+  "seg_page": 9,
+  "note": "説明資料p9の建設用クレーン(RT・AT)新規受注・受注残高グラフ(数字なし)をPDFの図形座標から読んだ値(億円、概算)",
+  "n_q": 1,
+  "disclosed_at": "2026-05-01T00:00"
+ },
+ "140120261104563442": {
+  "code": "9432",
+  "period_end": "2026-09-30",
+  "total": {
+   "orders": 2944800000000.0,
+   "orders_prior": 2749700000000.0,
+   "backlog": 8596400000000.0,
+   "backlog_prior": 7103600000000.0,
+   "name": "NTTデータグループ"
+  },
+  "seg_src": "pres_image",
+  "seg_doc": "20261104563481",
+  "seg_page": 12,
+  "note": "決算補足資料p12のNTTデータグループ連結の受注高・受注残高(十億円)"
+ },
+ "M9432-2026-06": {
+  "code": "9432",
+  "period_end": "2026-06-30",
+  "total": {
+   "orders": 1460300000000.0,
+   "orders_prior": 1125600000000.0,
+   "backlog": 8709900000000.0,
+   "backlog_prior": 6478200000000.0,
+   "name": "NTTデータグループ"
+  },
+  "seg_src": "pres_image",
+  "seg_doc": "20261104563481",
+  "seg_page": 12,
+  "note": "同表の1Q",
+  "n_q": 1,
+  "disclosed_at": "2026-08-01T00:00"
+ },
+ "140120261029559089": {
+  "code": "6702",
+  "period_end": "2026-09-30",
+  "total": {
+   "orders": 388700000000.0,
+   "orders_prior": 318600000000.0,
+   "backlog": null,
+   "backlog_prior": null,
+   "name": "Uvance"
+  },
+  "seg_src": "pres_image",
+  "seg_doc": "20261029559004",
+  "seg_page": 11,
+  "note": "説明資料p11のUvanceの受注高(億円)。全社の受注は非開示"
+ },
+ "140120261112574366": {
+  "code": "4323",
+  "period_end": "2026-09-30",
+  "total": {
+   "orders": null,
+   "orders_prior": null,
+   "backlog": 12559000000.0,
+   "backlog_prior": null,
+   "backlog_yoy": 0.1
+  },
+  "seg_src": "presentation",
+  "seg_doc": "20261112574827",
+  "seg_page": 23,
+  "note": "説明資料p23(9月末受注残高、百万円、前年並み+0.1%)"
+ },
+ "140120261112575521": {
+  "code": "3962",
+  "period_end": "2026-09-30",
+  "total": {
+   "orders": null,
+   "orders_prior": null,
+   "backlog": 1380000000.0,
+   "backlog_prior": null
+  },
+  "seg_src": "presentation",
+  "seg_doc": "20261112575772",
+  "seg_page": 21,
+  "note": "説明資料p21(9月末受注残高、億円)"
+ },
+ "140120261014550138": {
+  "code": "9264",
+  "period_end": "2026-08-31",
+  "total": {
+   "orders": null,
+   "orders_prior": null,
+   "backlog": 2858000000.0,
+   "backlog_prior": null
+  },
+  "seg_src": "presentation",
+  "seg_doc": "20261106567097",
+  "seg_page": 9,
+  "note": "説明資料p9(受注残、百万円)"
+ },
+ "140120261015551552": {
+  "code": "7049",
+  "period_end": "2026-08-31",
+  "total": {
+   "orders": null,
+   "orders_prior": null,
+   "backlog": 635000000.0,
+   "backlog_prior": null,
+   "name": "組織コンサルティング事業",
+   "backlog_yoy": -9.2
+  },
+  "seg_src": "presentation",
+  "seg_doc": "20261015551582",
+  "seg_page": 1,
+  "note": "説明資料の組織コンサルティング事業の受注残(百万円、前年同期比▲9.2%)"
+ },
+ "140120261112576930": {
+  "code": "3927",
+  "period_end": "2026-09-30",
+  "total": {
+   "orders": null,
+   "orders_prior": null,
+   "backlog": 4500000000.0,
+   "backlog_prior": null,
+   "name": "Cato SASE Cloud"
+  },
+  "seg_src": "presentation",
+  "seg_doc": "20261112576946",
+  "seg_page": 17,
+  "note": "説明資料p17のCato SASE Cloudの受注残(約45億円)"
+ },
+ "140120261110571520": {
+  "code": "6613",
+  "period_end": "2026-09-30",
+  "total": {
+   "orders": null,
+   "orders_prior": null,
+   "backlog": 720000000.0,
+   "backlog_prior": null
+  },
+  "seg_src": "presentation",
+  "seg_doc": "20261112576218",
+  "seg_page": 2,
+  "note": "説明資料p2(当四半期末の受注残高、億円)",
+  "n_q": 2
+ },
+ "140120261110571524": {
+  "code": "4415",
+  "period_end": "2026-09-30",
+  "total": {
+   "orders": 3637000000.0,
+   "orders_prior": null,
+   "backlog": 2232000000.0,
+   "backlog_prior": null,
+   "name": "フロー(粗利ベース)"
+  },
+  "seg_src": "presentation",
+  "seg_doc": "20261110571240",
+  "seg_page": 15,
+  "note": "説明資料p15(受注したフロー粗利額の累計・受注残、粗利ベース、百万円)"
+ },
+ "140120261012549072": {
+  "code": "3267",
+  "period_end": "2026-08-31",
+  "total": {
+   "orders": 1604000000.0,
+   "orders_prior": null,
+   "backlog": 5465000000.0,
+   "backlog_prior": null
+  },
+  "seg_src": "presentation",
+  "seg_doc": "20261012549070",
+  "seg_page": null,
+  "note": "説明資料(請負受注スキームの受注高・受注残高、百万円)"
+ },
+ "140120261112575294": {
+  "code": "6748",
+  "period_end": "2026-09-30",
+  "total": {
+   "orders": 18285000000.0,
+   "orders_prior": 16575000000.0,
+   "backlog": 12625000000.0,
+   "backlog_prior": 14513000000.0
+  },
+  "segments": [
+   {
+    "name": "情報機器事業",
+    "orders": 3798000000.0,
+    "orders_prior": 5466000000.0,
+    "backlog": 7798000000.0,
+    "backlog_prior": 11272000000.0
+   },
+   {
+    "name": "照明機器事業",
+    "orders": 8901000000.0,
+    "orders_prior": 6976000000.0,
+    "backlog": 4034000000.0,
+    "backlog_prior": 2846000000.0
+   },
+   {
+    "name": "コンポーネント事業",
+    "orders": 5586000000.0,
+    "orders_prior": 4133000000.0,
+    "backlog": 793000000.0,
+    "backlog_prior": 395000000.0
+   }
+  ],
+  "seg_src": "pres_image",
+  "seg_doc": "20261112575766",
+  "seg_page": 3,
+  "note": "説明資料p2〜p4のセグメント別受注高・受注残高(百万円)。合計はセグメントの和"
+ },
+ "140120261012549090": {
+  "code": "1419",
+  "period_end": "2026-08-31",
+  "total": {
+   "orders": 57200000000.0,
+   "orders_prior": 53200000000.0,
+   "backlog": null,
+   "backlog_prior": null
+  },
+  "segments": [
+   {
+    "name": "注文住宅事業",
+    "orders": 37400000000.0,
+    "orders_prior": 38200000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   },
+   {
+    "name": "戸建分譲事業",
+    "orders": 17000000000.0,
+    "orders_prior": 12300000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   },
+   {
+    "name": "リフォーム事業",
+    "orders": 2800000000.0,
+    "orders_prior": 2700000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   }
+  ],
+  "seg_src": "pres_image",
+  "seg_doc": "20261012549097",
+  "seg_page": 6,
+  "note": "説明資料p6・p9・p12の受注金額(億円)。合計は3事業の和"
+ },
+ "140120261111573670": {
+  "code": "3825",
+  "period_end": "2026-09-30",
+  "total": {
+   "orders": null,
+   "orders_prior": null,
+   "backlog": 2810000000.0,
+   "backlog_prior": null,
+   "name": "系統用蓄電池の販売"
+  },
+  "seg_src": "pres_image",
+  "seg_doc": "20261111573681",
+  "seg_page": 11,
+  "note": "説明資料p11の系統用蓄電池の販売の受注残高(10月31日時点、億円。8月14日時点16.8億円)"
+ },
+ "140120261111572782": {
+  "code": "5076",
+  "period_end": "2026-09-30",
+  "total": {
+   "orders": 481900000000.0,
+   "orders_prior": 459900000000.0,
+   "backlog": null,
+   "backlog_prior": null,
+   "name": "建築・土木"
+  },
+  "segments": [
+   {
+    "name": "建築(前田建設)",
+    "orders": 178700000000.0,
+    "orders_prior": 251000000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   },
+   {
+    "name": "建築(アルソシア建設)",
+    "orders": 136200000000.0,
+    "orders_prior": 74100000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   },
+   {
+    "name": "土木(前田建設)",
+    "orders": 95400000000.0,
+    "orders_prior": 80100000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   },
+   {
+    "name": "土木(アルソシア建設)",
+    "orders": 71600000000.0,
+    "orders_prior": 54700000000.0,
+    "backlog": null,
+    "backlog_prior": null
+   }
+  ],
+  "seg_src": "pres_image",
+  "seg_doc": "20261105566512",
+  "seg_page": 28,
+  "note": "説明資料p27・p35の第2四半期受注高(億円)。合計は建築・土木の4つの和"
+ },
+ "140120261109569729": {
+  "code": "7080",
+  "period_end": "2026-09-30",
+  "total": {
+   "orders": 1590000000.0,
+   "orders_prior": null,
+   "backlog": null,
+   "backlog_prior": null,
+   "orders_yoy": 2.7
+  },
+  "seg_src": "pres_image",
+  "seg_doc": "20261109569738",
+  "seg_page": 13,
+  "note": "説明資料p13の2028年卒向け受注金額の3Q累計(グラフから読んだ概算、百万円、前年同期比+2.7%)"
+ },
+ "140120261013549514": {
+  "code": "323A",
+  "period_end": "2026-08-31",
+  "total": {
+   "orders": 378000000.0,
+   "orders_prior": 27000000.0,
+   "backlog": null,
+   "backlog_prior": null,
+   "name": "研修・スクール等(総受注額)"
+  },
+  "seg_src": "pres_image",
+  "seg_doc": "20261014550575",
+  "seg_page": 23,
+  "note": "説明資料p23の研修・スクール等受注額(百万円)を1Q+2Q"
+ },
+ "M323A-2026-05": {
+  "code": "323A",
+  "period_end": "2026-05-31",
+  "total": {
+   "orders": 194000000.0,
+   "orders_prior": 11000000.0,
+   "backlog": null,
+   "backlog_prior": null,
+   "name": "研修・スクール等(総受注額)"
+  },
+  "seg_src": "pres_image",
+  "seg_doc": "20261014550575",
+  "seg_page": 23,
+  "note": "2Q説明資料p23の1Q",
+  "n_q": 1,
+  "disclosed_at": "2026-07-01T00:00"
+ },
+ "140120261015551424": {
+  "code": "402A",
+  "period_end": "2026-08-31",
+  "total": {
+   "orders": null,
+   "orders_prior": null,
+   "backlog": 51759000000.0,
+   "backlog_prior": null,
+   "backlog_yoy": 363.4
+  },
+  "seg_src": "presentation",
+  "seg_doc": "20261015551159",
+  "seg_page": null,
+  "note": "1Q説明資料の受注残高(百万円、前年同期比+363.4%)"
  }
 }
