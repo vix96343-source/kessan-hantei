@@ -1,4 +1,6 @@
 disclosure_id,code,disclosed_at,n_q,period_end,status,data
+140120261112577292,5194,2026-11-13T16:45,2,2026-09-30,none,
+140120261112576689,6863,2026-11-13T16:45,2,2026-09-30,ok,"{""total"": {""name"": ""合計"", ""orders"": null, ""orders_yoy"": null, ""backlog"": 8957000000.0, ""backlog_yoy"": null, ""backlog_fy"": null}, ""segments"": [{""name"": ""制御機器事業"", ""orders"": null, ""orders_yoy"": null, ""backlog"": 3628000000.0, ""backlog_yoy"": null, ""backlog_fy"": null}, {""name"": ""検査機事業"", ""orders"": null, ""orders_yoy"": null, ""backlog"": 1306000000.0, ""backlog_yoy"": null, ""backlog_fy"": null}, {""name"": ""オプティクス事業"", ""orders"": null, ""orders_yoy"": null, ""backlog"": 3891000000.0, ""backlog_yoy"": null, ""backlog_fy"": null}], ""src"": ""narrative""}"
 140120261113579503,2160,2026-11-13T16:30,3,2026-09-30,none,
 140120261113579472,4069,2026-11-13T16:30,2,2026-09-30,none,
 140120261113579271,559A,2026-11-13T16:30,1,2026-09-30,none,
