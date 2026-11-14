@@ -105,7 +105,10 @@ def manual_changed() -> bool:
     p = site.DOCS_DIR / "data" / "index.json"
     if not p.exists():
         return True
-    return json.loads(p.read_text(encoding="utf-8")).get("manual", "") != irdocs.manual_hash()
+    from . import good_rules
+    idx = json.loads(p.read_text(encoding="utf-8"))
+    # 手で登録した説明資料か、好決算の基準(good_rules.yaml)が変わったら作り直す
+    return idx.get("manual", "") != irdocs.manual_hash() or idx.get("good_rules", "") != good_rules.file_hash()
 
 
 def cmd_irdocs(args, cfg):

@@ -82,6 +82,12 @@ tr.dayrow td { padding: 22px 6px 6px; background: var(--bg); border: 0; white-sp
 tr.dayrow:first-child td { padding-top: 8px; }
 tr.dayrow .dd { color: #e4e8ee; font-weight: 700; font-size: 13px; }
 tr.dayrow .dn { color: var(--muted); font-size: 12px; margin-left: 10px; }
+.goodbar { margin: 0 14px 8px; padding: 6px 10px; background: #1b2418; border-left: 3px solid #e0b84a; font-size: 12px; color: #cfd6df; line-height: 1.7; }
+.goodbar b { color: #e0b84a; margin-right: 6px; }
+.goodbar .gi { margin-right: 14px; white-space: nowrap; }
+.goodbar .gi.done { color: #7d8696; }
+.goodbar .gerr { color: var(--warn); }
+table#list td.c-kind .good { color: #e0b84a; font-size: 11px; margin-left: 4px; font-weight: 700; }
 .badge-new { display: inline-block; font-size: 10px; font-weight: 700; color: #1b1500; background: var(--warn);
   border-radius: 3px; padding: 0 4px; margin-left: 6px; vertical-align: 1px; }
 tr.detail td { white-space: normal; background: #0c1220 !important; padding: 8px 12px 12px; }
@@ -154,6 +160,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
   <button id="reload" class="reload">↻ 更新</button>
 </header>
 
+<div class="goodbar" id="goodbar" hidden></div>
 <div class="bar2">
   <span id="count">–</span>
   <span class="sp"></span>
@@ -206,6 +213,23 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
   let loading = false;
 
   // TDnet の監視は平日 7:30〜20時(JST)。新しい開示が無ければデータは更新されないので、監視中かどうかは時間帯で示す
+  // 前回(1つ前の四半期)が好決算(good_rules.yaml の基準)の印。連続なら「◎×回数」
+  function goodMark(g) {
+    if (!g) return '';
+    const tip = `前回 ${g.period} が好決算: ${g.hits.join('・')}` + (g.streak > 1 ? `(${g.streak}四半期連続)` : '');
+    return `<span class="good" title="${esc(tip)}">前回◎${g.streak > 1 ? '×' + g.streak : ''}</span>`;
+  }
+  // 一覧の上: 前回好決算の会社の発表予定(今日と次の発表日)。基準の書き間違いもここに出す
+  function renderGoodbar() {
+    const box = $('goodbar'), up = index.good_upcoming || [], errs = index.good_errors || [];
+    if (!up.length && !errs.length) { box.hidden = true; return; }
+    const md = d => `${+d.slice(5, 7)}/${+d.slice(8, 10)}(${wd(d)})`;
+    box.innerHTML = (up.length ? '<b>前回好決算の発表予定</b> ' + up.map(u =>
+        `<span class="gi${u.done ? ' done' : ''}" title="前回 ${esc(u.prev_good.period)}: ${esc(u.prev_good.hits.join('・'))}">`
+        + `${md(u.date)} ${esc(u.time || '時刻未定')} ${esc(u.code)} ${esc(u.name)}${u.prev_good.streak > 1 ? ' ◎×' + u.prev_good.streak : ' ◎'}${u.done ? ' ✓' : ''}</span>`).join('') : '')
+      + (errs.length ? `<div class="gerr">good_rules.yaml の書き間違い: ${errs.map(esc).join(' / ')}</div>` : '');
+    box.hidden = false;
+  }
   function setStatus(err) {
     const jst = new Date(Date.now() + 9 * 3600e3), h = jst.getUTCHours(), d = jst.getUTCDay();
     const mins = h * 60 + jst.getUTCMinutes();
@@ -449,6 +473,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
   }
 
   function render() {
+    renderGoodbar();
     const rows = visible();
     const total = (index.days || []).reduce((s, x) => s + x.n, 0) || allRows().length;
     $('count').textContent = `${rows.length}件 / 決算・修正 ${total}件`;
@@ -466,7 +491,7 @@ footer { color: var(--muted); font-size: 11px; line-height: 1.6; padding: 4px 14
         <td class="c-date">${r.date.slice(5).replace('-', '/')}</td><td class="c-time">T${esc(r.time)}</td>
         <td class="c-code">${esc(r.code)}</td>
         <td class="c-name" title="${esc(r.name)} ${esc(r.title)}">${esc(r.name)}${isNew ? '<span class="badge-new">NEW</span>' : ''}</td>
-        <td class="c-kind"><a class="pdf" href="${esc(r.url)}" target="_blank" rel="noopener" title="${esc(r.title)}">${esc(r.revUrl ? '決算' : r.label || r.group)}</a>${r.revUrl ? ` <a class="pdf" href="${esc(r.revUrl)}" target="_blank" rel="noopener" title="${esc(r.revTitle || '')}">修正</a>` : ''}${r.live ? '<span class="live">速報</span>' : ''}</td>${numCells(r)}</tr>`;
+        <td class="c-kind"><a class="pdf" href="${esc(r.url)}" target="_blank" rel="noopener" title="${esc(r.title)}">${esc(r.revUrl ? '決算' : r.label || r.group)}</a>${r.revUrl ? ` <a class="pdf" href="${esc(r.revUrl)}" target="_blank" rel="noopener" title="${esc(r.revTitle || '')}">修正</a>` : ''}${r.live ? '<span class="live">速報</span>' : ''}${goodMark(r.prev_good)}</td>${numCells(r)}</tr>`;
       if (open.has(r.id)) html += detail(r);
     });
     $('tb').innerHTML = html || `<tr><td colspan="20" class="more">${state.onlyNew ? '新着はありません' : '該当する開示はありません'}</td></tr>`;

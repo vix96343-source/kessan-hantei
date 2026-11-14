@@ -14,7 +14,7 @@ from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader
 
-from . import announce_times, backtest, breakdown, fy_months, calendar_fetch, consensus, disclosures, earnings, history, ir_times, irdocs, judge, market_caps, order_adjust, orders, reaction, revisions, segments, universe
+from . import announce_times, backtest, breakdown, fy_months, calendar_fetch, consensus, disclosures, earnings, good_rules, history, ir_times, irdocs, judge, market_caps, order_adjust, orders, reaction, revisions, segments, universe
 from .config import DATA_DIR, ROOT, now_jst
 
 DOCS_DIR = ROOT / "docs"
@@ -820,7 +820,189 @@ def breakdown_numbers(rec: dict | None, past: list[dict]) -> dict | None:
     return {"title": rec["data"].get("title") or "内訳", "hist": hist} if hist else None
 
 
-def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:
+class GoodIndex:
+    """好決算(good_rules.yaml の基準)の判定。会社・期末(YYYY-MM)ごとの数値を保存済みのデータから作る:
+    売上〜純利は四半期業績(quarterly_history: 3か月の値)、累計の前年比は短信の記録(無ければ四半期業績を決算月で足す)、
+    受注は受注の記録(一覧と同じ order_numbers)、進捗率・予想の修正は短信の特徴量、株価の反応は reactions.csv"""
+
+    def __init__(self, data_dir: Path = DATA_DIR):
+        import pandas as pd
+        from . import good_rules
+        self.rules = good_rules.load()
+        self.on = bool(self.rules["rules"])
+        self.memo: dict = {}
+        if not self.on:
+            return
+        self.hist = {c: {q["end"]: q for q in qs} for c, qs in history.by_code(history.load(data_dir)).items()}
+        arch = earnings.load_archive(data_dir).to_dict("records")
+        self.arch = {}                                  # (code, 期末) → 短信の記録(同じ期は新しい方)
+        for a in sorted(arch, key=lambda a: str(a["disclosed_at"])):
+            if a.get("period_end"):
+                self.arch[(a["code"], str(a["period_end"])[:7])] = a
+        self.feats = earnings.by_disclosure(data_dir)
+        rp = reaction.reactions_path(data_dir)
+        self.react = {}
+        if rp.exists():
+            rx = pd.read_csv(rp, dtype=str).fillna("")
+            self.react = {i: float(v) for i, v in zip(rx["disclosure_id"], rx["ret_pct"]) if v}
+        self.ords: dict[str, list[dict]] = orders.by_code(data_dir)
+        by_id = {a["disclosure_id"]: a for a in arch}
+        for recs in self.ords.values():
+            for o in recs:
+                a = by_id.get(o["disclosure_id"])
+                if a and not o["period_end"]:
+                    o["n_q"], o["period_end"] = a["n_q"], a["period_end"]
+        self.fy_month = fy_months.load(data_dir)
+        for a in arch:                                  # 決算月: 短信の期末と何Q
+            try:
+                e, nq = str(a["period_end"])[:7], int(float(a["n_q"]))
+                self.fy_month.setdefault(a["code"], int(_ym_shift(e, 3 * (4 - nq))[5:7]))
+            except (TypeError, ValueError, KeyError):
+                pass
+        self.adj = order_adjust.load(data_dir)["adj"]
+        self.segs = segments.by_code(data_dir)
+        for recs in self.segs.values():
+            for o in recs:
+                a = by_id.get(o["disclosure_id"])
+                if a and not o["period_end"]:
+                    o["n_q"], o["period_end"] = a["n_q"], a["period_end"]
+        self.cons = consensus.by_code(data_dir)
+        disc = disclosures.load(data_dir)
+        # 上方修正: 決算と同じ日の業績予想の修正(上向き)
+        up = disc[disc["kind"].isin(["forecast_revision", "forecast_dividend_revision"]) & (disc["direction"] == "up")]
+        self.rev_up = set(zip(up["code"], up["disclosed_at"].str[:10]))
+        for t in disc.sort_values("disclosed_at").to_dict("records"):    # 決算月: 開示の題名の「2027年３月期」
+            fm = fy_months.title_month(t["title"])
+            if fm:
+                self.fy_month[t["code"]] = fm
+
+    def metrics(self, code: str, end: str) -> dict:
+        qs = self.hist.get(code, {})
+        m: dict = {}
+        q, py, pq = qs.get(end), qs.get(_ym_shift(end, -12)), qs.get(_ym_shift(end, -3))
+        a = self.arch.get((code, end))
+        fm = self.fy_month.get(code)
+        nq = 4 - ((fm - int(end[5:7])) % 12) // 3 if fm and (fm - int(end[5:7])) % 3 == 0 else None
+        for f in FIN_FIELDS:
+            v = (q or {}).get(f)
+            m[f] = None if v is None else round(v / 1e6, 1)
+            m[f"{f}_q_yoy"] = _growth(v, (py or {}).get(f))
+            m[f"{f}_qoq"] = _growth(v, (pq or {}).get(f))
+            if a and _f0(a.get(f"cum_{f}")) is not None:            # 累計: 短信の値
+                m[f"{f}_yoy"] = _growth(_f0(a.get(f"cum_{f}")), _f0(a.get(f"prior_{f}")))
+            elif nq:                                               # 短信の記録が無い期: 四半期業績を決算月で足す
+                cur = [(qs.get(_ym_shift(end, -3 * k)) or {}).get(f) for k in range(nq)]
+                pri = [(qs.get(_ym_shift(end, -12 - 3 * k)) or {}).get(f) for k in range(nq)]
+                m[f"{f}_yoy"] = None if None in cur or None in pri else _growth(sum(cur), sum(pri))
+        mg = lambda x: None if not x or not x.get("sales") or x.get("op") is None else x["op"] / x["sales"] * 100  # noqa: E731
+        m["margin"] = None if mg(q) is None else round(mg(q), 1)
+        m["margin_yoy_pt"] = None if mg(q) is None or mg(py) is None else round(mg(q) - mg(py), 1)
+        recs = self.ords.get(code, [])
+        rec = next((o for o in reversed(recs) if str(o.get("period_end") or "")[:7] == end), None)
+        if rec:
+            past = [o for o in recs if o is not rec and str(o.get("period_end") or "")[:7] < end]
+            on = order_numbers(rec, past, self.adj.get(code)) or {}
+            t = on.get("total") or {}
+            m["orders_yoy"], m["orders_qoq"] = (t.get("orders") or {}).get("yoy"), (t.get("orders") or {}).get("qoq")
+            m["backlog_yoy"], m["backlog_qoq"] = (t.get("backlog") or {}).get("yoy"), (t.get("backlog") or {}).get("qoq")
+            # 受注の過去最高: 3か月の受注高・期末の受注残が、記録のある過去(4四半期以上)のどれより大きい
+            by_end = {str(o["period_end"])[:7]: o for o in recs if o.get("period_end") and str(o["period_end"])[:7] <= end}
+            hs = order_history(by_end, end, n=40)
+            if hs and hs[-1]["label"] and len(hs) >= 5:
+                for k, name in (("q", "orders_record"), ("backlog", "backlog_record")):
+                    past = [h[k] for h in hs[:-1] if h.get(k) is not None]
+                    if hs[-1].get(k) is not None and len(past) >= 4:
+                        m[name] = 1 if hs[-1][k] > max(past) else 0
+        # 伸び方: 季節性をならした前四半期比(今年の前四半期比 − 前年の同じ四半期の前四半期比)、利益率の前四半期比
+        ppy = qs.get(_ym_shift(end, -15))
+        for f in ("sales", "op"):
+            ly = _growth((py or {}).get(f), (ppy or {}).get(f))
+            m[f"{f}_qoq_vs_ly"] = None if m[f"{f}_qoq"] is None or ly is None else round(m[f"{f}_qoq"] - ly, 1)
+        m["margin_qoq_pt"] = None if mg(q) is None or mg(pq) is None else round(mg(q) - mg(pq), 1)
+        # セグメント: 利益の前年比(累計)の最大・最小、利益率が前年より上がったセグメントの割合
+        srec = next((o for o in reversed(self.segs.get(code, [])) if str(o.get("period_end") or "")[:7] == end), None)
+        if srec:
+            ss = [s for s in srec["data"].get("segments", []) if s.get("op") is not None]
+            ys = [g for g in (_growth(s["op"], s.get("op_prior")) for s in ss) if g is not None]
+            if ys:
+                m["seg_op_yoy_max"], m["seg_op_yoy_min"] = max(ys), min(ys)
+            ups = [s["op"] / s["sales"] > s["op_prior"] / s["sales_prior"] for s in ss
+                   if s.get("sales") and s.get("sales_prior") and s.get("op_prior") is not None]
+            if ups:
+                m["seg_margin_up"] = round(sum(ups) / len(ups) * 100, 1)
+        if a:
+            f = self.feats.get(a["disclosure_id"]) or {}
+            m["progress"] = _f0(f.get("progress"))
+            m["revised"] = 1 if str(f.get("revised")) == "True" else 0 if f else None
+            m["reaction"] = self.react.get(a["disclosure_id"])
+            day = str(a["disclosed_at"])[:10]
+            m["revised_up"] = 1 if (code, day) in self.rev_up else (0 if m["revised"] is not None else None)
+            n_q = int(float(a["n_q"])) if a.get("n_q") else None
+            fy_end = _ym_shift(end, 3 * (4 - n_q)) if n_q else None
+            # 会社計画に対する上振れ: 営業利益の進捗率 − 過去3年の同じ四半期の進捗率(通期実績比)の平均
+            fc, cop = _f0(a.get("fc_op")), _f0(a.get("cum_op"))
+            if n_q and n_q < 4 and fc and fc > 0 and cop is not None:
+                past = []
+                for k in (1, 2, 3):
+                    fe = _ym_shift(fy_end, -12 * k)
+                    vals = [(qs.get(_ym_shift(fe, -3 * j)) or {}).get("op") for j in (3, 2, 1, 0)]
+                    if None not in vals and sum(vals) > 0:
+                        p = sum(vals[:n_q]) / sum(vals) * 100
+                        if 0 <= p <= 150:
+                            past.append(p)
+                now = cop / fc * 100
+                if len(past) >= 2 and 0 <= now <= 150:
+                    m["progress_gap"] = round(now - sum(past) / len(past), 1)
+            # コンセンサス(株予報、発表前に取った値)に対する上振れ
+            snap = consensus.snapshot(self.cons.get(code, []), str(a["disclosed_at"]))
+            if snap and snap.get("before") and str(snap.get("kb_ym_0y") or "") not in ("", "nan") and fy_end:
+                by_ym = {str(snap.get(f"kb_ym_{y}") or "").split(".")[0]: y for y in ("0y", "1y")}
+                ty = by_ym.get(fy_end.replace("-", ""))
+                cord = _f0(a.get("cum_ordinary"))
+                if ty == "0y" and n_q and n_q < 4:
+                    m["cons_beat"] = _growth(None if cord is None else cord / 1e6, _f0(snap.get(f"kb_ord_q{n_q}")))
+                elif ty and n_q == 4:
+                    m["cons_beat"] = _growth(None if cord is None else cord / 1e6, _f0(snap.get(f"kb_ord_{ty}")))
+                # 会社予想(通期の営業利益)とコンセンサスの差。本決算は来期の予想どうし
+                gy = by_ym.get((_ym_shift(fy_end, 12) if n_q == 4 else fy_end).replace("-", ""))
+                if gy and fc is not None:
+                    m["guidance_vs_cons"] = _growth(fc / 1e6, _f0(snap.get(f"kb_op_{gy}")))
+        return m
+
+    def judge(self, code: str, end: str | None) -> dict | None:
+        """その期が好決算なら {end, hits, streak}(streak は連続で好決算だった四半期の数)"""
+        from . import good_rules
+        if not self.on or not end:
+            return None
+        key = (code, end)
+        if key not in self.memo:
+            self.memo[key] = None
+            if (code, end) in self.arch or end in self.hist.get(code, {}):
+                hits = good_rules.evaluate(self.rules, self.metrics(code, end))
+                if hits:
+                    prev = self.judge(code, _ym_shift(end, -3))
+                    self.memo[key] = {"end": end, "hits": hits, "streak": 1 + (prev["streak"] if prev else 0)}
+        return self.memo[key]
+
+    def latest_end(self, code: str, before: str | None = None) -> str | None:
+        """この日より前に発表された一番新しい期末"""
+        ends = [e for (c, e), a in self.arch.items() if c == code and (before is None or str(a["disclosed_at"])[:10] < before)]
+        ends += [e for e, q in self.hist.get(code, {}).items() if before is None or (q.get("announced") or "") < before]
+        if not ends:
+            return None
+        # 期末から5か月より前の期しか無い(直前の四半期の記録が抜けている)ときは「前回」と言えないので出さない
+        if before and max(ends) < _ym_shift(before[:7], -5):
+            return None
+        return max(ends)
+
+
+def _good_badge(g: dict | None, fy_month: int | None = None, fy_points: dict | None = None) -> dict | None:
+    if not g:
+        return None
+    return {"period": _period_name(g["end"], fy_month, fy_points), "hits": g["hits"], "streak": g["streak"]}
+
+
+def feed_rows(cfg: dict, data_dir: Path = DATA_DIR, good: "GoodIndex | None" = None) -> list[dict]:
     """取り込み済みの全期間の決算・修正(新しい順)。"""
     all_disc = disclosures.load(data_dir)
     presentations: dict[str, list[dict]] = {}
@@ -953,10 +1135,14 @@ def feed_rows(cfg: dict, data_dir: Path = DATA_DIR) -> list[dict]:
                 rows[-1]["brk"] = None
         rows[-1]["cons"] = consensus_panel(consensus.snapshot(cons.get(r["code"], []), r["disclosed_at"]),
                                            arch.get(r["disclosure_id"]), shares_at(r["code"], r["disclosed_at"]))             if r["kind"] == "earnings_report" else None
+        if good and good.on and r["kind"] == "earnings_report":   # 前の四半期が好決算(good_rules.yaml)なら「前回◎」
+            e = end_of(r)
+            pe = _ym_shift(e, -3) if e else good.latest_end(r["code"], r["disclosed_at"][:10])
+            rows[-1]["prev_good"] = _good_badge(good.judge(r["code"], pe), fy_month.get(r["code"]), fy_points.get(r["code"]))
     return rows
 
 
-def calendar_rows(data_dir: Path = DATA_DIR, cutoff: str = "15:00") -> list[dict]:
+def calendar_rows(data_dir: Path = DATA_DIR, cutoff: str = "15:00", good: "GoodIndex | None" = None) -> list[dict]:
     """決算予定(今日以降)。時刻は TDnet に出ていればその時刻(済)、次に会社の IR カレンダーの時刻(IR)、
     どちらも無ければ過去の短信の時刻(目安: announce_times.estimate)。日ごとに時刻順"""
     cal, uni = calendar_fetch.load(data_dir), universe.load(data_dir)
@@ -986,6 +1172,13 @@ def calendar_rows(data_dir: Path = DATA_DIR, cutoff: str = "15:00") -> list[dict
                      "same": f"{e['same']}/{e['n']}" if e and not actual else "",
                      "steady": bool(e) and e["same"] * 4 >= e["n"] * 3,
                      "others": "・".join(e["others"]) if e and not actual else ""})
+        if good and good.on:                              # 前回(直近に発表した期)が好決算なら「前回◎」
+            le = good.latest_end(r.code, r.announce_date)
+            fm = good.fy_month.get(r.code)
+            mq = re.search(r"Q([1-4])", str(r.fiscal_q))   # 決算月が分からない会社は、今回が何Qか(Q2)と前回の期末から
+            if le and not fm and (mq or "FY" in str(r.fiscal_q)):
+                fm = int(_ym_shift(_ym_shift(le, 3), 3 * (4 - (int(mq.group(1)) if mq else 4)))[5:7])
+            rows[-1]["prev_good"] = _good_badge(good.judge(r.code, le), fm)
     # 同じ時刻の中は時価総額の大きい順(分からない会社は最後)
     return sorted(rows, key=lambda x: (x["date"], x["time"] or "99", -(x["mcap"] or -1)))
 
@@ -1066,8 +1259,9 @@ def render_all(cfg: dict, data_dir: Path = DATA_DIR, docs_dir: Path = DOCS_DIR) 
     data_out = docs_dir / "data"
     data_out.mkdir(parents=True, exist_ok=True)
 
+    good = GoodIndex(data_dir)                        # 好決算の基準(good_rules.yaml)。基準が無ければ何も付けない
     by_date: dict[str, list[dict]] = {}
-    for r in feed_rows(cfg, data_dir):
+    for r in feed_rows(cfg, data_dir, good):
         by_date.setdefault(r["date"], []).append(r)
     dates = sorted(by_date, reverse=True)
     dump = lambda o: json.dumps(o, ensure_ascii=False, separators=(",", ":"))  # noqa: E731
@@ -1081,15 +1275,21 @@ def render_all(cfg: dict, data_dir: Path = DATA_DIR, docs_dir: Path = DOCS_DIR) 
     days = [{"date": d, "n": len(by_date[d]),
              "earn": sum(r["group"] == "決算" for r in by_date[d]),
              "rev": sum(r["group"] == "修正" for r in by_date[d])} for d in dates]
+    cal_rows = calendar_rows(data_dir, cutoff, good)
+    # 一覧の上に出す「前回好決算の会社の発表予定」: 今日と次の発表日の分
+    next_days = sorted({c["date"] for c in cal_rows})[:2]
+    upcoming = [{k: c[k] for k in ("date", "time", "done", "code", "name", "prev_good")}
+                for c in cal_rows if c["date"] in next_days and c.get("prev_good")]
     index = {"generated_at": now, "build": build_id(), "manual": irdocs.manual_hash(data_dir),
-             "dates": dates, "days": days}
+             "dates": dates, "days": days, "good_upcoming": upcoming, "good_on": good.on,
+             "good_errors": good.rules["errors"], "good_rules": good_rules.file_hash()}
     (data_out / "index.json").write_text(dump(index), encoding="utf-8")
     old_feed = docs_dir / "feed.json"
     if old_feed.exists():
         old_feed.unlink()
 
     # 決算時間サイト(別リポジトリ kessan-jikan)が読む決算予定。変わったときだけ書き換える
-    cal = dump({"days": [{"date": d, "rows": rs} for d, rs in _group(calendar_rows(data_dir, cutoff))],
+    cal = dump({"days": [{"date": d, "rows": rs} for d, rs in _group(cal_rows)],
                 "cutoff": cutoff})
     p = data_out / "calendar.json"
     if not p.exists() or p.read_text(encoding="utf-8") != cal:
