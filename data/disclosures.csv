@@ -1,4 +1,5 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261116581504,2026-11-16T17:05,6706,電気興,中間配当（無配）および期末配当予想の修正（未定）に関するお知らせ,dividend_revision,False,down,,,,,https://www.release.tdnet.info/inbs/140120261116581504.pdf,https://www.release.tdnet.info/inbs/091220261116581504.zip,東,2026-11-16T17:05
 140120261116580974,2026-11-16T17:00,503A,Ｐ－ベルチャイルド,2027年３月期 中間決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261116580974.pdf,,東,2026-11-16T17:00
 140120261116580867,2026-11-16T17:00,490A,Ｐ－センス・トラスト,2027年３月期 中間期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261116580867.pdf,,東,2026-11-16T17:00
 140120261116580865,2026-11-16T17:00,490A,Ｐ－センス・トラスト,2027年３月期 中間決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261116580865.pdf,,東,2026-11-16T17:00
