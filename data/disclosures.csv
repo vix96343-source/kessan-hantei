@@ -1,4 +1,8 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261116581378,2026-11-16T16:15,249A,Ｐ－ヒューマンＡ,2027年３月期の通期連結業績予想について,forecast_initial,False,,,,,,https://www.release.tdnet.info/inbs/140120261116581378.pdf,,東福,2026-11-16T16:15
+140120261116581105,2026-11-16T16:15,2388,Ｇ－ウェッジＨＤ,令和８年９月期決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261116581105.pdf,https://www.release.tdnet.info/inbs/081220261116581105.zip,東,2026-11-16T16:15
+140120261116580983,2026-11-16T16:15,254A,ＡＩフュージョンＣＧ,2027年３月期 第２四半期（中間期）決算短信〔ＩＦＲＳ〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261116580983.pdf,https://www.release.tdnet.info/inbs/081220261116580983.zip,東,2026-11-16T16:15
+140120261113579910,2026-11-16T16:15,2388,Ｇ－ウェッジＨＤ,令和８年９月期連結業績の前年同期実績からの差異に関するお知らせ,actual_vs_forecast,False,,,,,,https://www.release.tdnet.info/inbs/140120261113579910.pdf,,東,2026-11-16T16:15
 140120261116581324,2026-11-16T16:00,2183,リニカル,2027年３月期 第２四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261116581324.pdf,https://www.release.tdnet.info/inbs/081220261116581324.zip,東,2026-11-16T16:00
 140120261116581289,2026-11-16T16:00,326A,Ｐ－エアロラボ,2027年３月期 第２四半期(中間期)決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261116581289.pdf,,東,2026-11-16T16:00
 140120261116581230,2026-11-16T16:00,206A,Ｇ－ＰＲＩＳＭＢｉｏ,2026年９月期　決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261116581230.pdf,,東,2026-11-16T16:00
