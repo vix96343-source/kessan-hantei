@@ -1,4 +1,7 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261113580356,2026-11-16T11:00,5105,ＴＯＹＯ　ＴＩＲＥ,2026年度第3四半期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261113580356.pdf,,東,2026-11-16T11:00
+140120261113580355,2026-11-16T11:00,5105,ＴＯＹＯ　ＴＩＲＥ,配当予想の修正（増配）に関するお知らせ,dividend_revision,False,up,,,,,https://www.release.tdnet.info/inbs/140120261113580355.pdf,,東,2026-11-16T11:00
+140120261113580353,2026-11-16T11:00,5105,ＴＯＹＯ　ＴＩＲＥ,2026年12月期 第３四半期決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261113580353.pdf,https://www.release.tdnet.info/inbs/081220261113580353.zip,東,2026-11-16T11:00
 140120261116580779,2026-11-16T10:30,2674,ハードオフ,2027年３月期第２四半期（中間期） 決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261116580779.pdf,,東,2026-11-16T10:30
 140120261116580666,2026-11-16T10:00,9960,東テク,2027年3月期第2四半期決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261116580666.pdf,,東,2026-11-16T10:00
 140120261116580650,2026-11-16T09:30,5621,Ｇ－ヒューマンＴ,2027年３月期 第２四半期（中間期）決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261116580650.pdf,,東,2026-11-16T09:30
