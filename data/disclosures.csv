@@ -1,4 +1,6 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261116580742,2026-11-16T11:30,5582,Ｇ－グリッド,2027年６月期 第１四半期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261116580742.pdf,,東,2026-11-16T11:30
+140120261113580309,2026-11-16T11:30,5582,Ｇ－グリッド,2027年６月期 第１四半期決算短信〔日本基準〕（非連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261113580309.pdf,https://www.release.tdnet.info/inbs/081220261113580309.zip,東,2026-11-16T11:30
 140120261113580356,2026-11-16T11:00,5105,ＴＯＹＯ　ＴＩＲＥ,2026年度第3四半期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261113580356.pdf,,東,2026-11-16T11:00
 140120261113580355,2026-11-16T11:00,5105,ＴＯＹＯ　ＴＩＲＥ,配当予想の修正（増配）に関するお知らせ,dividend_revision,False,up,,,,,https://www.release.tdnet.info/inbs/140120261113580355.pdf,,東,2026-11-16T11:00
 140120261113580353,2026-11-16T11:00,5105,ＴＯＹＯ　ＴＩＲＥ,2026年12月期 第３四半期決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261113580353.pdf,https://www.release.tdnet.info/inbs/081220261113580353.zip,東,2026-11-16T11:00
