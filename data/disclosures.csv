@@ -1,4 +1,13 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261116580974,2026-11-16T17:00,503A,Ｐ－ベルチャイルド,2027年３月期 中間決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261116580974.pdf,,東,2026-11-16T17:00
+140120261116580867,2026-11-16T17:00,490A,Ｐ－センス・トラスト,2027年３月期 中間期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261116580867.pdf,,東,2026-11-16T17:00
+140120261116580865,2026-11-16T17:00,490A,Ｐ－センス・トラスト,2027年３月期 中間決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261116580865.pdf,,東,2026-11-16T17:00
+140120261116580860,2026-11-16T17:00,7087,ウイルテック,（訂正）株式分割に伴う定款の一部変更および配当予想の修正ならびに株主優待制度の変更（拡充）に関するお知らせ,dividend_revision,True,,,,,,https://www.release.tdnet.info/inbs/140120261116580860.pdf,,東,2026-11-16T17:00
+140120261116580852,2026-11-16T17:00,358A,Ｐ－ゼン・ランド,2026年９月期  決算短信〔日本基準〕（非連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261116580852.pdf,,東,2026-11-16T17:00
+140120261113580302,2026-11-16T17:00,6571,キュービーネットＨＤ,2027年６月期 第１四半期決算短信〔ＩＦＲＳ〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261113580302.pdf,https://www.release.tdnet.info/inbs/081220261113580302.zip,東,2026-11-16T17:00
+140120261113580263,2026-11-16T17:00,9942,ジョイフル,2027年６月期第１四半期決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261113580263.pdf,https://www.release.tdnet.info/inbs/081220261113580263.zip,福,2026-11-16T17:00
+140120261113579434,2026-11-16T17:00,6571,キュービーネットＨＤ,2027年６月期 第１四半期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261113579434.pdf,,東,2026-11-16T17:00
+140120261102562804,2026-11-16T17:00,6721,ウインテスト,2026年12月期　第３四半期決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261102562804.pdf,https://www.release.tdnet.info/inbs/081220261102562804.zip,東,2026-11-16T17:00
 140120261116580711,2026-11-16T16:55,8891,ＡＭＧＨＤ,2027年３月期　第２四半期（中間期）決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261116580711.pdf,https://www.release.tdnet.info/inbs/081220261116580711.zip,東名,2026-11-16T16:55
 140120261116581462,2026-11-16T16:30,7781,平山,記念配当に伴う中間配当予想の修正と配当方針変更に関するお知らせ,dividend_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261116581462.pdf,,東,2026-11-16T16:30
 140120261116581415,2026-11-16T16:30,7273,イクヨ,2027年３月期第２四半期（中間期）連結業績予想と実績値との差異に関するお知らせ,actual_vs_forecast,False,,,,,,https://www.release.tdnet.info/inbs/140120261116581415.pdf,,東,2026-11-16T16:30
