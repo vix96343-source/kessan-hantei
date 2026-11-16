@@ -1,4 +1,6 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261116580961,2026-11-16T12:00,4172,Ｈｉクラテス,2026年９月期決算短信〔日本基準〕(非連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261116580961.pdf,https://www.release.tdnet.info/inbs/081220261116580961.zip,東,2026-11-16T12:00
+140120261113580322,2026-11-16T12:00,9048,名鉄,2027年3月期 第2四半期決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261113580322.pdf,,東名,2026-11-16T12:00
 140120261116580742,2026-11-16T11:30,5582,Ｇ－グリッド,2027年６月期 第１四半期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261116580742.pdf,,東,2026-11-16T11:30
 140120261113580309,2026-11-16T11:30,5582,Ｇ－グリッド,2027年６月期 第１四半期決算短信〔日本基準〕（非連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261113580309.pdf,https://www.release.tdnet.info/inbs/081220261113580309.zip,東,2026-11-16T11:30
 140120261113580356,2026-11-16T11:00,5105,ＴＯＹＯ　ＴＩＲＥ,2026年度第3四半期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261113580356.pdf,,東,2026-11-16T11:00
