@@ -1,4 +1,16 @@
 disclosure_id,code,disclosed_at,n_q,period_end,status,data
+140120261116581324,2183,2026-11-16T16:00,,,ok,"{""total"": {""name"": ""合計"", ""orders"": null, ""orders_yoy"": null, ""backlog"": 15700000000.0, ""backlog_yoy"": null, ""backlog_fy"": null}, ""segments"": [], ""src"": ""narrative""}"
+140120261116580776,7112,2026-11-16T16:00,,,none,
+140120261116580694,6276,2026-11-16T16:00,,,none,
+140120261115580496,3849,2026-11-16T16:00,,,ok,"{""segments"": [{""name"": ""イメージング＆プリンタコントローラ事業"", ""orders"": 34209000.0, ""orders_prior"": null, ""orders_fy"": null, ""backlog"": 30548000.0, ""backlog_prior"": null, ""backlog_fy"": null, ""orders_yoy"": -85.6, ""backlog_yoy"": -86.6}, {""name"": ""ストレージソリューション事業"", ""orders"": 2242000.0, ""orders_prior"": null, ""orders_fy"": null, ""backlog"": 2043000.0, ""backlog_prior"": null, ""backlog_fy"": null, ""orders_yoy"": -95.5, ""backlog_yoy"": -96.0}, {""name"": ""セキュリティ事業"", ""orders"": 313224000.0, ""orders_prior"": null, ""orders_fy"": null, ""backlog"": 354922000.0, ""backlog_prior"": null, ""backlog_fy"": null, ""orders_yoy"": -21.6, ""backlog_yoy"": 4.1}, {""name"": ""その他"", ""orders"": 7933000.0, ""orders_prior"": null, ""orders_fy"": null, ""backlog"": 5003000.0, ""backlog_prior"": null, ""backlog_fy"": null, ""orders_yoy"": -60.5, ""backlog_yoy"": -72.9}], ""total"": {""name"": ""合計"", ""orders"": 357610000.0, ""orders_prior"": null, ""orders_fy"": null, ""backlog"": 392517000.0, ""backlog_prior"": null, ""backlog_fy"": null, ""orders_yoy"": -49.4, ""backlog_yoy"": -38.5}, ""unit"": 1000.0, ""tpl"": [{""header"": [[""セグメントの名称"", ""当中間会計期間 (自 2026年４月１日 至 2026年９月30日)"", ""当中間会計期間 (自 2026年４月１日 至 2026年９月30日)"", ""当中間会計期間 (自 2026年４月１日 至 2026年９月30日)"", ""当中間会計期間 (自 2026年４月１日 至 2026年９月30日)""], [""セグメントの名称"", ""受注高 (千円)"", ""前年同期比 (％)"", ""受注残高 (千円)"", ""前年同期比 (％)""]], ""width"": 5, ""numeric_cols"": [1, 2, 3, 4], ""unit"": 1000.0, ""rows"": [[""イメージング＆プリンタコントローラ事業""], [""ストレージソリューション事業""], [""セキュリティ事業""], [""その他""], [""合計""]], ""parents"": [null, null, null, null, null], ""ctx"": null}]}"
+140120261113580362,3001,2026-11-16T16:00,,,none,
+140120261113579893,6561,2026-11-16T16:00,,,none,
+140120261112577312,2158,2026-11-16T16:00,,,none,
+140120261112576795,3909,2026-11-16T16:00,,,none,
+140120261112576053,476A,2026-11-16T16:00,,,none,
+140120261106567025,4393,2026-11-16T16:00,,,none,
+140120261008547806,4376,2026-11-16T16:00,,,none,
+140120261007547095,6574,2026-11-16T16:00,,,none,
 140120261022554837,4324,2026-11-16T15:45,3,2026-09-30,none,
 140120261116580943,4346,2026-11-16T15:40,4,2026-09-30,none,
 140120261002545469,6343,2026-11-16T15:40,2,2026-09-30,none,
