@@ -1,4 +1,8 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261116581698,2026-11-17T10:00,6104,芝浦機械,決算説明会資料（2027年3月期第2四半期（中間期）決算説明資料）,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261116581698.pdf,,東,2026-11-17T10:00
+140120261116581688,2026-11-17T10:00,6104,芝浦機械,決算説明会資料（「中計2026」中計最終年度の対応について）,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261116581688.pdf,,東,2026-11-17T10:00
+140120261116581349,2026-11-17T10:00,2060,フィード・ワン,2027年3月期 中間期決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261116581349.pdf,,東,2026-11-17T10:00
+140120261116581040,2026-11-17T10:00,6850,チノー,2027年3月期 第2四半期 決算補足説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261116581040.pdf,,東,2026-11-17T10:00
 140120261117581736,2026-11-17T09:30,4611,大日塗料,2026年度（2027年3月期）中間期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261117581736.pdf,,東,2026-11-17T09:30
 140120261116581407,2026-11-17T09:00,4888,Ｇ－ステラファーマ,2027年3月期　第2四半期決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261116581407.pdf,,東,2026-11-17T09:00
 140120261115580475,2026-11-17T09:00,4390,ｉｐｓ,2027年３月期　第２四半期決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261115580475.pdf,,東,2026-11-17T09:00
