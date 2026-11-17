@@ -1,4 +1,7 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261117581832,2026-11-17T16:00,6819,伊豆シャボテンＲ,2027年３月期第２四半期（中間期）決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261117581832.pdf,,東,2026-11-17T16:00
+140120261116581669,2026-11-17T16:00,7814,日本創発Ｇ,2026年12月期　第３四半期決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261116581669.pdf,,東,2026-11-17T16:00
+140120261116581532,2026-11-17T16:00,4896,Ｇ－ケイファーマ,2026年12月期　第3四半期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261116581532.pdf,,東,2026-11-17T16:00
 140120261117582034,2026-11-17T15:30,2978,Ｇ－ツクルバ,2027年７月期通期連結業績予想の修正に関するお知らせ,forecast_revision,False,down,OperatingIncome,-100.0,CurrentYearDuration,"{""NetSales"": -18.0, ""OperatingIncome"": -100.0, ""OrdinaryIncome"": -271.4, ""ProfitAttributableToOwnersOfParent"": -278.8}",https://www.release.tdnet.info/inbs/140120261117582034.pdf,https://www.release.tdnet.info/inbs/091220261117582034.zip,東,2026-11-17T15:30
 140120261116581422,2026-11-17T15:30,3489,フェイスネットワーク,2027年３月期第２四半期（中間期）決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261116581422.pdf,,東,2026-11-17T15:30
 140120261112576632,2026-11-17T15:30,4882,Ｇ－ペルセウス,2027年３月期 第２四半期決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261112576632.pdf,,東,2026-11-17T15:30
