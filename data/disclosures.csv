@@ -1,4 +1,7 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261117582248,2026-11-17T17:00,9941,太洋物産,2026年９月期　決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261117582248.pdf,https://www.release.tdnet.info/inbs/081220261117582248.zip,東,2026-11-17T17:00
+140120261117582059,2026-11-17T17:00,4265,Ｇ－ＩＧＳ,2027年３月期 第２四半期（中間期）決算及び業績予想の修正に関する資料,forecast_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261117582059.pdf,,東,2026-11-17T17:00
+140120261113579803,2026-11-17T17:00,9941,太洋物産,個別業績予想と実績値との差異及び連結決算への移行に関するお知らせ,actual_vs_forecast,False,,,,,,https://www.release.tdnet.info/inbs/140120261113579803.pdf,,東,2026-11-17T17:00
 140120261117582218,2026-11-17T16:30,9816,ストライダーズ,2027年３月期 第2四半期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261117582218.pdf,,東,2026-11-17T16:30
 140120261117581832,2026-11-17T16:00,6819,伊豆シャボテンＲ,2027年３月期第２四半期（中間期）決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261117581832.pdf,,東,2026-11-17T16:00
 140120261116581669,2026-11-17T16:00,7814,日本創発Ｇ,2026年12月期　第３四半期決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261116581669.pdf,,東,2026-11-17T16:00
