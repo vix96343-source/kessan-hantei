@@ -1,4 +1,5 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261118582888,2026-11-18T16:40,1383,ベルグアース,通期連結業績予想の修正に関するお知らせ,forecast_revision,False,up,OperatingIncome,116.3,CurrentYearDuration,"{""NetSales"": -0.1, ""OperatingIncome"": 116.3, ""OrdinaryIncome"": 135.2, ""ProfitAttributableToOwnersOfParent"": 200.0}",https://www.release.tdnet.info/inbs/140120261118582888.pdf,https://www.release.tdnet.info/inbs/091220261118582888.zip,東,2026-11-18T16:40
 140120261118582736,2026-11-18T16:00,281A,Ｇ－インフォメティス,2026年12月期第３四半期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261118582736.pdf,,東,2026-11-18T16:00
 140120261118582191,2026-11-18T16:00,3808,オーケーウェブ,株式会社オーケーウェブ2027年６月期第１四半期決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261118582191.pdf,,名,2026-11-18T16:00
 140120261118582786,2026-11-18T15:30,145A,Ｇ－エルイズビー,2026年12月期 第3四半期決算説明会Q&A,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261118582786.pdf,,東,2026-11-18T15:30
