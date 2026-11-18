@@ -1,4 +1,6 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261118582462,2026-11-18T10:00,167A,リョーサン菱洋,2026年度 第２四半期 決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261118582462.pdf,,東,2026-11-18T10:00
+140120261117582323,2026-11-18T10:00,8219,青山商,2027年3月期　第2四半期（中間期）決算説明会,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261117582323.pdf,,東,2026-11-18T10:00
 140120261117582288,2026-11-18T09:30,7943,ニチハ,2027年3月期第2四半期(中間期)決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261117582288.pdf,,東名,2026-11-18T09:30
 140120261117582248,2026-11-17T17:00,9941,太洋物産,2026年９月期　決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261117582248.pdf,https://www.release.tdnet.info/inbs/081220261117582248.zip,東,2026-11-17T17:00
 140120261117582059,2026-11-17T17:00,4265,Ｇ－ＩＧＳ,2027年３月期 第２四半期（中間期）決算及び業績予想の修正に関する資料,forecast_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261117582059.pdf,,東,2026-11-17T17:00
