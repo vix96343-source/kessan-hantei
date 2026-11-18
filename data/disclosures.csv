@@ -1,4 +1,7 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261118582786,2026-11-18T15:30,145A,Ｇ－エルイズビー,2026年12月期 第3四半期決算説明会Q&A,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261118582786.pdf,,東,2026-11-18T15:30
+140120261118582702,2026-11-18T15:30,9887,松屋フーズＨＤ,2027年３月期第２四半期（中間期）決算補足説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261118582702.pdf,,東,2026-11-18T15:30
+140120261116581625,2026-11-18T15:30,231A,Ｑ－Ｃｒｏｓｓ　Ｅ,2026年９月期決算補足説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261116581625.pdf,,福,2026-11-18T15:30
 140120261118582452,2026-11-18T13:00,5269,日コンクリ,2026年度中間決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261118582452.pdf,,東,2026-11-18T13:00
 140120261118582609,2026-11-18T12:00,7698,アイスコ,2027年3月期中間決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261118582609.pdf,,東,2026-11-18T12:00
 140120261118582462,2026-11-18T10:00,167A,リョーサン菱洋,2026年度 第２四半期 決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261118582462.pdf,,東,2026-11-18T10:00
