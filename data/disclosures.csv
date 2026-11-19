@@ -1,4 +1,8 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261119583450,2026-11-19T16:00,4634,ａｒｔｉｅｎｃｅ,2026年12月期（2026年度）第3四半期 決算説明会 資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261119583450.pdf,,東,2026-11-19T16:00
+140120261118582879,2026-11-19T16:00,5573,Ｐ－働楽ＨＤ,2027年３月期　中間決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261118582879.pdf,,東,2026-11-19T16:00
+140120261113580282,2026-11-19T16:00,8725,ＭＳ＆ＡＤ,2026年９月中間期 決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261113580282.pdf,,東名,2026-11-19T16:00
+140120261113580268,2026-11-19T16:00,8725,ＭＳ＆ＡＤ,2027年３月期 第２四半期（中間期）決算短信〔ＩＦＲＳ〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261113580268.pdf,https://www.release.tdnet.info/inbs/081220261113580268.zip,東名,2026-11-19T16:00
 140120261119583137,2026-11-19T15:45,6616,トレックスセミ,2027年3月期 第2四半期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261119583137.pdf,,東,2026-11-19T15:45
 140120261119583458,2026-11-19T15:30,7318,Ｇ－セレンディップ,2027年3月期 第2四半期 決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261119583458.pdf,,東,2026-11-19T15:30
 140120261119583442,2026-11-19T15:30,2914,ＪＴ,通期連結業績予想及び配当予想の修正に関するお知らせ,forecast_dividend_revision,False,down,OperatingIncomeIFRS,-135.4,CurrentYearDuration,"{""OperatingIncomeIFRS"": -135.4, ""ProfitAttributableToOwnersOfParentIFRS"": -209.4, ""SalesIFRS"": -1.6}",https://www.release.tdnet.info/inbs/140120261119583442.pdf,https://www.release.tdnet.info/inbs/091220261119583442.zip,東,2026-11-19T15:30
