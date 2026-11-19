@@ -1,4 +1,5 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261119583562,2026-11-19T15:15,6381,アネスト岩田,2027年3月期 第2四半期決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261119583562.pdf,,東,2026-11-19T15:15
 140120261119583492,2026-11-19T15:00,6923,スタンレー電,2027年3月期(第122期) 中間期決算説明会,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261119583492.pdf,,東,2026-11-19T15:00
 140120261118583047,2026-11-19T15:00,4047,関電化,2027年３月期第２四半期決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261118583047.pdf,,東,2026-11-19T15:00
 140120261119583420,2026-11-19T14:30,9837,モリト,2026年11月期 期末配当予想の修正（増配）に関するお知らせ,dividend_revision,False,up,,,,,https://www.release.tdnet.info/inbs/140120261119583420.pdf,https://www.release.tdnet.info/inbs/091220261119583420.zip,東,2026-11-19T14:30
