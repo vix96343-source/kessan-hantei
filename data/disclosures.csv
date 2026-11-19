@@ -1,4 +1,5 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261119583420,2026-11-19T14:30,9837,モリト,2026年11月期 期末配当予想の修正（増配）に関するお知らせ,dividend_revision,False,up,,,,,https://www.release.tdnet.info/inbs/140120261119583420.pdf,https://www.release.tdnet.info/inbs/091220261119583420.zip,東,2026-11-19T14:30
 140120261106568164,2026-11-19T14:00,7506,ハウスローゼ,2027年3月期 中間期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261106568164.pdf,,東,2026-11-19T14:00
 140120261118582957,2026-11-19T13:00,6023,ダイハツインフィ,2027年3月期 第2四半期（中間期）決算説明会プレゼンテーション資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261118582957.pdf,,東,2026-11-19T13:00
 140120261118582809,2026-11-19T13:00,1807,佐藤渡辺,2027年３月期第２四半期（中間期）決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261118582809.pdf,,東,2026-11-19T13:00
