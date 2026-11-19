@@ -1,4 +1,5 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261118582977,2026-11-19T09:00,6324,ハーモニック,2027年３月期 第２四半期（中間期）決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261118582977.pdf,,東,2026-11-19T09:00
 140120261112577367,2026-11-19T08:30,3719,ＡＩストーム,（数値データ訂正）令和７年12月期 決算短信〔日本基準〕（非連結）,earnings_report,True,,,,,,https://www.release.tdnet.info/inbs/140120261112577367.pdf,https://www.release.tdnet.info/inbs/081220261112577367.zip,東,2026-11-19T08:30
 140120261112577361,2026-11-19T08:30,3719,ＡＩストーム,（数値データ訂正）令和７年12月期 第３四半期決算短信〔日本基準〕（非連結）,earnings_report,True,,,,,,https://www.release.tdnet.info/inbs/140120261112577361.pdf,https://www.release.tdnet.info/inbs/081220261112577361.zip,東,2026-11-19T08:30
 140120261112577360,2026-11-19T08:30,3719,ＡＩストーム,（数値データ訂正）令和７年12月期 第１四半期決算短信〔日本基準〕（非連結）,earnings_report,True,,,,,,https://www.release.tdnet.info/inbs/140120261112577360.pdf,https://www.release.tdnet.info/inbs/081220261112577360.zip,東,2026-11-19T08:30
