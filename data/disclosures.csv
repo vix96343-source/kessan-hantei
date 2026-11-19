@@ -1,4 +1,6 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261118583034,2026-11-19T16:30,8766,東京海上,2027年3月期　第2四半期（中間期）決算参考資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261118583034.pdf,,東,2026-11-19T16:30
+140120261118583013,2026-11-19T16:30,8766,東京海上,2027年3月期 第2四半期（中間期）決算短信〔ＩＦＲＳ〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261118583013.pdf,https://www.release.tdnet.info/inbs/081220261118583013.zip,東,2026-11-19T16:30
 140120261119583455,2026-11-19T16:20,8803,平和不,通期業績予想の修正に関するお知らせ,forecast_revision,False,up,OperatingIncome,0.6,CurrentYearDuration,"{""NetSales"": 15.8, ""OperatingIncome"": 0.6, ""OrdinaryIncome"": 0.0, ""ProfitAttributableToOwnersOfParent"": 0.0}",https://www.release.tdnet.info/inbs/140120261119583455.pdf,https://www.release.tdnet.info/inbs/091220261119583455.zip,東名札福,2026-11-19T16:20
 140120261119583450,2026-11-19T16:00,4634,ａｒｔｉｅｎｃｅ,2026年12月期（2026年度）第3四半期 決算説明会 資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261119583450.pdf,,東,2026-11-19T16:00
 140120261118582879,2026-11-19T16:00,5573,Ｐ－働楽ＨＤ,2027年３月期　中間決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261118582879.pdf,,東,2026-11-19T16:00
