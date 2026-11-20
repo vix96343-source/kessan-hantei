@@ -1,4 +1,7 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261120583973,2026-11-20T12:00,3434,アルファＣｏ,2027年3月期第２四半期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261120583973.pdf,,東,2026-11-20T12:00
+140120261120583810,2026-11-20T12:00,3675,クロスマーケティング,2027年6月期第1四半期決算・会社説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261120583810.pdf,,東,2026-11-20T12:00
+140120261119583545,2026-11-20T12:00,4665,ダスキン,2027年3月期 第2四半期（中間期）決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261119583545.pdf,,東,2026-11-20T12:00
 140120261120583997,2026-11-20T11:30,4687,ＴＤＣソフト,2027年３月期第２四半期（中間期）決算〔日本基準〕（連結）決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261120583997.pdf,,東,2026-11-20T11:30
 140120261120583929,2026-11-20T11:30,7458,第一興商,2027年3月期中間期決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261120583929.pdf,,東,2026-11-20T11:30
 140120261120583839,2026-11-20T10:00,2304,ＣＳＳＨＤ,2026年9月期 通期決算説明資料（スクリプト付）,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261120583839.pdf,,東,2026-11-20T10:00
