@@ -1,4 +1,7 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261120583839,2026-11-20T10:00,2304,ＣＳＳＨＤ,2026年9月期 通期決算説明資料（スクリプト付）,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261120583839.pdf,,東,2026-11-20T10:00
+140120261120583837,2026-11-20T10:00,2304,ＣＳＳＨＤ,2026年9月期 通期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261120583837.pdf,,東,2026-11-20T10:00
+140120261119583760,2026-11-20T10:00,1379,ホクト,2027年3月期第2四半期 決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261119583760.pdf,,東,2026-11-20T10:00
 140120261119583764,2026-11-20T09:30,3927,フーバーブレイン,2027年３月期 第２四半期決算説明会動画及び資料公開について,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261119583764.pdf,,東,2026-11-20T09:30
 140120261112575183,2026-11-20T09:30,4220,リケンテクノス,2027年３月期 第２四半期（中間期）決算・経営概況説明会補足資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261112575183.pdf,,東,2026-11-20T09:30
 140120261112575130,2026-11-20T09:30,4220,リケンテクノス,2027年３月期 第２四半期（中間期）決算・経営概況説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261112575130.pdf,,東,2026-11-20T09:30
