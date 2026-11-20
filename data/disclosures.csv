@@ -1,4 +1,11 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261120583869,2026-11-20T16:00,6240,ヤマシンフィルタ,2027年３月期第２四半期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261120583869.pdf,,東,2026-11-20T16:00
+140120261120583854,2026-11-20T16:00,6087,アビスト,2026年9月期 投資家向け決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261120583854.pdf,,東,2026-11-20T16:00
+140120261120583818,2026-11-20T16:00,9243,Ｐ－富士テクノＨＤ,2027年３月期　中間決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261120583818.pdf,,東,2026-11-20T16:00
+140120261120583812,2026-11-20T16:00,3448,Ｐ－清鋼材,2027年３月期 中間決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261120583812.pdf,,東,2026-11-20T16:00
+140120261119583689,2026-11-20T16:00,406A,Ｐ－環境のミカタＨＤ,2026年９月期　決算短信〔日本基準〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261119583689.pdf,,東,2026-11-20T16:00
+140120261119583683,2026-11-20T16:00,406A,Ｐ－環境のミカタＨＤ,剰余金の配当（無配）に関するお知らせ,dividend_revision,False,down,,,,,https://www.release.tdnet.info/inbs/140120261119583683.pdf,,東,2026-11-20T16:00
+140120261119583151,2026-11-20T16:00,4124,大阪油化工業,株式分割及び株式分割に伴う定款の一部変更並びに配当予想の修正に関するお知らせ,dividend_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261119583151.pdf,https://www.release.tdnet.info/inbs/091220261119583151.zip,東名,2026-11-20T16:00
 140120261119583637,2026-11-20T15:40,2413,エムスリー,連結子会社の業績予想の修正に関するお知らせ,forecast_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261119583637.pdf,,東,2026-11-20T15:40
 140120261119583591,2026-11-20T15:40,3174,ハピネス＆Ｄ,（訂正・数値データ訂正）「2026年８月期決算短信「日本基準」（連結）」の一部訂正,earnings_report,True,,,,,,https://www.release.tdnet.info/inbs/140120261119583591.pdf,https://www.release.tdnet.info/inbs/081220261119583591.zip,東,2026-11-20T15:40
 140120261120584291,2026-11-20T15:30,259A,ケイ・ウノ,2026年9月期　決算説明資料(スクリプト付き),earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261120584291.pdf,,名,2026-11-20T15:30
