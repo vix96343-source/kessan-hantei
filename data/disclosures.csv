@@ -1,4 +1,5 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261120583860,2026-11-20T15:00,9823,マミーマートＨＤ,2026年9月期決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261120583860.pdf,,東,2026-11-20T15:00
 140120261119583347,2026-11-20T14:00,5832,ちゅうぎんＦＧ,（追加）「2027 年３月期第２四半期（中間期）決算短信〔日本基準〕 （連結）」補足説明資料の追加に関するお知らせ,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261119583347.pdf,,東,2026-11-20T14:00
 140120261118582713,2026-11-20T14:00,5078,セレコーポレーション,株式分割及び配当予想の修正に関するお知らせ,dividend_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261118582713.pdf,https://www.release.tdnet.info/inbs/091220261118582713.zip,東,2026-11-20T14:00
 140120261112577416,2026-11-20T13:30,3355,クリヤマＨＤ,通期連結業績予想の修正に関するお知らせ,forecast_revision,False,up,OperatingIncome,12.5,CurrentYearDuration,"{""NetSales"": 7.3, ""OperatingIncome"": 12.5, ""OrdinaryIncome"": 11.1, ""ProfitAttributableToOwnersOfParent"": -15.8}",https://www.release.tdnet.info/inbs/140120261112577416.pdf,https://www.release.tdnet.info/inbs/091220261112577416.zip,東,2026-11-20T13:30
