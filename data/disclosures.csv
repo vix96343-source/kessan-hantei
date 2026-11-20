@@ -1,4 +1,8 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261120584086,2026-11-20T13:00,5533,エリッツＨＤ,2026年９月期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261120584086.pdf,,東,2026-11-20T13:00
+140120261120584047,2026-11-20T13:00,6859,エスペック,2026年度（2027年3月期）第2四半期決算説明,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261120584047.pdf,,東,2026-11-20T13:00
+140120261119583763,2026-11-20T13:00,4165,Ｇ－プレイド,業績予想の修正に関するお知らせ,forecast_revision,False,down,OperatingIncome,-156.2,CurrentYearDuration,"{""NetSales"": -11.1, ""OperatingIncome"": -156.2, ""OrdinaryIncome"": -178.6, ""ProfitAttributableToOwnersOfParent"": -433.3}",https://www.release.tdnet.info/inbs/140120261119583763.pdf,https://www.release.tdnet.info/inbs/091220261119583763.zip,東,2026-11-20T13:00
+140120261119583664,2026-11-20T13:00,7368,表示灯,2027年３月期 第２四半期決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261119583664.pdf,,東,2026-11-20T13:00
 140120261120583973,2026-11-20T12:00,3434,アルファＣｏ,2027年3月期第２四半期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261120583973.pdf,,東,2026-11-20T12:00
 140120261120583810,2026-11-20T12:00,3675,クロスマーケティング,2027年6月期第1四半期決算・会社説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261120583810.pdf,,東,2026-11-20T12:00
 140120261119583545,2026-11-20T12:00,4665,ダスキン,2027年3月期 第2四半期（中間期）決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261119583545.pdf,,東,2026-11-20T12:00
