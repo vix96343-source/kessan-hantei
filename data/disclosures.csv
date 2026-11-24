@@ -1,4 +1,8 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261124585101,2026-11-24T15:30,3843,フリービット,2027年４月期 第１四半期 決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261124585101.pdf,,東,2026-11-24T15:30
+140120261124585097,2026-11-24T15:30,156A,Ｇ－マテリアルＧ,2026年8月期決算短信〔IFRS〕（連結）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261124585097.pdf,https://www.release.tdnet.info/inbs/081220261124585097.zip,東,2026-11-24T15:30
+140120261120584443,2026-11-24T15:30,4914,高砂香料,2027年3月期2Q決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261120584443.pdf,,東,2026-11-24T15:30
+140120261120584006,2026-11-24T15:30,7505,扶桑電通,2026年9月期決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261120584006.pdf,,東,2026-11-24T15:30
 140120261124585040,2026-11-24T14:00,4709,ＩＤホールディングス,2027年３月期 第２四半期（中間期）決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261124585040.pdf,,東,2026-11-24T14:00
 140120261124584847,2026-11-24T14:00,6203,豊和工,2027年3月期 第2四半期（中間期）　決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261124584847.pdf,,東名,2026-11-24T14:00
 140120261124584780,2026-11-24T12:00,6292,カワタ,2027年３月期第２四半期決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261124584780.pdf,,東,2026-11-24T12:00
