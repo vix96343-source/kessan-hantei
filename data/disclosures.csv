@@ -1,4 +1,5 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261124584560,2026-11-24T09:00,8891,ＡＭＧＨＤ,2027年３月期　第２四半期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261124584560.pdf,,東名,2026-11-24T09:00
 140120261120584035,2026-11-20T19:40,6727,ワコム,2027年３月期期末配当予想の修正（無配）に関するお知らせ,dividend_revision,False,down,,,,,https://www.release.tdnet.info/inbs/140120261120584035.pdf,https://www.release.tdnet.info/inbs/091220261120584035.zip,東,2026-11-20T19:40
 140120261119583737,2026-11-20T17:45,4933,Ｉｎｅ,2026年12月期の配当予想の修正（無配）及び株主優待制度の廃止に関するお知らせ,dividend_revision,False,down,,,,,https://www.release.tdnet.info/inbs/140120261119583737.pdf,https://www.release.tdnet.info/inbs/091220261119583737.zip,東,2026-11-20T17:45
 140120261112576543,2026-11-20T17:00,4275,カーリット,2027年３月期第２四半期決算説明資料（QA追記版）の公開および動画配信のお知らせ,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261112576543.pdf,,東,2026-11-20T17:00
