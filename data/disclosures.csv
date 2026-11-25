@@ -1,4 +1,7 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261125585756,2026-11-25T15:00,2501,サッポロビール,2026年12月期第３四半期決算短信〔ＩＦＲＳ〕（連結）（開示事項の追加及び公認会計士等による期中レビューの完了）,earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261125585756.pdf,https://www.release.tdnet.info/inbs/081220261125585756.zip,東札,2026-11-25T15:00
+140120261125585624,2026-11-25T15:00,4491,Ｃマネージメント,2027年３月期 第２四半期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261125585624.pdf,,東,2026-11-25T15:00
+140120261125585564,2026-11-25T15:00,1871,ピーエス,2027年3月期第2四半期決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261125585564.pdf,,東,2026-11-25T15:00
 140120261125585844,2026-11-25T14:00,2676,高千穂交,2027年３月期 第２四半期決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261125585844.pdf,,東,2026-11-25T14:00
 140120261125585561,2026-11-25T14:00,5976,ネツレン,2026年度　第２四半期（中間期）決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261125585561.pdf,,東,2026-11-25T14:00
 140120261124584785,2026-11-25T12:00,4012,アクシス,配当予想の修正に関するお知らせ,dividend_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261124584785.pdf,https://www.release.tdnet.info/inbs/091220261124584785.zip,東,2026-11-25T12:00
