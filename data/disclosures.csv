@@ -1,4 +1,5 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261124584767,2026-11-25T10:50,8130,サンゲツ,2027年３月期 第２四半期（中間期）決算・経営戦略説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261124584767.pdf,,東名,2026-11-25T10:50
 140120261124584623,2026-11-25T10:00,7213,レシップＨＤ,2027年3月期 第2四半期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261124584623.pdf,,東名,2026-11-25T10:00
 140120261124585164,2026-11-25T08:30,4584,Ｇ－キッズ・バイオ,2026年度 第２四半期 決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261124585164.pdf,,東,2026-11-25T08:30
 140120261124585094,2026-11-24T16:00,7456,松田産,2027年３月期 第２四半期 決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261124585094.pdf,,東,2026-11-24T16:00
