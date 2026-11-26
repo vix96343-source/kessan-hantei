@@ -1,4 +1,5 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261124584747,2026-11-27T08:00,6276,シリウスＶ,2026年12月期 配当予想の修正(復配)に関するお知らせ,dividend_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261124584747.pdf,https://www.release.tdnet.info/inbs/091220261124584747.zip,東,2026-11-27T08:00
 140120261126586746,2026-11-26T16:00,9347,日本管財ＨＤ,2027年3月期第2四半期（中間期） 決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261126586746.pdf,,東,2026-11-26T16:00
 140120261126586886,2026-11-26T15:30,3905,Ｇ－データセクション,2027年3月期第2四半期決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261126586886.pdf,,東,2026-11-26T15:30
 140120261126586861,2026-11-26T15:30,7928,旭化学,2026年８月期決算説明資料及び中期経営計画の進捗状況,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261126586861.pdf,,東名,2026-11-26T15:30
