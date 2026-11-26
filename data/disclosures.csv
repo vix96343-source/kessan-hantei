@@ -1,4 +1,7 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261125586366,2026-11-26T10:00,423A,ライオン事務器,2026年９月期　決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261125586366.pdf,,東,2026-11-26T10:00
+140120261125586249,2026-11-26T10:00,6013,タクマ,2027年3月期第2四半期 決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261125586249.pdf,,東,2026-11-26T10:00
+140120261125585623,2026-11-26T10:00,4958,長谷川香,2026年9月期決算説明会,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261125585623.pdf,,東,2026-11-26T10:00
 140120261125586223,2026-11-25T18:00,6161,エスティック,2027年3月期 第2四半期 決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261125586223.pdf,,東,2026-11-25T18:00
 140120261125586159,2026-11-25T16:30,8798,アドバンスクリエイト,2026年10月度 当社の業績概要について,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261125586159.pdf,,東札福,2026-11-25T16:30
 140120261125585582,2026-11-25T16:30,6576,Ｐ－揚工舎,2027年３月期　中間決算短信〔日本基準〕(連結),earnings_report,False,,,,,,https://www.release.tdnet.info/inbs/140120261125585582.pdf,,東,2026-11-25T16:30
