@@ -1,4 +1,6 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261127587685,2026-11-27T17:00,4040,南海化学,2027年３月期　中間決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261127587685.pdf,,東,2026-11-27T17:00
+140120261124585117,2026-11-27T17:00,7680,Ｐ－軽自動車館,通期業績予想の修正に関するお知らせ,forecast_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261124585117.pdf,,東,2026-11-27T17:00
 140120261127587875,2026-11-27T16:00,3103,ユニチカ,2027年3月期 第2四半期（中間期）決算説明会,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261127587875.pdf,,東,2026-11-27T16:00
 140120261127587757,2026-11-27T16:00,7434,オータケ,固定資産の譲渡に伴う特別利益の計上及び通期連結業績予想の修正に関するお知らせ,forecast_revision,False,flat,OperatingIncome,0.0,CurrentYearDuration,"{""NetSales"": 0.0, ""OperatingIncome"": 0.0, ""OrdinaryIncome"": 0.0, ""ProfitAttributableToOwnersOfParent"": 50.0}",https://www.release.tdnet.info/inbs/140120261127587757.pdf,https://www.release.tdnet.info/inbs/091220261127587757.zip,東,2026-11-27T16:00
 140120261127587737,2026-11-27T16:00,4427,Ｇ－ＥｄｕＬａｂ,（訂正）「通期連結業績予想と実績の差異及び個別業績の前期実績との差異 並びに営業外費用、特別利益及び特別損失の計上に関するお知らせ」の一部訂正について,actual_vs_forecast,True,,,,,,https://www.release.tdnet.info/inbs/140120261127587737.pdf,,東,2026-11-27T16:00
