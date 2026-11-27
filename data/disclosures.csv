@@ -1,4 +1,5 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261125586349,2026-11-27T15:55,4972,綜研化学,2027年3月期第2四半期決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261125586349.pdf,,東,2026-11-27T15:55
 140120261127587649,2026-11-27T15:30,6393,油研工,2027年3月期 第2四半期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261127587649.pdf,,東,2026-11-27T15:30
 140120261127587519,2026-11-27T15:30,2332,クエスト,2027年3月期 第２四半期決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261127587519.pdf,,東,2026-11-27T15:30
 140120261127587502,2026-11-27T15:30,7279,ハイレックス,通期業績予想の修正に関するお知らせ,forecast_revision,False,down,OperatingIncome,-63.0,CurrentYearDuration,"{""NetSales"": 4.7, ""OperatingIncome"": -63.0, ""OrdinaryIncome"": -32.4, ""ProfitAttributableToOwnersOfParent"": -18.6}",https://www.release.tdnet.info/inbs/140120261127587502.pdf,https://www.release.tdnet.info/inbs/091220261127587502.zip,東,2026-11-27T15:30
