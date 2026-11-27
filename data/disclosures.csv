@@ -1,4 +1,7 @@
 disclosure_id,disclosed_at,code,name,title,kind,is_correction,direction,metric,change_pct,period,xbrl_changes,pdf_url,xbrl_url,exchange,fetched_at
+140120261127588040,2026-11-27T17:30,2764,ひらまつ,2027年3月期第２四半期（中間期）決算説明会資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261127588040.pdf,,東,2026-11-27T17:30
+140120261127588035,2026-11-27T17:30,5122,オカモト,2027年3月期中間期決算説明会資料について,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261127588035.pdf,,東,2026-11-27T17:30
+140120261127588031,2026-11-27T17:30,506A,Ｐ－シンカナース,通期業績予想の修正に関するお知らせ,forecast_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261127588031.pdf,,東,2026-11-27T17:30
 140120261127587685,2026-11-27T17:00,4040,南海化学,2027年３月期　中間決算説明資料,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261127587685.pdf,,東,2026-11-27T17:00
 140120261124585117,2026-11-27T17:00,7680,Ｐ－軽自動車館,通期業績予想の修正に関するお知らせ,forecast_revision,False,,,,,,https://www.release.tdnet.info/inbs/140120261124585117.pdf,,東,2026-11-27T17:00
 140120261127587875,2026-11-27T16:00,3103,ユニチカ,2027年3月期 第2四半期（中間期）決算説明会,earnings_presentation,False,,,,,,https://www.release.tdnet.info/inbs/140120261127587875.pdf,,東,2026-11-27T16:00
